@@ -65,5 +65,6 @@ benchmarks/graphs
 
 
 #compiled things
+torflow.js
 **/templates/**/*.js
 **/public/stylesheets/style.css
