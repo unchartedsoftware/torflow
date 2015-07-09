@@ -1,0 +1,69 @@
+# ----------------------------------------
+# IntelliJ Gitignore
+# ----------------------------------------
+
+# User-specific stuff:
+.idea/workspace.xml
+.idea/tasks.xml
+.idea/dictionaries
+.idea/watcherTasks.xml
+
+# Sensitive or high-churn files:
+.idea/dataSources.ids
+.idea/dataSources.xml
+.idea/sqlDataSources.xml
+.idea/dynamic.xml
+.idea/uiDesigner.xml
+.idea/deployment.xml
+.idea/scopes/scope_settings.xml
+
+# File-based project format:
+.ipr
+.iws
+
+# IntelliJ
+/out/
+
+# JIRA plugin
+atlassian-ide-plugin.xml
+
+
+
+# ----------------------------------------
+## NodeJS Express Gitignore
+# ----------------------------------------
+# OS X
+.DS_Store*
+Icon?
+._*
+
+# Windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# Linux
+.directory
+*~
+
+
+# npm
+node_modules
+*.log
+*.gz
+
+
+# Coveralls
+coverage
+
+# Benchmarking
+benchmarks/graphs
+
+# ----------------------------------------
+## Colosseo Ignores
+# ----------------------------------------
+
+
+#compiled things
+**/templates/**/*.js
+**/public/stylesheets/style.css
