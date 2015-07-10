@@ -72,6 +72,15 @@ function points(relayData) {
     return points;
 }
 
+function bandwidth(relayData) {
+    var bandwidth = [];
+    Object.keys(relayData).forEach(function(fingerprint) {
+        bandwidth.push(relayData[fingerprint].observedbw);
+    });
+    return bandwidth;
+}
+
 module.exports.processRelayData = processRelayData;
 module.exports.centerPoint = centerPoint;
 module.exports.points = points;
+module.exports.bandwidth = bandwidth;

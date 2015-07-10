@@ -35,13 +35,18 @@ App.prototype = _.extend(App.prototype, {
                     d.circle.coordinates[1]);
             });
 
+            var MIN_RADIUS = 2;
+            var MAX_RADIUS = 20;
+
             var feature = g.selectAll('circle')
                 .data(collection.objects)
                 .enter().append('circle')
                 .style('stroke', 'black')
                 .style('opacity', 0.6)
                 .style('fill', 'red')
-                .attr('r', 20);
+                .attr('r', function(d) {
+                    return MIN_RADIUS + (MAX_RADIUS-MIN_RADIUS)* d.circle.bandwidth;
+                });
 
             function update() {
                 feature.attr('transform',
