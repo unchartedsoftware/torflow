@@ -2,6 +2,9 @@ var fs = require('fs');
 var readline = require('readline');
 var Geo = require('./geo');
 
+var processedCache = null;
+var processedAggregateCache = null;
+
 function processRelayData(filename,callback) {
     var relayData = {};     // Fingerprint -> JSON data
 
@@ -80,7 +83,25 @@ function bandwidth(relayData) {
     return bandwidth;
 }
 
+function cache(data) {
+    if (data) {
+        processedCache = data;
+    } else {
+        return processedCache;
+    }
+}
+
+function aggregateCache(data) {
+    if (data) {
+        processedAggregateCache = data;
+    } else {
+        return processedAggregateCache;
+    }
+}
+
 module.exports.processRelayData = processRelayData;
 module.exports.centerPoint = centerPoint;
 module.exports.points = points;
 module.exports.bandwidth = bandwidth;
+module.exports.cache = cache;
+module.exports.aggregateCache = aggregateCache;

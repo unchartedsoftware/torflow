@@ -12,6 +12,11 @@ RelayData.processRelayData('Relays.csv', function(data) {
 /* GET home page. */
 router.get('/', function(req, res, next) {
 
+    if (RelayData.cache()) {
+        res.send(RelayData.cache());
+        return;
+    }
+
     // Aggregate on equal lat/lon
     var buckets = {};
     Object.keys(relayData).forEach(function(id) {
@@ -35,31 +40,30 @@ router.get('/', function(req, res, next) {
             relays : ids.map(function(id) { return relayData[id]; })
         };
     });
+    RelayData.aggregateCache(aggregatedRelayData);
+
     var aggregatedBandwidth = aggregatedRelayData.map(function(a) { return a.bandwidth; });
     var aggregatedBandwidthExtends = MathUtil.minmax(aggregatedBandwidth);
 
     var payload = {
-        objects : aggregatedRelayData.map(function(aggregate) {
+        objects : aggregatedRelayData.map(function(aggregate,i) {
             return {
                 circle : {
                     coordinates : [aggregate.gps.lat,aggregate.gps.lon],
-                    bandwidth : (aggregate.bandwidth - aggregatedBandwidthExtends.min) / aggregatedBandwidthExtends.max
+                    bandwidth : (aggregate.bandwidth - aggregatedBandwidthExtends.min) / aggregatedBandwidthExtends.max,
+                    id : aggregate.id
                 }
             };
         })
     };
 
-    var scaledBandwidths = payload.objects.map(function(o) {
-        return o.circle.bandwidth;
-    });
-    var scaledBandwidthExtents = MathUtil.minmax(scaledBandwidths);
-
-
     // Ensure larger nodes sit on top
     payload.objects = payload.objects.sort(function(o1,o2) {
         return o1.circle.bandwidth - o2.circle.bandwidth;
     });
-    
+
+    RelayData.cache(payload);
+
     res.send(payload);
 });
 
