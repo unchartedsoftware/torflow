@@ -35,7 +35,7 @@ App.prototype = _.extend(App.prototype, {
                     d.circle.coordinates[1]);
             });
 
-            var MIN_RADIUS = 2;
+            var MIN_RADIUS = 3;
             var MAX_RADIUS = 20;
 
             var feature = g.selectAll('circle')
