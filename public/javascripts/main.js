@@ -28,7 +28,7 @@ App.prototype = _.extend(App.prototype, {
         var svg = d3.select('#map').select('svg'),
             g = svg.append('g');
 
-        d3.json('json/features.json', function(collection) {
+        d3.json('/nodes', function(collection) {
             /* Add a LatLng object to each item in the dataset */
             collection.objects.forEach(function(d) {
                 d.LatLng = new L.LatLng(d.circle.coordinates[0],
