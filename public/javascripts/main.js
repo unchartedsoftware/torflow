@@ -10,10 +10,24 @@ var App = function() {
 
 App.prototype = _.extend(App.prototype, {
 
+    _clusters : {},     // zoom level -> list of clusters
+
+    _getFlow : function(clusterset) {
+
+
+    },
+
+    _isVisisble : function(clusterBounds,mapBounds) {
+        // TODO: test if cluster bounds is visible in map bounds
+        return true;
+    },
+
+
     /**
      * Application startup.
      */
     start: function () {
+        var self = this;
         var idToLatLng = {};
 
         var map = L.map('map').setView([0, 0], 2);
@@ -31,6 +45,7 @@ App.prototype = _.extend(App.prototype, {
         d3.json('/nodes', function (nodes) {
             d3.json('/flow', function (flow) {
 
+
                 var MIN_RADIUS = 15;
                 var MAX_RADIUS = 30;
 
@@ -41,15 +56,23 @@ App.prototype = _.extend(App.prototype, {
                     idToLatLng[d.circle.id] = d.LatLng;
                 });
 
-
+                // Initialize zoom -> clusters map
+                var minZoom = map.getMinZoom();
+                var maxZoom = map.getMaxZoom();
+                for (var i = minZoom; i <= maxZoom; i++) {
+                    self._clusters[i] = [];
+                }
 
                  var markers = L.markerClusterGroup({
+                     removeOutsideVisibleBounds : false,
                      iconCreateFunction: function (cluster) {
                          var markers = cluster.getAllChildMarkers();
 
                          var dataElements = markers.map(function(marker) {
                              return marker.data.circle;
                          });
+
+                         self._clusters[map.getZoom()].push(cluster);
 
                          var bandwidth = 0;
                          dataElements.forEach(function(data) {
@@ -64,6 +87,14 @@ App.prototype = _.extend(App.prototype, {
                          });
                      },
                  });
+
+                markers.on('animationend', function() {
+                    var clusterset = self._clusters[map.getZoom()];
+                    self._getFlow(clusterset);
+                    console.log('Zoom Level : ' + map.getZoom() + ', Edge Count: ' + clusterset.length * clusterset.length);
+                });
+
+                markers.on('')
 
                 var defaultIcon = L.divIcon({
                     className: 'relay-cluster',
@@ -90,7 +121,6 @@ App.prototype = _.extend(App.prototype, {
                     //lineLayer.addLine(idToLatLng[edge.source],idToLatLng[edge.target]);
                 });
                 lineLayer.addTo(map);
-
             });
         });
     }
