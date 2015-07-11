@@ -42,12 +42,6 @@ App.prototype = _.extend(App.prototype, {
                 var MIN_RADIUS = 3;
                 var MAX_RADIUS = 20;
 
-                var lines = g.selectAll('line')
-                    .data(flow)
-                    .enter().append('line')
-                    .style('stroke','blue')
-                    .style('stroke-opacity',0.05);
-
                 var circles = g.selectAll('circle')
                     .data(nodes.objects)
                     .enter().append('circle')
@@ -66,21 +60,38 @@ App.prototype = _.extend(App.prototype, {
                                 map.latLngToLayerPoint(d.LatLng).y +')';
                         }
                     );
-
-                    lines
-                        .attr('x1',function(d) {
-                            return map.latLngToLayerPoint(idToLatLng[d.source]).x;
-                        })
-                        .attr('y1',function(d) {
-                            return map.latLngToLayerPoint(idToLatLng[d.source]).y;
-                        })
-                        .attr('x2',function(d) {
-                            return map.latLngToLayerPoint(idToLatLng[d.target]).x;
-                        })
-                        .attr('y2',function(d) {
-                            return map.latLngToLayerPoint(idToLatLng[d.target]).y;
-                        });
                 }
+
+                var BigPointLayer = L.CanvasLayer.extend({
+
+                    renderLine: function(ctx, source, target) {
+                        ctx.beginPath();
+                        ctx.moveTo(source.x,source.y);
+                        ctx.lineTo(target.x,target.y);
+                        ctx.stroke();
+                    },
+
+                    render: function() {
+                        console.log('render');
+                        var canvas = this.getCanvas();
+                        var ctx = canvas.getContext('2d');
+
+                        ctx.strokeStyle = 'rgba(0, 0, 255, 0.05)';
+
+                        // clear canvas
+                        ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+                        var that = this;
+                        flow.forEach(function(edge) {
+                            var source = that._map.latLngToContainerPoint(idToLatLng[edge.source]);
+                            var target = that._map.latLngToContainerPoint(idToLatLng[edge.target]);
+                            that.renderLine(ctx,source,target);
+                        });
+                    }
+                });
+
+                var layer = new BigPointLayer();
+                layer.addTo(map);
 
                 map.on('viewreset', update);
                 update();

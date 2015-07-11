@@ -3,7 +3,7 @@ var router = express.Router();
 
 var RelayData = require('../util/relayData');
 
-var EDGE_PROBABILITY = 0.005;
+var EDGE_PROBABILITY = 0.03;
 
 /* GET home page. */
 router.get('/', function(req, res, next) {
