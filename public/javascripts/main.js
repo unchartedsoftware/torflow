@@ -31,6 +31,9 @@ App.prototype = _.extend(App.prototype, {
         d3.json('/nodes', function (nodes) {
             d3.json('/flow', function (flow) {
 
+                var MIN_RADIUS = 15;
+                var MAX_RADIUS = 30;
+
                 /* Add a LatLng object to each item in the dataset and create a lookup from id->LatLng Object */
                 nodes.objects.forEach(function(d,i) {
                     d.LatLng = new L.LatLng(d.circle.coordinates[0],
@@ -40,12 +43,39 @@ App.prototype = _.extend(App.prototype, {
 
 
 
-                 var markers = L.markerClusterGroup();
+                 var markers = L.markerClusterGroup({
+                     iconCreateFunction: function (cluster) {
+                         var markers = cluster.getAllChildMarkers();
+
+                         var dataElements = markers.map(function(marker) {
+                             return marker.data.circle;
+                         });
+
+                         var bandwidth = 0;
+                         dataElements.forEach(function(data) {
+                             bandwidth += data.bandwidth;
+                         });
+
+                         var radius = MIN_RADIUS + (MAX_RADIUS-MIN_RADIUS)*bandwidth;
+
+                         return L.divIcon({
+                             className: 'relay-cluster',
+                             iconSize: L.point(radius, radius)
+                         });
+                     },
+                 });
+
+                var defaultIcon = L.divIcon({
+                    className: 'relay-cluster',
+                    iconSize:L.point(MIN_RADIUS, MIN_RADIUS)
+                });
+
 
                  for (var i = 0; i < nodes.objects.length; i++) {
                      var d = nodes.objects[i];
                      var title = d.circle.id;
-                     var marker = L.marker(d.LatLng, { title: title });
+                     var marker = L.marker(d.LatLng, {icon: defaultIcon});
+                     marker.data = d;
                      marker.bindPopup(title);
                      markers.addLayer(marker);
                  }
