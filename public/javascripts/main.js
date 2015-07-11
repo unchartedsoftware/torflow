@@ -1,3 +1,5 @@
+var LineLayer = require('./layers/linelayer');
+
 /**
  * Creates the TorFlow front-end app
  * @constructor
@@ -25,76 +27,40 @@ App.prototype = _.extend(App.prototype, {
         /* Initialize the SVG layer */
         map._initPathRoot();
 
-        /* We simply pick up the SVG from the map object */
-        var svg = d3.select('#map').select('svg'),
-            g = svg.append('g');
 
         d3.json('/nodes', function (nodes) {
             d3.json('/flow', function (flow) {
 
-                /* Add a LatLng object to each item in the dataset */
+                /* Add a LatLng object to each item in the dataset and create a lookup from id->LatLng Object */
                 nodes.objects.forEach(function(d,i) {
                     d.LatLng = new L.LatLng(d.circle.coordinates[0],
                         d.circle.coordinates[1]);
                     idToLatLng[d.circle.id] = d.LatLng;
                 });
 
-                var MIN_RADIUS = 3;
-                var MAX_RADIUS = 20;
 
-                var circles = g.selectAll('circle')
-                    .data(nodes.objects)
-                    .enter().append('circle')
-                    .style('stroke', 'black')
-                    .style('opacity', 0.6)
-                    .style('fill', 'white')
-                    .attr('r', function(d) {
-                        return MIN_RADIUS + (MAX_RADIUS-MIN_RADIUS)* d.circle.bandwidth;
-                    });
 
-                function update() {
-                    circles.attr('transform',
-                        function(d) {
-                            return 'translate('+
-                                map.latLngToLayerPoint(d.LatLng).x +','+
-                                map.latLngToLayerPoint(d.LatLng).y +')';
-                        }
-                    );
-                }
+                 var markers = L.markerClusterGroup();
 
-                var BigPointLayer = L.CanvasLayer.extend({
+                 for (var i = 0; i < nodes.objects.length; i++) {
+                     var d = nodes.objects[i];
+                     var title = d.circle.id;
+                     var marker = L.marker(d.LatLng, { title: title });
+                     marker.bindPopup(title);
+                     markers.addLayer(marker);
+                 }
+                map.addLayer(markers);
 
-                    renderLine: function(ctx, source, target) {
-                        ctx.beginPath();
-                        ctx.moveTo(source.x,source.y);
-                        ctx.lineTo(target.x,target.y);
-                        ctx.stroke();
-                    },
 
-                    render: function() {
-                        console.log('render');
-                        var canvas = this.getCanvas();
-                        var ctx = canvas.getContext('2d');
 
-                        ctx.strokeStyle = 'rgba(0, 0, 255, 0.05)';
 
-                        // clear canvas
-                        ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-                        var that = this;
-                        flow.forEach(function(edge) {
-                            var source = that._map.latLngToContainerPoint(idToLatLng[edge.source]);
-                            var target = that._map.latLngToContainerPoint(idToLatLng[edge.target]);
-                            that.renderLine(ctx,source,target);
-                        });
-                    }
+                // Create line layer and add edges
+                var lineLayer = new LineLayer();
+                flow.forEach(function(edge) {
+                    //lineLayer.addLine(idToLatLng[edge.source],idToLatLng[edge.target]);
                 });
+                lineLayer.addTo(map);
 
-                var layer = new BigPointLayer();
-                layer.addTo(map);
-
-                map.on('viewreset', update);
-                update();
             });
         });
     }
