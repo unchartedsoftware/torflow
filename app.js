@@ -9,7 +9,7 @@ var routes = require('./routes/index');
 var users = require('./routes/users');
 var nodes = require('./routes/nodes');
 var flow = require('./routes/flow');
-
+var generateFlow = require('./routes/generateFlow');
 
 var app = express();
 
@@ -29,6 +29,7 @@ app.use('/', routes);
 app.use('/users', users);
 app.use('/nodes',nodes);
 app.use('/flow',flow);
+app.use('/generateflow',generateFlow);
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
