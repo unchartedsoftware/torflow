@@ -1,4 +1,8 @@
 var LineLayer = require('./layers/linelayer');
+var DotLayer = require('./layers/dotlayer');
+var MapParticleSimulation = require('./particles/mapparticlesimulation');
+
+var PARTICLE_COUNT = 1000;
 
 /**
  * Creates the TorFlow front-end app
@@ -11,6 +15,8 @@ var App = function() {
 App.prototype = _.extend(App.prototype, {
 
     _clusters : {},     // zoom level -> list of clusters
+
+    _particleSimulation : null,
 
     _getFlow : function(clusterset) {
 
@@ -52,9 +58,9 @@ App.prototype = _.extend(App.prototype, {
 
             /* Add a LatLng object to each item in the dataset */
             nodes.objects.forEach(function(d,i) {
-                d.LatLng = new L.LatLng(d.circle.coordinates[0],
+                d.latLng = new L.LatLng(d.circle.coordinates[0],
                     d.circle.coordinates[1]);
-                idToLatLng[d.circle.id] = d.LatLng;
+                idToLatLng[d.circle.id] = d.latLng;
             });
 
 
@@ -106,12 +112,29 @@ App.prototype = _.extend(App.prototype, {
              for (var i = 0; i < nodes.objects.length; i++) {
                  var d = nodes.objects[i];
                  var title = d.circle.id;
-                 var marker = L.marker(d.LatLng, {icon: defaultIcon});
+                 var marker = L.marker(d.latLng, {icon: defaultIcon});
                  marker.data = d;
                  marker.bindPopup(title);
                  markers.addLayer(marker);
              }
             map.addLayer(markers);
+
+            var trailLayer = new DotLayer()
+                .fillStyle('rgba(0,0,255,0.03');
+            var headLayer = new DotLayer()
+                .fillStyle('rgba(255,255,255,0.8');
+            self._particleSimulation = new MapParticleSimulation(nodes.objects,PARTICLE_COUNT,map)
+                .start()
+                .onPositionsAvailable(function(positions) {
+                    headLayer.clear();
+                    positions.forEach(function(pos) {
+                        trailLayer.add(pos.latLng);
+                        headLayer.add(pos.latLng);
+                    });
+                });
+            trailLayer.addTo(map);
+            headLayer.addTo(map);
+
 
 
 
