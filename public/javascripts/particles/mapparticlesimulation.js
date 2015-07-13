@@ -3,7 +3,7 @@ var ParticleSystem = require('./particlesystem');
 var Lerp = require('../util/lerp');
 
 var MapParticleSimulation = function(nodes,count,map) {
-    this._nodes = nodes;
+    this._nodes = nodes.sort(function(n1,n2) { return n2.bandwidth - n1.bandwidth; });
     this._count = count;
     this._requestAnimationFrame = window.requestAnimationFrame;     // TODO:  make this work for other browsers
     this._cancelAnimationFrame = window.cancelAnimationFrame;
@@ -32,12 +32,25 @@ MapParticleSimulation.prototype = _.extend(MapParticleSimulation.prototype,{
         //console.log('Adding particle from ' + pair.source.circle.id + ' to ' + pair.destination.circle.id);
         this._particleSystem.addParticle(pair.source,pair.destination,'rbga(0,0,255,0.8',Lerp(750,1500,Math.random()));
     },
+    _getProbabilisticNodeIndex : function() {
+        var rnd = Math.random();
+        var i = 0;
+        while (rnd > this._nodes[i].bandwidth && i < this._nodes.length) {
+            rnd -= this._nodes[i].bandwidth;
+            i++;
+        }
+        return i;
+    },
     _getProbabilisticSourceDestPair : function() {
         // todo: return a source/dest pair from nodes based on bandwidth probability
-        this._nodes = _.shuffle(this._nodes);
+        var source = this._getProbabilisticNodeIndex();
+        var dest = this._getProbabilisticNodeIndex();
+        while (source === dest) {
+            dest = this._getProbabilisticNodeIndex();
+        }
         return {
-            source : this._nodes[0],
-            destination : this._nodes[1]
+            source : this._nodes[source],
+            destination : this._nodes[dest]
         };
     },
     _onParticlesAvailable : function(numDied) {

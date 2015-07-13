@@ -24,11 +24,25 @@ App.prototype = _.extend(App.prototype, {
         var clusterset = this._clusters[this._map.getZoom()];
         console.log('Zoom Level : ' + this._map.getZoom() + ', Edge Count: ' + clusterset.length * clusterset.length);
 
+        var totalBandwidth = 0;
         var nodes = clusterset.map(function(cluster) {
+            var bandwidth = 0;
+            cluster.getAllChildMarkers().forEach(function(child) {
+                bandwidth+=child.data.circle.bandwidth;
+            });
+            totalBandwidth+=bandwidth;
+
             return {
+                bandwidth : bandwidth,
                 latLng: cluster._latlng
             };
         });
+
+        nodes.forEach(function(node) {
+            node.bandwidth /= totalBandwidth;
+        });
+
+
 
         if (this._particleLayer) {
             this._map.removeLayer(this._particleLayer);
@@ -45,7 +59,7 @@ App.prototype = _.extend(App.prototype, {
         this._particleSimulation = new MapParticleSimulation(nodes,PARTICLE_COUNT,this._map)
             .start()
             .onPositionsAvailable(function(positions) {
-                self._particleLayer.fade();
+                self._particleLayer.clear();
                 positions.forEach(function(pos) {
                     self._particleLayer.add(pos.latLng);
                 });
