@@ -30,7 +30,7 @@ MapParticleSimulation.prototype = _.extend(MapParticleSimulation.prototype,{
     _addParticle : function() {
         var pair = this._getProbabilisticSourceDestPair();
         //console.log('Adding particle from ' + pair.source.circle.id + ' to ' + pair.destination.circle.id);
-        this._particleSystem.addParticle(pair.source,pair.destination,'rbga(0,0,255,0.8',Lerp(750,1500,Math.random()));
+        this._particleSystem.addParticle(pair.source,pair.destination,'rbga(0,0,255,0.8',Lerp(500,1500,Math.random()));
     },
     _getProbabilisticNodeIndex : function() {
         var rnd = Math.random();

@@ -1,18 +1,37 @@
 var Particle = require('./particle');
 var RandomRange = require('../util/randomrange');
+var SphericalCoordinates = require('../util/sphericalcoordinates');
+
+var USE_SLERP = false;
 
 var MapParticle = function(map) {
     this._map = map;
+    this._converted = false;
     this._arr = null;
     Particle.call(this);
 };
 
 MapParticle.prototype = _.extend(Particle.prototype,{
     _updatePosition : function(alpha) {
-        if (this._arr === null) {
-            this._arr = [this._source.latLng, this._destination.latLng];
+        if (!USE_SLERP) {
+            if (this._arr === null) {
+                this._arr = [this._source.latLng, this._destination.latLng];
+            }
+            this._position = L.GeometryUtil.interpolateOnLine(this._map, this._arr, alpha);
+        } else {
+            // Convert to spherical coordinates
+            if (!this._converted) {
+                this._sourceSph = SphericalCoordinates.fromLatLng(this._source.latLng);
+                this._destinationSph = SphericalCoordinates.fromLatLng(this._destination.latLng);
+                this._theta = SphericalCoordinates.angleBetween(this._sourceSph, this._destinationSph);
+                this._converted = true;
+            }
+
+            this._positionSph = SphericalCoordinates.slerp(this._sourceSph, this._destinationSph, this._theta, alpha);
+            this._position = {
+                latLng: SphericalCoordinates.toLatLng(this._positionSph)
+            };
         }
-        this._position = L.GeometryUtil.interpolateOnLine(this._map,this._arr,alpha);
     },
     start : function() {
         var source = this._source;
