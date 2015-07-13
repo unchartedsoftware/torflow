@@ -1,4 +1,5 @@
 var UUID = require('../util/uuid');
+var DeepClone = require('../util/deepclone');
 var Particle = function() {
     this._requestAnimationFrame = window.requestAnimationFrame;     // TODO:  make this work for other browsers
     this._cancelAnimationFrame = window.cancelAnimationFrame;
@@ -22,8 +23,8 @@ Particle.prototype = _.extend(Particle.prototype,{
     id : function() { return this._uuid; },
     source : function(source) {
         if (source!==undefined) {
-            this._source = source;
-            this._position = source;
+            this._source = DeepClone(source);
+            this._position = DeepClone(source);
             return this;
         } else {
             return this._source;
@@ -31,7 +32,7 @@ Particle.prototype = _.extend(Particle.prototype,{
     },
     destination : function(destination) {
         if (destination!==undefined) {
-            this._destination = destination;
+            this._destination = DeepClone(destination);
             return this;
         } else {
             return this._destination;

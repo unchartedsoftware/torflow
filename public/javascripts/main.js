@@ -1,7 +1,7 @@
 var DotLayer = require('./layers/dotlayer');
 var MapParticleSimulation = require('./particles/mapparticlesimulation');
 
-var PARTICLE_COUNT = 1000;
+var PARTICLE_COUNT = 1500;
 
 /**
  * Creates the TorFlow front-end app
@@ -151,7 +151,7 @@ App.prototype = _.extend(App.prototype, {
 
             self._particleLayer = new DotLayer()
                 .alphaFade(0.4)
-                .fillStyle('rgba(255,255,255,0.8');
+                .fillStyle('rgba(0,0,0,0.1');
             self._particleLayer.addTo(self._map);
 
         });

@@ -24,7 +24,7 @@ ParticleSystem.prototype = _.extend(ParticleSystem.prototype, {
     },
     addParticle : function(source,destination,color,duration) {
         var particle = this._available.pop();
-        //console.log('\tAdding particle ' + particle._uuid);
+
         particle
             .source(source)
             .destination(destination)
