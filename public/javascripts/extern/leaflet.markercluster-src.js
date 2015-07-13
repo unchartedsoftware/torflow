@@ -491,6 +491,7 @@ L.MarkerClusterGroup = L.FeatureGroup.extend({
 		l = this._needsClustering;
 		this._needsClustering = [];
 		this.addLayers(l);
+		this.fire('initialized');
 	},
 
 	//Overrides FeatureGroup.onRemove

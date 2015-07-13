@@ -24,7 +24,7 @@ MapParticleSimulation.prototype = _.extend(MapParticleSimulation.prototype,{
         return this;
     },
     stop : function() {
-        this._cancelAnimationFrame(this._redrawRAFId);
+        this._cancelAnimationFrame.call(window,this._redrawRAFId);
         return this;
     },
     _addParticle : function() {
