@@ -3,6 +3,8 @@ var MapParticleSimulation = require('./particles/mapparticlesimulation');
 
 var PARTICLE_COUNT = 1000;
 
+var Template = require('./templates/main');
+
 /**
  * Creates the TorFlow front-end app
  * @constructor
@@ -17,6 +19,7 @@ App.prototype = _.extend(App.prototype, {
     _particleSimulation : null,
     _particleLayer : null,
     _map : null,
+    _element : null,
 
     _onMapClustered : function() {
         var self = this;
@@ -71,6 +74,16 @@ App.prototype = _.extend(App.prototype, {
     start: function () {
         var self = this;
         var idToLatLng = {};
+
+        this._element = $(document.body).append($(Template({
+            totalDates : 100,
+            defaultIndex : 99,
+            defaultDate : "July 14th, 2015"
+        })));
+        this._dateSlider = $("input.slider").slider({
+            tooltip:'hide'
+        });
+
 
         this._map = L.map('map').setView([0, 0], 1);
         var mapLink = '<a href="http://openstreetmap.org">OpenStreetMap</a>';
