@@ -3,11 +3,11 @@ var DotLayer = L.CanvasLayer.extend({
     _ctx : null,
     _initialized : false,
 
-    add : function(latLng) {
+    add : function(pos) {
         if (!this._initialized) {
             return;
         }
-        var point = this._map.latLngToContainerPoint(latLng);
+        var point = this._map.latLngToContainerPoint(pos.latLng);
         this._ctx.fillRect(point.x,point.y,1,1);
     },
 

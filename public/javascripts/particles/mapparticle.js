@@ -17,7 +17,10 @@ MapParticle.prototype = _.extend(Particle.prototype,{
             if (this._arr === null) {
                 this._arr = [this._source.latLng, this._destination.latLng];
             }
+            var prev = this._position.latLng;
             this._position = L.GeometryUtil.interpolateOnLine(this._map, this._arr, alpha);
+            this._position.source = this._source;
+            this._position.previous = prev;
         } else {
             // Convert to spherical coordinates
             if (!this._converted) {

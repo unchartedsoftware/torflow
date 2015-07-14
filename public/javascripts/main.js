@@ -60,7 +60,7 @@ App.prototype = _.extend(App.prototype, {
             .onPositionsAvailable(function(positions) {
                 self._particleLayer.clear();
                 positions.forEach(function(pos) {
-                    self._particleLayer.add(pos.latLng);
+                    self._particleLayer.add(pos);
                 });
             });
     },
