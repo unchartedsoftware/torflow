@@ -31,6 +31,7 @@
 		"exports":true,
 	  	"module":true,
         "d3":true,
-	  	"L":true
+	  	"L":true,
+	  	"moment":true
 	}
 }
