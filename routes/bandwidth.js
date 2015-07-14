@@ -22,7 +22,7 @@ router.get('/:day/:month/:year', function(req, res, next) {
 
 
     request({
-        url: 'http://localhost:9200/bandwidths_1/_search', //URL to hit
+        url: 'http://localhost:9200/bandwidths_1/_search',
         method: 'POST',
         json: q
     }, function(error, response, body){
