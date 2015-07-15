@@ -1,5 +1,4 @@
-var Lerp = require('../util/lerp');
-var THICKNESS = 3;
+var Config = require('../config');
 var DotLayer = L.CanvasLayer.extend({
 
     _ctx : null,
@@ -27,21 +26,25 @@ var DotLayer = L.CanvasLayer.extend({
             y: point.y
         };
 
-        var TAIL_SCALE = 30;
-        var NUM_SEGMENTS = 3;
-        this._ctx.strokeWidth = THICKNESS + 'px';
-        for (var i = 0; i < NUM_SEGMENTS; i++) {
-            this._ctx.strokeStyle = 'rgba(0,0,255,' + (1.0 - (i/NUM_SEGMENTS)) + ')';
+        var tailSegmentLength = Config.dot.tailSegmentLength;
+        var tailSegments = Config.dot.tailSegments;
+        this._ctx.strokeWidth = Config.dot.thickness + 'px';
+        for (var i = 0; i < tailSegments; i++) {
+            this._ctx.strokeStyle = 'rgba(' +
+                                        Config.dot.tailFill.r + ',' +
+                                        Config.dot.tailFill.g + ',' +
+                                        Config.dot.tailFill.b + ',' +
+                                        (1.0 - (i/tailSegments)) + ')';
 
             this._ctx.beginPath();
             this._ctx.moveTo(head.x,head.y);
-            this._ctx.lineTo(head.x + (tailDirectionX*TAIL_SCALE), head.y + (tailDirectionY*TAIL_SCALE));
+            this._ctx.lineTo(head.x + (tailDirectionX*tailSegmentLength), head.y + (tailDirectionY*tailSegmentLength));
             this._ctx.stroke();
-            head.x += (tailDirectionX*TAIL_SCALE);
-            head.y += (tailDirectionY*TAIL_SCALE);
+            head.x += (tailDirectionX*tailSegmentLength);
+            head.y += (tailDirectionY*tailSegmentLength);
         }
 
-        this._ctx.fillRect(point.x - THICKNESS/2,point.y - THICKNESS/2,THICKNESS,THICKNESS);
+        this._ctx.fillRect(point.x - Config.dot.thickness/2,point.y - Config.dot.thickness/2,Config.dot.thickness,Config.dot.thickness);
     },
 
     clear : function() {

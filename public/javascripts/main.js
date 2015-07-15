@@ -1,7 +1,6 @@
 var DotLayer = require('./layers/dotlayer');
 var MapParticleSimulation = require('./particles/mapparticlesimulation');
-
-var PARTICLE_COUNT = 750;
+var Config = require('./config');
 
 var Template = require('./templates/main');
 
@@ -61,7 +60,7 @@ App.prototype = _.extend(App.prototype, {
             .fillStyle('rgba(255,255,255,0.8');
         this._particleLayer.addTo(this._map);
 
-        this._particleSimulation = new MapParticleSimulation(nodes,PARTICLE_COUNT,this._map)
+        this._particleSimulation = new MapParticleSimulation(nodes,Config.particle_count,this._map)
             .start()
             .onPositionsAvailable(function(positions) {
                 self._particleLayer.clear();
@@ -117,9 +116,6 @@ App.prototype = _.extend(App.prototype, {
 
             d3.json('/nodes', function (nodes) {
 
-                var MIN_RADIUS = 5;
-                var MAX_RADIUS = 30;
-
                 /* Add a LatLng object to each item in the dataset */
                 nodes.objects.forEach(function(d,i) {
                     d.latLng = new L.LatLng(d.circle.coordinates[0],
@@ -151,7 +147,7 @@ App.prototype = _.extend(App.prototype, {
                             bandwidth += data.bandwidth;
                         });
 
-                        var radius = MIN_RADIUS + (MAX_RADIUS-MIN_RADIUS)*bandwidth;
+                        var radius = Config.node_radius.min + (Config.node_radius.max-Config.node_radius.min)*bandwidth;
 
                         return L.divIcon({
                             className: 'relay-cluster',
@@ -165,7 +161,7 @@ App.prototype = _.extend(App.prototype, {
 
                 var defaultIcon = L.divIcon({
                     className: 'relay-cluster',
-                    iconSize:L.point(MIN_RADIUS, MIN_RADIUS)
+                    iconSize:L.point(Config.node_radius.min, Config.node_radius.min)
                 });
 
 
@@ -180,7 +176,7 @@ App.prototype = _.extend(App.prototype, {
                 self._map.addLayer(markers);
 
                 self._particleLayer = new DotLayer()
-                    .fillStyle('rgba(255,255,255,0.8');
+                    .fillStyle(Config.dot.headFill);
                 self._particleLayer.addTo(self._map);
 
             }); 

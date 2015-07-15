@@ -22,14 +22,12 @@ ParticleSystem.prototype = _.extend(ParticleSystem.prototype, {
         this._available.push(particle);
         this._onParticlesAvailable(this._available.length);
     },
-    addParticle : function(source,destination,color,duration) {
+    addParticle : function(source,destination) {
         var particle = this._available.pop();
 
         particle
             .source(source)
             .destination(destination)
-            .color(color)
-            .duration(duration)
             .onDeath(this._onParticleDied.bind(this))
             .start();
         this._active[particle.id()] = particle;
