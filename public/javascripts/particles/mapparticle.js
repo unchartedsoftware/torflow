@@ -2,9 +2,9 @@ var Particle = require('./particle');
 var RandomRange = require('../util/randomrange');
 var SphericalCoordinates = require('../util/sphericalcoordinates');
 var DeepClone = require('../util/deepclone');
+var Config = require('../config');
 
 var USE_SLERP = false;
-var PARTICLE_SPEED = 0.2;
 
 var MapParticle = function(map) {
     this._map = map;
@@ -53,7 +53,10 @@ MapParticle.prototype = _.extend(Particle.prototype,{
         srcToDst.x /= len;
         srcToDst.y /= len;
 
-        var constantVelocityDuration = len/RandomRange(PARTICLE_SPEED*0.5,PARTICLE_SPEED*1.5);
+        var minscale = Config.particle_velocity_variance_scale.min;
+        var maxscale = Config.particle_velocity_variance_scale.max;
+        var velocity = Config.particle_velocity;
+        var constantVelocityDuration = len/RandomRange(velocity*minscale,velocity*maxscale);
 
         this.duration(constantVelocityDuration);
 
