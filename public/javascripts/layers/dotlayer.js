@@ -1,4 +1,5 @@
 var Lerp = require('../util/lerp');
+var THICKNESS = 3;
 var DotLayer = L.CanvasLayer.extend({
 
     _ctx : null,
@@ -28,8 +29,10 @@ var DotLayer = L.CanvasLayer.extend({
 
         var TAIL_SCALE = 30;
         var NUM_SEGMENTS = 3;
+        this._ctx.strokeWidth = THICKNESS + 'px';
         for (var i = 0; i < NUM_SEGMENTS; i++) {
             this._ctx.strokeStyle = 'rgba(0,0,255,' + (1.0 - (i/NUM_SEGMENTS)) + ')';
+
             this._ctx.beginPath();
             this._ctx.moveTo(head.x,head.y);
             this._ctx.lineTo(head.x + (tailDirectionX*TAIL_SCALE), head.y + (tailDirectionY*TAIL_SCALE));
@@ -38,7 +41,7 @@ var DotLayer = L.CanvasLayer.extend({
             head.y += (tailDirectionY*TAIL_SCALE);
         }
 
-        this._ctx.fillRect(point.x,point.y,1,1);
+        this._ctx.fillRect(point.x - THICKNESS/2,point.y - THICKNESS/2,THICKNESS,THICKNESS);
     },
 
     clear : function() {

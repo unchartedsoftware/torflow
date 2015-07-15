@@ -4,6 +4,7 @@ var SphericalCoordinates = require('../util/sphericalcoordinates');
 var DeepClone = require('../util/deepclone');
 
 var USE_SLERP = false;
+var PARTICLE_SPEED = 0.1;
 
 var MapParticle = function(map) {
     this._map = map;
@@ -51,6 +52,10 @@ MapParticle.prototype = _.extend(Particle.prototype,{
         var len = Math.sqrt(srcToDst.x * srcToDst.x + srcToDst.y * srcToDst.y);
         srcToDst.x /= len;
         srcToDst.y /= len;
+
+        var constantVelocityDuration = len/RandomRange(PARTICLE_SPEED*0.5,PARTICLE_SPEED*1.5);
+
+        this.duration(constantVelocityDuration);
 
         var channel = RandomRange(-5,5);
         //console.log(channel);
