@@ -1,7 +1,7 @@
 var DotLayer = require('./layers/dotlayer');
 var MapParticleSimulation = require('./particles/mapparticlesimulation');
 
-var PARTICLE_COUNT = 1000;
+var PARTICLE_COUNT = 500;
 
 var Template = require('./templates/main');
 
@@ -26,7 +26,7 @@ App.prototype = _.extend(App.prototype, {
         var self = this;
 
         var clusterset = this._clusters[this._map.getZoom()];
-        console.log('Zoom Level : ' + this._map.getZoom() + ', Edge Count: ' + clusterset.length * clusterset.length);
+        //console.log('Zoom Level : ' + this._map.getZoom() + ', Edge Count: ' + clusterset.length * clusterset.length);
 
         var totalBandwidth = 0;
         var nodes = clusterset.map(function(cluster) {
@@ -103,7 +103,7 @@ App.prototype = _.extend(App.prototype, {
             self._dateSlider.on('slideStop',self._onDateChange.bind(self));
 
 
-            self._map = L.map('map').setView([0, 0], 1);
+            self._map = L.map('map').setView([0, 0], 2);
             var mapLink = '<a href="http://openstreetmap.org">OpenStreetMap</a>';
             L.tileLayer(
                 'http://{s}.tiles.mapbox.com/v3/examples.map-0l53fhk2/{z}/{x}/{y}.png', {

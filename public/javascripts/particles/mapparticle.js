@@ -1,6 +1,7 @@
 var Particle = require('./particle');
 var RandomRange = require('../util/randomrange');
 var SphericalCoordinates = require('../util/sphericalcoordinates');
+var DeepClone = require('../util/deepclone');
 
 var USE_SLERP = false;
 
@@ -14,13 +15,11 @@ var MapParticle = function(map) {
 MapParticle.prototype = _.extend(Particle.prototype,{
     _updatePosition : function(alpha) {
         if (!USE_SLERP) {
-            if (this._arr === null) {
-                this._arr = [this._source.latLng, this._destination.latLng];
-            }
+            this._arr = [this._source.latLng, this._destination.latLng];
             var prev = this._position.latLng;
             this._position = L.GeometryUtil.interpolateOnLine(this._map, this._arr, alpha);
-            this._position.source = this._source;
-            this._position.previous = prev;
+            this._position.source = DeepClone(this._source);
+            this._position.previous = DeepClone(prev);
         } else {
             // Convert to spherical coordinates
             if (!this._converted) {
