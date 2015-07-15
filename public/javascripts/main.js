@@ -1,7 +1,7 @@
 var DotLayer = require('./layers/dotlayer');
 var MapParticleSimulation = require('./particles/mapparticlesimulation');
 
-var PARTICLE_COUNT = 500;
+var PARTICLE_COUNT = 750;
 
 var Template = require('./templates/main');
 
@@ -117,7 +117,7 @@ App.prototype = _.extend(App.prototype, {
 
             d3.json('/nodes', function (nodes) {
 
-                var MIN_RADIUS = 15;
+                var MIN_RADIUS = 5;
                 var MAX_RADIUS = 30;
 
                 /* Add a LatLng object to each item in the dataset */

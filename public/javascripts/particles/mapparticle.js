@@ -4,7 +4,7 @@ var SphericalCoordinates = require('../util/sphericalcoordinates');
 var DeepClone = require('../util/deepclone');
 
 var USE_SLERP = false;
-var PARTICLE_SPEED = 0.1;
+var PARTICLE_SPEED = 0.2;
 
 var MapParticle = function(map) {
     this._map = map;
