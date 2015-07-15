@@ -50,9 +50,11 @@ App.prototype = _.extend(App.prototype, {
 
         if (this._particleLayer) {
             this._map.removeLayer(this._particleLayer);
+            delete this._particleLayer;
         }
         if (this._particleSimulation) {
             this._particleSimulation.stop();
+            this._particleSimulation.destroy();
         }
 
         this._particleLayer = new DotLayer()

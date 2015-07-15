@@ -18,7 +18,7 @@ Particle.prototype = _.extend(Particle.prototype,{
         this._scale = 1.0;
         this._position = null;
         this._onDeath = null;
-        this._rafId = null;
+        this._rafID = null;
     },
     id : function() { return this._uuid; },
     source : function(source) {
@@ -69,6 +69,11 @@ Particle.prototype = _.extend(Particle.prototype,{
     start : function() {
         this._rafID = this._requestAnimationFrame.call(window,this._tick.bind(this));
     },
+    destroy : function() {
+        if (this._rafID) {
+            this._cancelAnimationFrame.call(window,this._rafID);
+        }
+    },
     reset : function() {
         this._init();
     },
@@ -93,9 +98,9 @@ Particle.prototype = _.extend(Particle.prototype,{
             if (this._postTick) {
                 this._postTick();
             }
-            this._rafId = this._requestAnimationFrame.call(window, this._tick.bind(this));
+            this._rafID = this._requestAnimationFrame.call(window, this._tick.bind(this));
         } else {
-            this._cancelAnimationFrame.call(window,this._rafId);
+            this._cancelAnimationFrame.call(window,this._rafID);
             if (this._onDeath) {
                 //console.log('\tParticle ' + this._uuid + ' died');
                 this._onDeath(this);

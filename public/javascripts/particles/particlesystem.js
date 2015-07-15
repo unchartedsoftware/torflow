@@ -35,6 +35,18 @@ ParticleSystem.prototype = _.extend(ParticleSystem.prototype, {
         this._active[particle.id()] = particle;
         return this;
     },
+    destroy : function() {
+        this._available.forEach(function(inactiveParticle) {
+            inactiveParticle.destroy();
+            delete inactiveParticle;
+        });
+        var self = this;
+        Object.keys(this._active).forEach(function(particleId) {
+            var activeParticle = self._active[particleId];
+            activeParticle.destroy();
+            delete activeParticle;
+        })
+    },
     onParticlesAvailable : function(callback) {
         this._onParticlesAvailable = callback;
         return this;

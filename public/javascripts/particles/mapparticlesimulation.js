@@ -27,6 +27,9 @@ MapParticleSimulation.prototype = _.extend(MapParticleSimulation.prototype,{
         this._cancelAnimationFrame.call(window,this._redrawRAFId);
         return this;
     },
+    destroy : function() {
+        this._particleSystem.destroy();
+    },
     _addParticle : function() {
         var pair = this._getProbabilisticSourceDestPair();
         //console.log('Adding particle from ' + pair.source.circle.id + ' to ' + pair.destination.circle.id);
