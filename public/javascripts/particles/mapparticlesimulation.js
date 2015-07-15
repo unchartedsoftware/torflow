@@ -51,7 +51,7 @@ MapParticleSimulation.prototype = _.extend(MapParticleSimulation.prototype,{
         while (source === dest) {
             dest = this._getProbabilisticNodeIndex();
         }
-        console.log('Spawning particle from ' + source + ' to ' + dest);
+//        console.log('Spawning particle from ' + source + ' to ' + dest);
         return {
             source : this._nodes[source],
             destination : this._nodes[dest]

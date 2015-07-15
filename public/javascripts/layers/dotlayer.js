@@ -1,4 +1,4 @@
-var DeepClone = require('../util/deepclone');
+var Lerp = require('../util/lerp');
 var DotLayer = L.CanvasLayer.extend({
 
     _ctx : null,
@@ -26,14 +26,16 @@ var DotLayer = L.CanvasLayer.extend({
             y: point.y
         };
 
-        for (var i = 0; i < 10; i++) {
-            this._ctx.strokeStyle = 'rgba(0,0,255,' + (1.0 - (i/10)) + ')';
+        var TAIL_SCALE = 30;
+        var NUM_SEGMENTS = 3;
+        for (var i = 0; i < NUM_SEGMENTS; i++) {
+            this._ctx.strokeStyle = 'rgba(0,0,255,' + (1.0 - (i/NUM_SEGMENTS)) + ')';
             this._ctx.beginPath();
             this._ctx.moveTo(head.x,head.y);
-            this._ctx.lineTo(head.x + (tailDirectionX*3), head.y + (tailDirectionY*3));
+            this._ctx.lineTo(head.x + (tailDirectionX*TAIL_SCALE), head.y + (tailDirectionY*TAIL_SCALE));
             this._ctx.stroke();
-            head.x += (tailDirectionX*3);
-            head.y += (tailDirectionY*3);
+            head.x += (tailDirectionX*TAIL_SCALE);
+            head.y += (tailDirectionY*TAIL_SCALE);
         }
 
         this._ctx.fillRect(point.x,point.y,1,1);
