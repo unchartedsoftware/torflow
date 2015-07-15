@@ -9,7 +9,10 @@ var routes = require('./routes/index');
 var users = require('./routes/users');
 var nodes = require('./routes/nodes');
 var flow = require('./routes/flow');
-
+var bandwidth = require('./routes/bandwidth');
+var generateFlow = require('./routes/generateFlow');
+var generateBandwidthOverTime = require('./routes/generateBandwidthOverTime');
+var datebounds = require('./routes/datebounds');
 
 var app = express();
 
@@ -29,6 +32,10 @@ app.use('/', routes);
 app.use('/users', users);
 app.use('/nodes',nodes);
 app.use('/flow',flow);
+app.use('/bandwidth',bandwidth);
+app.use('/generateflow',generateFlow);
+app.use('/generatebandwidthovertime',generateBandwidthOverTime);
+app.use('/datebounds',datebounds);
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
