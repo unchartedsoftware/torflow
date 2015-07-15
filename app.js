@@ -13,6 +13,7 @@ var bandwidth = require('./routes/bandwidth');
 var generateFlow = require('./routes/generateFlow');
 var generateBandwidthOverTime = require('./routes/generateBandwidthOverTime');
 var datebounds = require('./routes/datebounds');
+var insertNodes = require('./routes/insertNodes');
 
 var app = express();
 
@@ -36,6 +37,7 @@ app.use('/bandwidth',bandwidth);
 app.use('/generateflow',generateFlow);
 app.use('/generatebandwidthovertime',generateBandwidthOverTime);
 app.use('/datebounds',datebounds);
+app.use('/insertnodes',insertNodes);
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {

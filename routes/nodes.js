@@ -7,7 +7,7 @@ var MathUtil = require('../util/mathutil');
 router.get('/', function(req, res, next) {
 
     ElasticSearch.search({
-        index: 'relays_1',
+        index: 'relays_5',
         q: '*',
         size:99999999
     }).then(function (body) {
@@ -16,20 +16,20 @@ router.get('/', function(req, res, next) {
         var skipped = [];
         hits.map(function(hit) {
             var data = hit._source;
-            var latlngStr = data.gps;
+            var latlngStr = data.Gps;
             var pieces = latlngStr.split('/');
             var lat = parseFloat(pieces[0]);
             var lon = parseFloat(pieces[1]);
-            var bw = parseFloat(data.bandwidth);
+            var bw = parseFloat(data.Bandwidth);
             if (isNaN(lat) || isNaN(lon) || isNaN(bw)) {
                 skipped.push(data);
                 return undefined;
             }
 
             return {
-                fingerprint : data.fingerprint,
+                fingerprint : data.Fingerprint,
                 bandwidth : bw,
-                name : data.name,
+                name : data.Name,
                 gps : {
                     lat: lat,
                     lon: lon
