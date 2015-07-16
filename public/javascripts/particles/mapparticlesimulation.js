@@ -1,13 +1,14 @@
 var MapParticle = require('./mapparticle');
 var ParticleSystem = require('./particlesystem');
-var Lerp = require('../util/lerp');
+var Config = require('../config');
 
-var MapParticleSimulation = function(nodes,count,map) {
+var MapParticleSimulation = function(nodes,maxCount,map) {
     this._nodes = nodes.sort(function(n1,n2) { return n2.bandwidth - n1.bandwidth; });
-    this._count = count;
+    this._count = 0;
+    this._maxCount = maxCount;
     this._requestAnimationFrame = window.requestAnimationFrame;     // TODO:  make this work for other browsers
     this._cancelAnimationFrame = window.cancelAnimationFrame;
-    this._particleSystem = new ParticleSystem(count,function() {
+    this._particleSystem = new ParticleSystem(this._count,function() {
         return new MapParticle(map);
     })
         .onParticlesAvailable(this._onParticlesAvailable.bind(this));
@@ -30,10 +31,21 @@ MapParticleSimulation.prototype = _.extend(MapParticleSimulation.prototype,{
     destroy : function() {
         this._particleSystem.destroy();
     },
+    _getTailColor : function() {
+        if (this._showTraffic === 'all') {
+            return Math.random() > Config.hiddenServiceProbability ? Config.dot.tailFill : Config.dot.tailFillHidden;
+        } else if (this._showTraffic === 'hidden') {
+            return Config.dot.tailFillHidden;
+        } else {
+            return Config.dot.tailFill;
+        }
+    },
     _addParticle : function() {
         var pair = this._getProbabilisticSourceDestPair();
         //console.log('Adding particle from ' + pair.source.circle.id + ' to ' + pair.destination.circle.id);
-        this._particleSystem.addParticle(pair.source,pair.destination);
+        var tailColor = this._getTailColor();
+
+        this._particleSystem.addParticle(pair.source,pair.destination,tailColor);
     },
     _getProbabilisticNodeIndex : function() {
         var rnd = Math.random();
@@ -71,6 +83,30 @@ MapParticleSimulation.prototype = _.extend(MapParticleSimulation.prototype,{
     onPositionsAvailable : function(callback) {
         this._onPositionsAvailable = callback;
         return this;
+    },
+    _updateParticleCounts : function() {
+        var hiddenServicesCount = Math.floor(Config.hiddenServiceProbability * this._maxCount);
+        var generalCount = this._maxCount - hiddenServicesCount;
+        var newCount;
+        if (this._showTraffic === 'all') {
+            newCount = this._maxCount;
+        } else if (this._showTraffic === 'general') {
+            newCount = generalCount;
+        } else {
+            newCount = hiddenServicesCount;
+        }
+        if (this._particleSystem.count() !== newCount) {
+            this._particleSystem.count(newCount);
+        }
+    },
+    showTraffic : function(state) {
+        if(state!==undefined) {
+            this._showTraffic = state;
+            this._updateParticleCounts();
+            return this;
+        } else {
+            return this._showTraffic;
+        }
     }
 });
 

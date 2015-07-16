@@ -11,7 +11,7 @@ Particle.prototype = _.extend(Particle.prototype,{
     _init : function() {
         this._source = null;
         this._destination = null;
-        this._color = null;
+        this._tailColor = null;
         this._duration = null;
         this._milliseconds = null;
         this._lastUpdate = null;
@@ -47,12 +47,12 @@ Particle.prototype = _.extend(Particle.prototype,{
             return this._duration;
         }
     },
-    color : function(color) {
-        if (color!==undefined) {
-            this._color = color;
+    tailColor : function(tailColor) {
+        if (tailColor!==undefined) {
+            this._tailColor = tailColor;
             return this;
         } else {
-            return this._color;
+            return this._tailColor;
         }
     },
     position : function(position) {
@@ -62,9 +62,6 @@ Particle.prototype = _.extend(Particle.prototype,{
         } else {
             return this._position;
         }
-    },
-    getColor : function() {
-        return this._color;
     },
     start : function() {
         this._rafID = this._requestAnimationFrame.call(window,this._tick.bind(this));

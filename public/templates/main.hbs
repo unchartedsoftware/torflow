@@ -1,5 +1,20 @@
 <div id="main " class="container">
     <div class="col-lg-12">
+        <h1>{{title}}</h1>
+        <p>{{{summary}}}</p>
+
+        <div class="btn-group" data-toggle="buttons" id="hidden-filter-btn-group">
+            <label class="btn btn-xs btn-primary active hidden-filter-btn active">
+                <input class="hidden-filter-input" type="radio" name="hidden-options" autocomplete="off" hidden-id="all">All
+            </label>
+            <label class="btn btn-xs btn-primary hidden-filter-btn">
+                <input class="hidden-filter-input" type="radio" name="hidden-options" autocomplete="off" hidden-id="hidden">Hidden Services
+            </label>
+            <label class="btn btn-xs btn-primary hidden-filter-btn">
+                <input class="hidden-filter-input" type="radio" name="hidden-options" autocomplete="off" hidden-id="general">General Purpose
+            </label>
+        </div>
+
         <div id="map-container">
             <div id="map">
 

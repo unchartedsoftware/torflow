@@ -17,9 +17,17 @@ var config = {
             g : 0,
             b : 255
         },
+        tailFillHidden : {
+            r : 255,
+            g : 0,
+            b : 0
+        },
         tailSegments : 3,
         tailSegmentLength : 15
-    }
+    },
+    title : 'Data Flow in the Tor Network',
+    summary : 'Blah blah blah this is a summary of something that should probably describe what we\'re seeing',
+    hiddenServiceProbability : 0.04
 };
 
 module.exports = config;
