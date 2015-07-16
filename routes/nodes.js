@@ -2,12 +2,13 @@ var express = require('express');
 var ElasticSearch = require('../util/elasticsearch');
 var router = express.Router();
 var MathUtil = require('../util/mathutil');
+var Config = require('../config');
 
 /* GET home page. */
 router.get('/', function(req, res, next) {
 
     ElasticSearch.search({
-        index: 'relays_5',
+        index: Config.relays_index_name,
         q: '*',
         size:99999999
     }).then(function (body) {

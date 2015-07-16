@@ -1,7 +1,8 @@
 var ElasticSearch = require('elasticsearch');
+var Config = require('../config');
 
 var esSpec = {
-    host: 'localhost:9200'
+    host: Config.elasticsearch.host + ':' + Config.elasticsearch.port
     //log: 'trace'
 };
 
