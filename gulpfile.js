@@ -33,6 +33,8 @@ gulp.task('copy', function() {
         .pipe(gulp.dest('./build/'));
     gulp.src('bin/**')
         .pipe(gulp.dest('./build/bin/'));
+    gulp.src('data/**')
+        .pipe(gulp.dest('./build/data/'));
     gulp.src('public/**')
         .pipe(gulp.dest('./build/public/'));
     gulp.src('routes/**')

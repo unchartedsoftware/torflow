@@ -76,3 +76,5 @@ build/config.js
 build/package.json
 build/routes/
 build/bin/
+build/data/
+esdata/
