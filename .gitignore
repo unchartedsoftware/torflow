@@ -67,3 +67,4 @@ benchmarks/graphs
 #compiled things
 torflow.js
 **/templates/**/*.js
+.vagrant/
