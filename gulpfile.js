@@ -31,6 +31,8 @@ var del             = require('del');
 gulp.task('copy', function() {
     gulp.src(['app.js', 'config.js', 'package.json'])
         .pipe(gulp.dest('./build/'));
+    gulp.src('bin/**')
+        .pipe(gulp.dest('./build/bin/'));
     gulp.src('public/**')
         .pipe(gulp.dest('./build/public/'));
     gulp.src('routes/**')
