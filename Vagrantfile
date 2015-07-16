@@ -2,7 +2,7 @@ VAGRANTFILE_API_VERSION = "2"
 
 $script = <<SCRIPT
 sudo yum -y update
-sudo yum -y install epel-release docker nodejs npm
+sudo yum -y install epel-release docker
 sudo npm install -g gulp
 echo export DOCKER_HOST=tcp://172.17.42.1:2375 >> .bashrc
 SCRIPT

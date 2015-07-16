@@ -26,13 +26,20 @@
 */
 
 var gulp            = require('gulp');
-var path            = require('path');
-//var docker          = require('gulp-docker');
+var del             = require('del');
 
-var paths = {
-  tocopy: ['../public', '!client/external/**/*.coffee']
-};
+gulp.task('copy', function() {
+    gulp.src(['app.js', 'config.js', 'package.json'])
+        .pipe(gulp.dest('./build/'));
+    gulp.src('public/**')
+        .pipe(gulp.dest('./build/public/'));
+    gulp.src('routes/**')
+        .pipe(gulp.dest('./build/routes/'));
+    gulp.src('util/**')
+        .pipe(gulp.dest('./build/util/'));
+    gulp.src('views/**')
+        .pipe(gulp.dest('./build/views/'));
+});
 
-gulp.src('../public')
-  .pipe(gulp.dest('./public'));
 
+gulp.task('build', ['copy']);

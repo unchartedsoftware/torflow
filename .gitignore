@@ -68,3 +68,10 @@ benchmarks/graphs
 torflow.js
 **/templates/**/*.js
 .vagrant/
+build/app.js
+build/public/
+build/views/
+build/util/
+build/config.js
+build/package.json
+build/routes/
