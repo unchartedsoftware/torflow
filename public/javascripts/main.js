@@ -88,13 +88,14 @@ App.prototype = _.extend(App.prototype, {
         this._particleLayer.addTo(this._map);
 
         this._particleSimulation = new MapParticleSimulation(nodes,Config.particle_count,this._map)
-            .start()
             .onPositionsAvailable(function(positions) {
                 self._particleLayer.clear();
                 positions.forEach(function(pos) {
                     self._particleLayer.add(pos);
                 });
             });
+        this._onHiddenFilterChange();
+        this._particleSimulation.start();
     },
 
     _getFriendlyDate : function(daysFromMinDate) {
@@ -107,6 +108,18 @@ App.prototype = _.extend(App.prototype, {
         this._dateLabel.text(friendlyDate);
     },
 
+    _onHiddenFilterChange : function() {
+        var checkedRadioBtn = this._element.find('#hidden-filter-btn-group').find('.active > input');
+        var checkedState = checkedRadioBtn.attr('hidden-id');
+        if (checkedState === 'all') {
+            this._particleSimulation.showTraffic('all');
+        } else if (checkedState === 'hidden') {
+            this._particleSimulation.showTraffic('hidden');
+        } else if (checkedState === 'general') {
+            this._particleSimulation.showTraffic('general');
+        }
+    },
+
     /**
      * Application startup.
      */
@@ -117,11 +130,13 @@ App.prototype = _.extend(App.prototype, {
         $.get('/datebounds',function(dateBounds) {
             self._dateBounds = dateBounds;
             var totalDays = moment(dateBounds.max.value).diff(moment(dateBounds.min.value),'days') + 1;
-            self._element = $(document.body).append($(Template({
+            self._element = $(document.body).append($(Template(_.extend(Config,{
                 totalDates : totalDays,
                 defaultIndex : totalDays,
                 defaultDate : self._getFriendlyDate(totalDays)
-            })));
+            }))));
+            self._element.find('.hidden-filter-btn').change(self._onHiddenFilterChange.bind(self));
+
             self._dateLabel = self._element.find('#date-label');
             self._dateSlider = self._element.find('input.slider').slider({
                 tooltip:'hide'

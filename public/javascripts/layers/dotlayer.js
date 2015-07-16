@@ -53,14 +53,18 @@ var DotLayer = L.CanvasLayer.extend({
             y: point.y
         };
 
+        if (pos.fill) {
+            this.fill(pos.fill);
+        }
+
         var tailSegmentLength = Config.dot.tailSegmentLength;
         var tailSegments = Config.dot.tailSegments;
         this._ctx.strokeWidth = Config.dot.thickness + 'px';
         for (var i = 0; i < tailSegments; i++) {
             this._ctx.strokeStyle = 'rgba(' +
-                                        Config.dot.tailFill.r + ',' +
-                                        Config.dot.tailFill.g + ',' +
-                                        Config.dot.tailFill.b + ',' +
+                                        this._fillR + ',' +
+                                        this._fillG + ',' +
+                                        this._fillB + ',' +
                                         (1.0 - (i/tailSegments)) + ')';
 
             this._ctx.beginPath();
@@ -97,6 +101,11 @@ DotLayer.prototype = _.extend(DotLayer.prototype,{
     fillStyle : function(style) {
         this._fillStyle = style;
         return this;
+    },
+    fill : function(clr) {
+        this._fillR = clr.r;
+        this._fillG = clr.g;
+        this._fillB = clr.b;
     }
 });
 

@@ -46,15 +46,32 @@ ParticleSystem.prototype = _.extend(ParticleSystem.prototype, {
         // Release it into the wild and notify listeners
         particle.reset();
         delete this._active[particle.id()];
-        this._available.push(particle);
-        this._onParticlesAvailable(this._available.length);
+        if (Object.keys(this._active).length + this._available.length < this._count) {
+            this._available.push(particle);
+            this._onParticlesAvailable(this._available.length);
+        }
     },
-    addParticle : function(source,destination) {
+    count : function(count) {
+        if (count!==undefined) {
+            if (count > this._count) {
+                for (var i = this._count; i < count; i++) {
+                    this._available.push(this._getParticleFn());
+                }
+                this._onParticlesAvailable(this._available.length);
+
+            }
+            this._count = count;
+        } else {
+            return this._count;
+        }
+    },
+    addParticle : function(source,destination,color) {
         var particle = this._available.pop();
 
         particle
             .source(source)
             .destination(destination)
+            .tailColor(color||null)
             .onDeath(this._onParticleDied.bind(this))
             .start();
         this._active[particle.id()] = particle;
@@ -63,14 +80,12 @@ ParticleSystem.prototype = _.extend(ParticleSystem.prototype, {
     destroy : function() {
         this._available.forEach(function(inactiveParticle) {
             inactiveParticle.destroy();
-            delete inactiveParticle;
         });
         var self = this;
         Object.keys(this._active).forEach(function(particleId) {
             var activeParticle = self._active[particleId];
             activeParticle.destroy();
-            delete activeParticle;
-        })
+        });
     },
     onParticlesAvailable : function(callback) {
         this._onParticlesAvailable = callback;

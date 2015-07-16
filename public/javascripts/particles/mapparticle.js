@@ -37,10 +37,14 @@ var MapParticle = function(map) {
     this._map = map;
     this._converted = false;
     this._arr = null;
+    this._hiddenServiceProbability = Config.hiddenServiceProbability;
     Particle.call(this);
 };
 
 MapParticle.prototype = _.extend(Particle.prototype,{
+    hiddenServiceProbability : function(p) {
+        this._hiddenServiceProbability = p;
+    },
     _updatePosition : function(alpha) {
         if (!USE_SLERP) {
             this._arr = [this._source.latLng, this._destination.latLng];
@@ -48,6 +52,11 @@ MapParticle.prototype = _.extend(Particle.prototype,{
             this._position = L.GeometryUtil.interpolateOnLine(this._map, this._arr, alpha);
             this._position.source = DeepClone(this._source);
             this._position.previous = DeepClone(prev);
+            this._position.fill = this.tailColor() || {
+                    r : 255,
+                    g : 255,
+                    b : 255
+                };
         } else {
             // Convert to spherical coordinates
             if (!this._converted) {
