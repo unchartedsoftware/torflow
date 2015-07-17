@@ -644,7 +644,9 @@ L.MarkerClusterGroup = L.FeatureGroup.extend({
 		var map = this._map,
 		    spiderfyOnMaxZoom = this.options.spiderfyOnMaxZoom,
 		    showCoverageOnHover = this.options.showCoverageOnHover,
-		    zoomToBoundsOnClick = this.options.zoomToBoundsOnClick;
+		    zoomToBoundsOnClick = this.options.zoomToBoundsOnClick,
+			tooltip = this.options.tooltip,
+			tooltipOffset = this.options.tooltipOffset;
 
 		//Zoom on cluster click or spiderfy if we are at the lowest level
 		if (spiderfyOnMaxZoom || zoomToBoundsOnClick) {
@@ -656,6 +658,26 @@ L.MarkerClusterGroup = L.FeatureGroup.extend({
 			this.on('clustermouseover', this._showCoverage, this);
 			this.on('clustermouseout', this._hideCoverage, this);
 			map.on('zoomend', this._hideCoverage, this);
+		}
+		if (tooltip) {
+			this.on('clustermouseover', function(e) {
+				var html = tooltip(e.layer);
+				if (!e.layer.tooltipOpen && e.layer !== this._spiderfied) {
+					var options = {};
+					if (tooltipOffset) {
+						options.offset = tooltipOffset(e.layer, e.layer._iconObj);
+					}
+					e.layer.bindPopup(html, options);
+					e.layer.openPopup();
+					e.layer.tooltipOpen = true;
+				}
+			}, this);
+			this.on('clustermouseout', function(e) {
+				if (e.layer.tooltipOpen){
+					e.layer.closePopup();
+					delete e.layer.tooltipOpen;
+				}
+			});
 		}
 	},
 

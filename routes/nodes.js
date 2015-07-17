@@ -104,7 +104,8 @@ router.get('/', function(req, res, next) {
                     circle : {
                         coordinates : [aggregate.gps.lat,aggregate.gps.lon],
                         bandwidth : (aggregate.bandwidth - aggregatedBandwidthExtends.min) / aggregatedBandwidthExtends.max,
-                        id : aggregate.id
+                        id : aggregate.id,
+                        relays : aggregate.relays
                     }
                 };
             })

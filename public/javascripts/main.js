@@ -28,6 +28,7 @@
 var DotLayer = require('./layers/dotlayer');
 var MapParticleSimulation = require('./particles/mapparticlesimulation');
 var Config = require('./config');
+var UUID = require('./util/uuid');
 
 var Template = require('./templates/main');
 
@@ -159,10 +160,18 @@ App.prototype = _.extend(App.prototype, {
             d3.json('/nodes', function (nodes) {
 
                 /* Add a LatLng object to each item in the dataset */
+                var totalBandwidth = 0;
+                var totalRelays = 0;
                 nodes.objects.forEach(function(d,i) {
                     d.latLng = new L.LatLng(d.circle.coordinates[0],
                         d.circle.coordinates[1]);
                     idToLatLng[d.circle.id] = d.latLng;
+                    var groupBandwidth = 0;
+                    d.circle.relays.forEach(function(relay) {
+                        groupBandwidth += relay.bandwidth;
+                    });
+                    totalBandwidth += groupBandwidth;
+                    totalRelays += d.circle.relays.length;
                 });
 
 
@@ -175,6 +184,26 @@ App.prototype = _.extend(App.prototype, {
 
                 var markers = L.markerClusterGroup({
                     removeOutsideVisibleBounds : false,
+//                    showCoverageOnHover : false,
+                    tooltip : function(cluster) {
+                        var markers = cluster.getAllChildMarkers();
+                        var clusterRelayCount = 0;
+                        var clusterBandwidth = 0;
+                        markers.forEach(function(markerCluster) {
+                            clusterRelayCount += markerCluster.data.circle.relays.length;
+                            var groupBandwidth = 0;
+                            markerCluster.data.circle.relays.forEach(function(relay) {
+                                groupBandwidth += relay.bandwidth;
+                            });
+                            clusterBandwidth += groupBandwidth;
+                        });
+                        var bandwidthPercent = Math.round((clusterBandwidth/totalBandwidth) * 100);
+                        var relayCountPercent = Math.round((clusterRelayCount/totalRelays) * 100);
+                        return '<p>Relays in Group: ' + clusterRelayCount + '(' + relayCountPercent + '%)</p>' + '<p>Bandwidth: ' + bandwidthPercent + '%</p>';
+                    },
+                    tooltipOffset : function(cluster,icon) {
+                        return new L.Point(0,-icon.options.iconSize.x/2);
+                    },
                     iconCreateFunction: function (cluster) {
                         var markers = cluster.getAllChildMarkers();
 
@@ -203,10 +232,13 @@ App.prototype = _.extend(App.prototype, {
 
 
                         var radius = Config.node_radius.min + (Config.node_radius.max-Config.node_radius.min)*clusterBandwidth;
-                        return L.divIcon({
+
+                        var icon = L.divIcon({
                             className: 'relay-cluster',
                             iconSize: L.point(radius, radius)
                         });
+                        cluster.icon = icon;
+                        return icon;
                     }
                 });
 
