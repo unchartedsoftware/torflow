@@ -91,7 +91,7 @@ MapParticle.prototype = _.extend(Particle.prototype,{
 
         var minscale = Config.particle_velocity_variance_scale.min;
         var maxscale = Config.particle_velocity_variance_scale.max;
-        var velocity = Config.particle_velocity;
+        var velocity = Config.particle_velocity_zoom ? Config.particle_velocity_zoom(this._map.getZoom()) : Config.particle_velocity;
         var constantVelocityDuration = len/RandomRange(velocity*minscale,velocity*maxscale);
 
         this.duration(constantVelocityDuration);
