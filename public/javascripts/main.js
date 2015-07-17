@@ -28,7 +28,6 @@
 var DotLayer = require('./layers/dotlayer');
 var MapParticleSimulation = require('./particles/mapparticlesimulation');
 var Config = require('./config');
-var UUID = require('./util/uuid');
 
 var Template = require('./templates/main');
 
@@ -142,7 +141,9 @@ App.prototype = _.extend(App.prototype, {
             self._dateSlider = self._element.find('input.slider').slider({
                 tooltip:'hide'
             });
-            self._dateSlider.on('slideStop',self._onDateChange.bind(self));
+            if (self._dateSlider) {
+                self._dateSlider.on('slideStop', self._onDateChange.bind(self));
+            }
 
 
             self._map = L.map('map').setView([0, 0], 2);
