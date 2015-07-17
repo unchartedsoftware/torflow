@@ -174,7 +174,8 @@ App.prototype = _.extend(App.prototype, {
             var mapLink = '<a href="http://openstreetmap.org">OpenStreetMap</a>';
             L.tileLayer(
                 'http://{s}.tiles.mapbox.com/v3/examples.map-0l53fhk2/{z}/{x}/{y}.png', {
-                    attribution: '&copy; ' + mapLink + ' Contributors',
+                    attribution: '<span style="color:lightgrey">&copy;</span> ' + mapLink + ' | <a href="http://uncharted.software" target="_blank"><img src="/img/uncharted-logo-light-gray-small.png"</a>',
+                    //prefix : '<a href="http://uncharted.software" target="_blank"><img src="/img/uncharted-logo-light-gray-small.png"</a>',
                     maxZoom: 18,
                 }).addTo(self._map);
 

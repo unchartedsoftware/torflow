@@ -62,7 +62,8 @@ var config = {
             ' security on the Internet. Tor\'s users employ this network by connecting through a series of virtual tunnels' +
             ' rather than making a direct connection, thus allowing both organizations and individuals to share information ' +
             'over public networks without compromising their privacy.<a href="https://www.torproject.org/about/overview.html.en"><sup>[1]</sup></a></p>' +
-            '<p>The following visualization shows information flow between the ~6500 relay servers.  General purpose web traffic is shown in blue.  Traffic to hidden services (~4%) is shown in red.',
+            '<p>The following visualization shows information flow between the ~6500 relay servers.  General purpose Tor traffic is shown in blue.  Traffic to hidden services is shown in red.</p>' +
+            '<p>Each circle below represents relay servers that are grouped by proximity.  Hover over a circle to see information about that group.  Click on a circle to zoom the map to the contents of the group.</p>',
     hiddenServiceProbability : 0.04
 };
 

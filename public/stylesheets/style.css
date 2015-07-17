@@ -38,6 +38,10 @@ a {
     background: #000 !important;
 }
 
+.leaflet-control-attribution {
+    background: none !important;
+}
+
 #map-container {
     position:relative;
     width:1024px;
