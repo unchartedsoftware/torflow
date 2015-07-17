@@ -47,6 +47,14 @@ App.prototype = _.extend(App.prototype, {
     _map : null,
     _element : null,
     _dateLabel : null,
+    _currentNodes : null,
+
+    _getVisibleRelays : function() {
+        var bounds = this._map.getBounds();
+        return this._currentNodes.objects.filter(function(aggregate) {
+            return bounds.contains(aggregate.latLng);
+        });
+    },
 
     _onMapClustered : function() {
         var self = this;
@@ -55,12 +63,14 @@ App.prototype = _.extend(App.prototype, {
         //console.log('Zoom Level : ' + this._map.getZoom() + ', Edge Count: ' + clusterset.length * clusterset.length);
 
         var totalBandwidth = 0;
+        var aggregatesIncluded = {};
         var nodes = clusterset.map(function(cluster) {
             var bandwidth = 0;
             cluster.getAllChildMarkers().forEach(function(child) {
                 child.data.circle.relays.forEach(function(relay) {
                     bandwidth+=relay.bandwidth;
                 });
+                aggregatesIncluded[child.data.circle.id] = true;
             });
             totalBandwidth+=bandwidth;
 
@@ -68,6 +78,18 @@ App.prototype = _.extend(App.prototype, {
                 bandwidth : bandwidth,
                 latLng: cluster._latlng
             };
+        });
+
+        // Add any singleton relays that aren't in a marker cluster
+        var allVisisbleRelays = this._getVisibleRelays();
+        allVisisbleRelays.forEach(function(relay) {
+            if (!aggregatesIncluded[relay.circle.id]) {
+                nodes.push({
+                    bandwidth: relay.circle.bandwidth,
+                    latLng: relay.latLng
+                });
+                totalBandwidth += relay.circle.bandwidth;
+            }
         });
 
         nodes.forEach(function(node) {
@@ -161,6 +183,8 @@ App.prototype = _.extend(App.prototype, {
 
 
             d3.json('/nodes', function (nodes) {
+
+                self._currentNodes = nodes;
 
                 /* Add a LatLng object to each item in the dataset */
                 var totalBandwidth = 0;

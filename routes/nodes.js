@@ -49,7 +49,7 @@ router.get('/', function(req, res, next) {
             var lat = parseFloat(pieces[0]);
             var lon = parseFloat(pieces[1]);
             var bw = parseFloat(data.Bandwidth);
-            if (isNaN(lat) || isNaN(lon) || isNaN(bw)) {
+            if (isNaN(lat) || isNaN(lon) || isNaN(bw) || (lat === 0 && lon===0)) {
                 skipped.push(data);
                 return undefined;
             }
