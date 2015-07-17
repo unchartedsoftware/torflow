@@ -25,17 +25,25 @@
 * SOFTWARE.
 */
 
-function minmax(list) {
-    var min = Number.MAX_VALUE;
-    var max = Number.MIN_VALUE;
-    list.forEach(function(element) {
-        min = Math.min(min,element);
-        max = Math.max(max,element);
-    });
-    return {
-        min : min,
-        max : max
-    };
-}
+var gulp            = require('gulp');
+var del             = require('del');
 
-module.exports.minmax = minmax;
+gulp.task('copy', function() {
+    gulp.src(['app.js', 'config.js', 'package.json'])
+        .pipe(gulp.dest('./build/'));
+    gulp.src('bin/**')
+        .pipe(gulp.dest('./build/bin/'));
+    gulp.src('data/**')
+        .pipe(gulp.dest('./build/data/'));
+    gulp.src('public/**')
+        .pipe(gulp.dest('./build/public/'));
+    gulp.src('routes/**')
+        .pipe(gulp.dest('./build/routes/'));
+    gulp.src('util/**')
+        .pipe(gulp.dest('./build/util/'));
+    gulp.src('views/**')
+        .pipe(gulp.dest('./build/views/'));
+});
+
+
+gulp.task('build', ['copy']);

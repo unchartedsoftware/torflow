@@ -24,18 +24,46 @@
 * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 * SOFTWARE.
 */
+var express = require('express');
+var request = require('request');
+var Config = require('../config');
+var router = express.Router();
 
-function minmax(list) {
-    var min = Number.MAX_VALUE;
-    var max = Number.MIN_VALUE;
-    list.forEach(function(element) {
-        min = Math.min(min,element);
-        max = Math.max(max,element);
-    });
-    return {
-        min : min,
-        max : max
+/* GET home page. */
+router.get('/', function(req, res, next) {
+    var q ={
+        size:0,
+        'aggs' : {
+            'max_date' : {
+                'max' : {
+                    'field' : 'date'
+                }
+            },
+            'min_date' : {
+                'min' : {
+                    'field' : 'date'
+                }
+            }
+        }
     };
-}
 
-module.exports.minmax = minmax;
+
+    request({
+        url: 'http://' + Config.elasticsearch.host + ':' + Config.elasticsearch.port + '/' + Config.bandwidth_index_name + '/_search',
+        method: 'POST',
+        json: q
+    }, function(error, response, body){
+        if(error || body.error) {
+            console.log(error || body.error);
+            res.status(500).send(error || body.error);
+        } else {
+            var map = {
+                min : body.aggregations.min_date,
+                max : body.aggregations.max_date
+            };
+            res.send(map);
+        }
+    });
+});
+
+module.exports = router;

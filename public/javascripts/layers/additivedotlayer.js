@@ -25,17 +25,29 @@
 * SOFTWARE.
 */
 
-function minmax(list) {
-    var min = Number.MAX_VALUE;
-    var max = Number.MIN_VALUE;
-    list.forEach(function(element) {
-        min = Math.min(min,element);
-        max = Math.max(max,element);
-    });
-    return {
-        min : min,
-        max : max
-    };
-}
+var DotLayer = L.CanvasLayer.extend({
 
-module.exports.minmax = minmax;
+    _ctx : null,
+    _initialized : false,
+
+    add : function(latLng) {
+        if (!this._initialized) {
+            return;
+        }
+        var point = this._map.latLngToContainerPoint(latLng);
+        this._ctx.fillRect(point.x,point.y,1,1);
+    },
+
+    render: function() {
+        if (!this._initialized) {
+            var canvas = this.getCanvas();
+            this._ctx = canvas.getContext('2d');
+
+            this._ctx.fillStyle = 'rgba(0, 0, 255, 0.01)';
+            this._ctx.clearRect(0, 0, canvas.width, canvas.height);
+            this._initialized = true;
+        }
+    }
+});
+
+module.exports = DotLayer;

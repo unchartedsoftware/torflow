@@ -25,17 +25,14 @@
 * SOFTWARE.
 */
 
-function minmax(list) {
-    var min = Number.MAX_VALUE;
-    var max = Number.MIN_VALUE;
-    list.forEach(function(element) {
-        min = Math.min(min,element);
-        max = Math.max(max,element);
-    });
-    return {
-        min : min,
-        max : max
-    };
-}
+var ElasticSearch = require('elasticsearch');
+var Config = require('../config');
 
-module.exports.minmax = minmax;
+var esSpec = {
+    host: Config.elasticsearch.host + ':' + Config.elasticsearch.port
+    //log: 'trace'
+};
+
+var esClient = new ElasticSearch.Client(esSpec);
+
+module.exports = esClient;
