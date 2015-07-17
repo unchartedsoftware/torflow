@@ -182,15 +182,27 @@ App.prototype = _.extend(App.prototype, {
                             return marker.data.circle;
                         });
 
-                        self._clusters[self._map.getZoom()].push(cluster);
-
-                        var bandwidth = 0;
+                        // Adjust position of marker latLng to be at the center of bandwidth as opposed to geometric center
+                        var clusterBandwidth = 0;
                         dataElements.forEach(function(data) {
-                            bandwidth += data.bandwidth;
+                            clusterBandwidth += data.bandwidth;
                         });
 
-                        var radius = Config.node_radius.min + (Config.node_radius.max-Config.node_radius.min)*bandwidth;
+                        var weightAvgLat = 0;
+                        var weightedAvgLng = 0;
+                        markers.forEach(function(marker,i) {
+                            weightAvgLat += marker.getLatLng().lat * dataElements[i].bandwidth;
+                            weightedAvgLng += marker.getLatLng().lng * dataElements[i].bandwidth;
+                        });
+                        weightAvgLat /= clusterBandwidth;
+                        weightedAvgLng /= clusterBandwidth;
 
+                        cluster.setLatLng(new L.LatLng(weightAvgLat,weightedAvgLng));
+
+                        self._clusters[self._map.getZoom()].push(cluster);
+
+
+                        var radius = Config.node_radius.min + (Config.node_radius.max-Config.node_radius.min)*clusterBandwidth;
                         return L.divIcon({
                             className: 'relay-cluster',
                             iconSize: L.point(radius, radius)
