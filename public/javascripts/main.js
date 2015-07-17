@@ -58,7 +58,9 @@ App.prototype = _.extend(App.prototype, {
         var nodes = clusterset.map(function(cluster) {
             var bandwidth = 0;
             cluster.getAllChildMarkers().forEach(function(child) {
-                bandwidth+=child.data.circle.bandwidth;
+                child.data.circle.relays.forEach(function(relay) {
+                    bandwidth+=relay.bandwidth;
+                });
             });
             totalBandwidth+=bandwidth;
 
@@ -185,7 +187,6 @@ App.prototype = _.extend(App.prototype, {
 
                 var markers = L.markerClusterGroup({
                     removeOutsideVisibleBounds : false,
-//                    showCoverageOnHover : false,
                     tooltip : function(cluster) {
                         var markers = cluster.getAllChildMarkers();
                         var clusterRelayCount = 0;

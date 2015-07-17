@@ -665,7 +665,7 @@ L.MarkerClusterGroup = L.FeatureGroup.extend({
 				if (!e.layer.tooltipOpen && e.layer !== this._spiderfied) {
 					var options = {};
 					if (tooltipOffset) {
-						options.offset = tooltipOffset(e.layer, e.layer._iconObj);
+						options.offset = tooltipOffset(this, e.layer._iconObj);
 					}
 					e.layer.bindPopup(html, options);
 					e.layer.openPopup();
