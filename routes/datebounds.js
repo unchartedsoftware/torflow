@@ -49,7 +49,7 @@ router.get('/', function(req, res, next) {
 
 
     request({
-        url: 'http://' + Config.elasticsearch.host + ':' + Config.elasticsearch.port + '/' + Config.bandwidth_index_name + '/_search',
+        url: 'http://' + Config.elasticsearch.host + ':' + Config.elasticsearch.port + '/' + Config.relays_index_name + '/_search',
         method: 'POST',
         json: q
     }, function(error, response, body){

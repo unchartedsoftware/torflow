@@ -44,25 +44,28 @@ router.get('/', function(req, res, next) {
         var skipped = [];
         hits.map(function(hit) {
             var data = hit._source;
-            var latlngStr = data.Gps;
+            var latlngStr = data.gps;
             var pieces = latlngStr.split('/');
             var lat = parseFloat(pieces[0]);
             var lon = parseFloat(pieces[1]);
-            var bw = parseFloat(data.Bandwidth);
+            var bw = parseFloat(data.bandwidth);
             if (isNaN(lat) || isNaN(lon) || isNaN(bw) || (lat === 0 && lon===0)) {
                 skipped.push(data);
                 return undefined;
             }
 
             return {
-                fingerprint : data.Fingerprint,
+                fingerprint : data.fingerprint,
                 bandwidth : bw,
-                name : data.Name,
+                name : data.name,
                 gps : {
                     lat: lat,
                     lon: lon
-                }
-            }
+                },
+                ip : data.ip,
+                uptime : data.uptime,
+                flags : data.flags
+            };
         })
             .filter(function(res) { return res !== undefined; })
             .forEach(function(res) { relayData[res.fingerprint] = res; });

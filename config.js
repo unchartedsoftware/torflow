@@ -3,8 +3,7 @@ var config = {
         host : 'localhost',
         port : 9200
     },
-    relays_index_name : 'relays',
-    bandwidth_index_name : 'bandwidth'
+    relays_index_name : 'relays_small'
 };
 
 module.exports = config;
