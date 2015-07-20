@@ -62,9 +62,8 @@ public class StitchTorCSV {
             while ((line = br.readLine()) != null) {
                 line = line.replaceAll("\n","");
                 if (isFirstLine) {
-                    appendedHeader = line + "," + DATE_COLUMN_NAME + "\n";
-                    bw.write(appendedHeader);
                     isFirstLine = false;
+                    continue;
                 } else {
                     String appendedLine = line + "," + isoDate + "\n";
                     bw.write(appendedLine);
