@@ -3,7 +3,7 @@ var config = {
         host : 'localhost',
         port : 9200
     },
-    relays_index_name : 'relays_small'
+    relays_index_name : 'relays'
 };
 
 module.exports = config;

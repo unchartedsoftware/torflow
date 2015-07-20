@@ -26,19 +26,37 @@
 */
 
 var express = require('express');
-var ElasticSearch = require('../util/elasticsearch');
+var request = require('request');
 var router = express.Router();
 var MathUtil = require('../util/mathutil');
+var moment = require('moment');
 var Config = require('../config');
 
 /* GET home page. */
-router.get('/', function(req, res, next) {
+router.get('/:date', function(req, res, next) {
+    var momentDate = moment(req.params.date);
 
-    ElasticSearch.search({
-        index: Config.relays_index_name,
-        q: '*',
-        size:99999999
-    }).then(function (body) {
+    var day = momentDate.date();    // date == day of month, day == day of week.
+    var month = momentDate.month() + 1; // indexed from 0?
+    var year = momentDate.year();
+
+    var q ={
+        "size":999999999,
+        "query" : {
+            "range" : {
+                "date" : {
+                    "from" : year + '-' + month + '-'+ day,
+                    "to" : year + '-' + month + '-'+ day
+                }
+            }
+        }
+    };
+
+    request({
+        url: 'http://' + Config.elasticsearch.host + ':' + Config.elasticsearch.port + '/' + Config.relays_index_name + '/_search',
+        method: 'POST',
+        json: q
+    }, function(error, response, body){
         var hits = body.hits.hits;
         var relayData = {};
         var skipped = [];
