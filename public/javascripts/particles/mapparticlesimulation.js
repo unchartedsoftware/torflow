@@ -77,18 +77,24 @@ MapParticleSimulation.prototype = _.extend(MapParticleSimulation.prototype,{
     _getProbabilisticNodeIndex : function() {
         var rnd = Math.random();
         var i = 0;
-        while (rnd > this._nodes[i].bandwidth && i < this._nodes.length) {
+        while (i < this._nodes.length && rnd > this._nodes[i].bandwidth) {
             rnd -= this._nodes[i].bandwidth;
             i++;
         }
         return i;
     },
     _getProbabilisticSourceDestPair : function() {
+        var maxTries = 500;
+        var tries = 0;
         // todo: return a source/dest pair from nodes based on bandwidth probability
         var source = this._getProbabilisticNodeIndex();
         var dest = this._getProbabilisticNodeIndex();
         while (source === dest) {
             dest = this._getProbabilisticNodeIndex();
+            tries++;
+            if (tries === maxTries) {
+                throw 'Cannot find destination.  Something is wrong with the probaility bandwidths on your nodes!';
+            }
         }
 //        console.log('Spawning particle from ' + source + ' to ' + dest);
         return {

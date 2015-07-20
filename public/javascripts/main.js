@@ -31,6 +31,11 @@ var Config = require('./config');
 
 var Template = require('./templates/main');
 
+var DEFAULT_ICON = L.divIcon({
+    className: 'relay-cluster',
+    iconSize:L.point(Config.node_radius.min, Config.node_radius.min)
+});
+
 /**
  * Creates the TorFlow front-end app
  * @constructor
@@ -71,48 +76,8 @@ App.prototype = _.extend(App.prototype, {
         });
     },
 
-    _onMapClustered : function() {
+    _startSimulation : function(nodes) {
         var self = this;
-
-        var clusterset = this._clusters[this._map.getZoom()];
-        //console.log('Zoom Level : ' + this._map.getZoom() + ', Edge Count: ' + clusterset.length * clusterset.length);
-
-        var totalBandwidth = 0;
-        var aggregatesIncluded = {};
-        var nodes = clusterset.map(function(cluster) {
-            var bandwidth = 0;
-            cluster.getAllChildMarkers().forEach(function(child) {
-                child.data.circle.relays.forEach(function(relay) {
-                    bandwidth+=relay.bandwidth;
-                });
-                aggregatesIncluded[child.data.circle.id] = true;
-            });
-            totalBandwidth+=bandwidth;
-
-            return {
-                bandwidth : bandwidth,
-                latLng: cluster._latlng
-            };
-        });
-
-        // Add any singleton relays that aren't in a marker cluster
-        var allVisisbleRelays = this._getVisibleRelays();
-        allVisisbleRelays.forEach(function(relay) {
-            if (!aggregatesIncluded[relay.circle.id]) {
-                nodes.push({
-                    bandwidth: relay.circle.bandwidth,
-                    latLng: relay.latLng
-                });
-                totalBandwidth += relay.circle.bandwidth;
-            }
-        });
-
-        nodes.forEach(function(node) {
-            node.bandwidth /= totalBandwidth;
-        });
-
-
-
         if (this._particleLayer) {
             this._map.removeLayer(this._particleLayer);
             delete this._particleLayer;
@@ -135,6 +100,61 @@ App.prototype = _.extend(App.prototype, {
             });
         this._onHiddenFilterChange();
         this._particleSimulation.start();
+    },
+
+    _onMapClustered : function() {
+        var totalBandwidth = this._getCurrentTotalBandwidth();
+        var nodes;
+
+        if (Config.use_clusters === false) {
+            nodes = this._currentNodes.objects.map(function (node) {
+                return {
+                    bandwidth: _.reduce(node.circle.relays, function(memo, relay){ return memo + relay.bandwidth; },0) / totalBandwidth,
+                    latLng: node.latLng
+                };
+            });
+            this._startSimulation(nodes);
+        } else {
+
+            var clusterset = this._clusters[this._map.getZoom()];
+
+            var aggregatesIncluded = {};
+            nodes = clusterset.map(function (cluster) {
+                var bandwidth = 0;
+                cluster.getAllChildMarkers().forEach(function (child) {
+                    child.data.circle.relays.forEach(function (relay) {
+                        bandwidth += relay.bandwidth;
+                    });
+                    aggregatesIncluded[child.data.circle.id] = true;
+                });
+                totalBandwidth += bandwidth;
+
+                return {
+                    bandwidth: bandwidth,
+                    latLng: cluster._latlng
+                };
+            });
+
+            // Add any singleton relays that aren't in a marker cluster
+            var allVisisbleRelays = this._getVisibleRelays();
+            allVisisbleRelays.forEach(function (relay) {
+                if (!aggregatesIncluded[relay.circle.id]) {
+                    nodes.push({
+                        bandwidth: relay.circle.bandwidth,
+                        latLng: relay.latLng
+                    });
+                    totalBandwidth += relay.circle.bandwidth;
+                }
+            });
+
+            nodes.forEach(function (node) {
+                node.bandwidth /= totalBandwidth;
+            });
+
+            nodes = nodes.sort(function(n1,n2) { return n2.bandwidth - n1.bandwidth; });
+
+            this._startSimulation(nodes);
+        }
     },
 
     _getFriendlyDate : function(daysFromMinDate) {
@@ -175,11 +195,12 @@ App.prototype = _.extend(App.prototype, {
         }
     },
 
-    _createMarkers : function() {
+    _createClusterMarkers : function() {
         var self = this;
 
         this._markersLayer = L.markerClusterGroup({
             removeOutsideVisibleBounds : false,
+            disableClusteringAtZoom: Config.use_clusters ? undefined : 1,
             tooltip : function(cluster) {
                 var markers = cluster.getAllChildMarkers();
                 var clusterRelayCount = 0;
@@ -240,15 +261,10 @@ App.prototype = _.extend(App.prototype, {
         this._markersLayer.on('animationend', this._onMapClustered.bind(this));
         this._markersLayer.on('initialized',this._onMapClustered.bind(this));
 
-        var defaultIcon = L.divIcon({
-            className: 'relay-cluster',
-            iconSize:L.point(Config.node_radius.min, Config.node_radius.min)
-        });
-
 
         this._currentNodes.objects.forEach(function(node) {
             var title = node.circle.id;
-            var marker = L.marker(node.latLng, {icon: defaultIcon});
+            var marker = L.marker(node.latLng, {icon: DEFAULT_ICON});
             marker.data = node;
             marker.bindPopup(title);
             self._markersLayer.addLayer(marker);
@@ -257,16 +273,16 @@ App.prototype = _.extend(App.prototype, {
         this._map.addLayer(this._markersLayer);
     },
 
+
+
     _getCurrentTotalBandwidth : function() {
-        var totalBandwidth = 0;
-        this._currentNodes.objects.forEach(function(d,i) {
-            var groupBandwidth = 0;
-            d.circle.relays.forEach(function(relay) {
-                groupBandwidth += relay.bandwidth;
+        var total = 0;
+        this._currentNodes.objects.forEach(function(aggregate) {
+            aggregate.circle.relays.forEach(function(relay) {
+                total+=relay.bandwidth;
             });
-            totalBandwidth += groupBandwidth;
         });
-        return totalBandwidth;
+        return total;
     },
 
     _getCurrentTotalRelays : function() {
@@ -299,7 +315,8 @@ App.prototype = _.extend(App.prototype, {
                 self._clusters[i] = [];
             }
 
-            self._createMarkers();
+            self._createClusterMarkers();
+
 
             self._particleLayer = new DotLayer()
                 .fillStyle(Config.dot.headFill);

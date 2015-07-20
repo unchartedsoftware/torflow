@@ -28,15 +28,16 @@
 var DEFAULT_PARTICLE_VELOCITY = 0.2;
 
 var config = {
+    use_clusters : true,
     particle_count : 750,
     node_radius : {
         min : 5,
         max : 30
     },
     particle_velocity : DEFAULT_PARTICLE_VELOCITY,
-    particle_velocity_zoom : function(zoomLevel) {
-        return DEFAULT_PARTICLE_VELOCITY * (0.8)*zoomLevel;
-    },
+    //particle_velocity_zoom : function(zoomLevel) {
+    //    return DEFAULT_PARTICLE_VELOCITY * (0.8)*zoomLevel;
+    //},
     particle_velocity_variance_scale : {
         min : 0.5,
         max : 1.5

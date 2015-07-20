@@ -86,6 +86,9 @@ MapParticle.prototype = _.extend(Particle.prototype,{
             y : destXY.y - sourceXY.y
         };
         var len = Math.sqrt(srcToDst.x * srcToDst.x + srcToDst.y * srcToDst.y);
+        if (len < 0.0001) {
+            len = 0.0001;
+        }
         srcToDst.x /= len;
         srcToDst.y /= len;
 
