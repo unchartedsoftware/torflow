@@ -6,7 +6,9 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
@@ -43,13 +45,15 @@ public class StitchTorCSV {
         System.out.println("\t\toutPath:  The directory where the processed files will be written.");
     }
 
-    public static void processFile(File inputCSV, String outPath) {
+    public static String processFile(File inputCSV, String outPath) {
         String isoDate = getISOTimeFromFilename(inputCSV.getName());
 
         BufferedReader br = null;
         BufferedWriter bw = null;
         String line;
         boolean isFirstLine = true;
+
+        String appendedHeader = "";
 
         try {
 
@@ -58,7 +62,7 @@ public class StitchTorCSV {
             while ((line = br.readLine()) != null) {
                 line = line.replaceAll("\n","");
                 if (isFirstLine) {
-                    String appendedHeader = line + "," + DATE_COLUMN_NAME + "\n";
+                    appendedHeader = line + "," + DATE_COLUMN_NAME + "\n";
                     bw.write(appendedHeader);
                     isFirstLine = false;
                 } else {
@@ -87,6 +91,7 @@ public class StitchTorCSV {
                     e.printStackTrace();
                 }
             }
+            return appendedHeader;
         }
 
     }
@@ -115,9 +120,22 @@ public class StitchTorCSV {
         }
 
         System.out.println("Processing csv files...");
+        Map<String,List<String>> headerToFilenames = new HashMap<String, List<String>>();
         for(File f : csvFiles) {
             System.out.println("\t" + f.getName());
-            processFile(f,outPath);
+            String header = processFile(f,outPath);
+            List<String> filenamesWithHeader = headerToFilenames.get(header);
+            if (filenamesWithHeader == null) {
+                filenamesWithHeader = new ArrayList<String>();
+            }
+            filenamesWithHeader.add(f.getName());
+            headerToFilenames.put(header,filenamesWithHeader);
+        }
+
+        System.out.println("Header information:");
+        for (String header : headerToFilenames.keySet()) {
+            List<String> filenames = headerToFilenames.get(header);
+            System.out.println("\t"+header+"\t\t(" + filenames.size() + " files)");
         }
     }
 }
