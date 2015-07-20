@@ -2,7 +2,11 @@
 
 ## Building
 
-Install modules:
+NodeJS and NPM are required for building and running.  Once NPM is installed, install the gulp plugin globally to build the Javascript source:
+
+	npm install -g gulp
+
+Install modules (from root project directory):
 
     npm install
 
@@ -23,10 +27,11 @@ In your browser:
 
 ## Ingest Data
 
-Ingest relays into ElasticSearch:
+Ingest relays into ElasticSearch via Logstash.  There is a set of sample data in the $PROJECT_ROOT/data/relays_small folder.  To import this from logstash:
 
-	curl http://localhost:3000/insertnodes/[relays_indes]
-	curl http://localhost:3000/generatebandwidthovertime/[bandwidth_index]/[num_days]
+	logstash -f $PROJECT_ROOT$/data/es_import_small.conf
+	
+NOTE: You must manually edit the configuration file!  It only supports absolute file paths, so the ones checked into source control will be wrong for your local machine
 
 ## Building the Docker container
 
