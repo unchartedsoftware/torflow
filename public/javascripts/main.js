@@ -55,6 +55,7 @@ App.prototype = _.extend(App.prototype, {
     _dateLabel : null,
     _currentNodes : null,
 
+
     _clear : function() {
         if (this._particleSimulation) {
             this._particleSimulation.stop();
@@ -192,6 +193,16 @@ App.prototype = _.extend(App.prototype, {
             this._particleSimulation.showTraffic('hidden');
         } else if (checkedState === 'general') {
             this._particleSimulation.showTraffic('general');
+        }
+    },
+
+    _onToggleFlow : function() {
+        if (this._particleSimulation.isStarted()) {
+            this._particleSimulation.stop();
+            this._particleLayer.hide();
+        } else {
+            this._particleSimulation.start();
+            this._particleLayer.show();
         }
     },
 
@@ -334,6 +345,7 @@ App.prototype = _.extend(App.prototype, {
             defaultDate : this._getFriendlyDate(totalDays)
         }))));
         this._element.find('.hidden-filter-btn').change(this._onHiddenFilterChange.bind(this));
+        this._element.find('#show-flow-input').change(this._onToggleFlow.bind(this));
 
 
         this._dateLabel = this._element.find('#date-label');
@@ -364,8 +376,6 @@ App.prototype = _.extend(App.prototype, {
      * Application startup.
      */
     start: function () {
-        var ibreak = 0;
-        ibreak++;
         // Fetch the date bounds and initialize everything
         $.get('/datebounds',this._init.bind(this));
         // TODO: display wait dialog

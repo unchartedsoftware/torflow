@@ -53,7 +53,11 @@ MapParticleSimulation.prototype = _.extend(MapParticleSimulation.prototype,{
     },
     stop : function() {
         this._cancelAnimationFrame.call(window,this._redrawRAFId);
+        this._redrawRAFId = null;
         return this;
+    },
+    isStarted : function() {
+        return this._redrawRAFId !== null;
     },
     destroy : function() {
         this._particleSystem.destroy();

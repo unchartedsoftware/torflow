@@ -66,15 +66,17 @@ ParticleSystem.prototype = _.extend(ParticleSystem.prototype, {
         }
     },
     addParticle : function(source,destination,color) {
-        var particle = this._available.pop();
+        if (this._available.length) {
+            var particle = this._available.pop();
 
-        particle
-            .source(source)
-            .destination(destination)
-            .tailColor(color||null)
-            .onDeath(this._onParticleDied.bind(this))
-            .start();
-        this._active[particle.id()] = particle;
+            particle
+                .source(source)
+                .destination(destination)
+                .tailColor(color || null)
+                .onDeath(this._onParticleDied.bind(this))
+                .start();
+            this._active[particle.id()] = particle;
+        }
         return this;
     },
     destroy : function() {

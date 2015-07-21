@@ -30,9 +30,10 @@ var DotLayer = L.CanvasLayer.extend({
 
     _ctx : null,
     _initialized : false,
+    _hidden : false,
 
     add : function(pos) {
-        if (!this._initialized) {
+        if (!this._initialized || this._hidden) {
             return;
         }
         var point = this._map.latLngToContainerPoint(pos.latLng);
@@ -106,6 +107,13 @@ DotLayer.prototype = _.extend(DotLayer.prototype,{
         this._fillR = clr.r;
         this._fillG = clr.g;
         this._fillB = clr.b;
+    },
+    hide : function() {
+        this._hidden = true;
+        this.clear();
+    },
+    show : function() {
+        this._hidden = false;
     }
 });
 
