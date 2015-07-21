@@ -77,4 +77,7 @@ build/package.json
 build/routes/
 build/bin/
 build/data/
+esdata.tar
 esdata/
+eslogs/
+data/processed/

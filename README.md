@@ -56,20 +56,29 @@ Build the container:
 
 Run the container:
 
-    sudo docker run -ti --rm --name torflow -p 3000:3000 -v /vagrant/esdata:/usr/share/elasticsearch-1.7.0/data -v /vagrant/eslogs:/var/log/supervisor docker.uncharted.software:torflow
+    sudo docker run -ti --rm --name torflow -p 3000:3000 -p 9200:9200 -p 9300:9300 -v /vagrant/esdata:/usr/share/elasticsearch-1.7.0/data -v /vagrant/eslogs:/var/log/supervisor docker.uncharted.software/torflow
 
 Ingest the data:
 
-	curl http://localhost:3000/insertnodes/[relays_indes]
-	curl http://localhost:3000/generatebandwidthovertime/[bandwidth_index]/[num_days]
+	cd ~
+	wget https://download.elastic.co/logstash/logstash/logstash-1.5.2.tar.gz ; tar xzf logstash-1.5.2.tar.gz
+	
+This installs logstash in your vagrant home directory.  We will use logstash to ingest the data.  Copy the processed Tor csv files into the mounted vagrant data directory temporarily under the path:
 
-The data will be stored in `esdata` and the logs are in `eslogs`.
+	/vagrant/data/processed
+	
+(We don't check these files into source control as they are several GB of data).  Invoke logstash to start the import process:
+
+	cd logstash-1.5.2/bin/
+	./logstash -f /vagrant/data/es_import_docker.conf
+
+The data will be stored in `esdata` and the logs are in `eslogs`.  If you have prebuilt esdata directories, you can skip the above step and copy them into your /vagrant/ directory as is.
 
 To push the image to the repository:
 
-	docker login docker.uncharted.software
-	docker push docker.uncharted.software:torflow
+	sudo docker login docker.uncharted.software
+	sudo docker push docker.uncharted.software/torflow
 
 To run on another machine:
 
-	docker pull docker.uncharted.software:torflow
+	sudo docker pull docker.uncharted.software/torflow
