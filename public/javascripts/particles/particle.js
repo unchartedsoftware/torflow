@@ -90,6 +90,9 @@ Particle.prototype = _.extend(Particle.prototype,{
             return this._position;
         }
     },
+    _killOnNextTick : function() {
+        this._milliseconds = 0;
+    },
     start : function() {
         this._rafID = this._requestAnimationFrame.call(window,this._tick.bind(this));
     },

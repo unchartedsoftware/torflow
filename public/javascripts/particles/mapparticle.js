@@ -45,6 +45,20 @@ MapParticle.prototype = _.extend(Particle.prototype,{
     hiddenServiceProbability : function(p) {
         this._hiddenServiceProbability = p;
     },
+
+    // TODO:  this can be optimized if we can detect when a particle will never cross the screen
+    _shouldKillOnNextTick : function() {
+        var sourceLatLng = this._source.latLng;
+        var destLatLng = this._destination.latLng;
+        var currentLatLng = this._position.latLng;
+        var mapBounds = this._map.getBounds();
+
+        if (mapBounds.contains(sourceLatLng) && !mapBounds.contains(destLatLng) && !mapBounds.contains(currentLatLng)) {
+            return true;
+        } else {
+            return false;
+        }
+    },
     _updatePosition : function(alpha) {
         if (!USE_SLERP) {
             this._arr = [this._source.latLng, this._destination.latLng];
@@ -57,6 +71,12 @@ MapParticle.prototype = _.extend(Particle.prototype,{
                     g : 255,
                     b : 255
                 };
+
+            // Check to see if this particle should be killed on the next tick
+            if (this._shouldKillOnNextTick()) {
+                this._killOnNextTick();
+            }
+
         } else {
             // Convert to spherical coordinates
             if (!this._converted) {
