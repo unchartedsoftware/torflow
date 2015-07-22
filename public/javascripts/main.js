@@ -224,6 +224,10 @@ App.prototype = _.extend(App.prototype, {
         this._onDateChange();
     },
 
+    _onResize : function() {
+
+    },
+
     _createClusterMarkers : function() {
         var self = this;
 
@@ -377,6 +381,7 @@ App.prototype = _.extend(App.prototype, {
         this._element.find('.hidden-filter-btn').change(this._onHiddenFilterChange.bind(this));
         this._element.find('#show-flow-input').change(this._onToggleFlow.bind(this));
         this._element.find('#cluster-input').change(this._onToggleClusters.bind(this));
+        this._element.find('#main').resize(this._onResize.bind(this));
 
 
         this._dateLabel = this._element.find('#date-label');

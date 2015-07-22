@@ -44,12 +44,12 @@ a {
 
 #map-container {
     position:relative;
-    width:1024px;
+    width:100%;
     height:760px;
 }
 
 #map {
-    width: 1024px;
+    width: 100%;
     height: 760px;
     position: absolute;
     margin: 0 auto;

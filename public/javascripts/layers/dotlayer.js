@@ -80,15 +80,18 @@ var DotLayer = L.CanvasLayer.extend({
     },
 
     clear : function() {
-        this._ctx.clearRect(0, 0, this._width, this._height);
+        var canvas = this.getCanvas();
+        this._ctx.clearRect(0, 0, canvas.width, canvas.height);
+    },
+
+    onResize : function() {
+        this._ctx.fillStyle = this._fillStyle;
     },
 
     render: function() {
         if (!this._initialized) {
             var canvas = this.getCanvas();
             this._ctx = canvas.getContext('2d');
-            this._width = canvas.width;
-            this._height = canvas.height;
 
             this.clear();
 
@@ -101,6 +104,7 @@ var DotLayer = L.CanvasLayer.extend({
 DotLayer.prototype = _.extend(DotLayer.prototype,{
     fillStyle : function(style) {
         this._fillStyle = style;
+        this._ctx.fillStyle = this._fillStyle || 'white';
         return this;
     },
     fill : function(clr) {
