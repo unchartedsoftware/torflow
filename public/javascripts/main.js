@@ -54,6 +54,7 @@ App.prototype = _.extend(App.prototype, {
     _element : null,
     _dateLabel : null,
     _currentNodes : null,
+    _showFlow : true,
 
 
     _clear : function() {
@@ -100,7 +101,10 @@ App.prototype = _.extend(App.prototype, {
                 });
             });
         this._onHiddenFilterChange();
-        this._particleSimulation.start();
+
+        if (this._showFlow) {
+            this._particleSimulation.start();
+        }
     },
 
     _onMapClustered : function() {
@@ -198,9 +202,11 @@ App.prototype = _.extend(App.prototype, {
 
     _onToggleFlow : function() {
         if (this._particleSimulation.isStarted()) {
+            this._showFlow = false;
             this._particleSimulation.stop();
             this._particleLayer.hide();
         } else {
+            this._showFlow = true;
             this._particleSimulation.start();
             this._particleLayer.show();
         }
