@@ -30,8 +30,8 @@ var DEFAULT_PARTICLE_VELOCITY = 0.2;
 var config = {
     particle_count : 750,
     node_radius : {
-        min : 2,
-        max : 50
+        min : 3,
+        max : 40
     },
     particle_velocity : DEFAULT_PARTICLE_VELOCITY,
     //particle_velocity_zoom : function(zoomLevel) {

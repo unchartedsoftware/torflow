@@ -63,8 +63,12 @@ a {
     bottom: 0;
 }
 
-.padded {
+.padded-left {
     margin-left:10px;
+}
+
+.padded-right {
+    margin-right:10px;
 }
 
 .relay-cluster {
