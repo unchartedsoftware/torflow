@@ -1,5 +1,5 @@
-<div id="main " class="container">
-    <div class="col-lg-12">
+<div id="main ">
+    <div>
         <h1>{{title}}</h1>
         <p>{{{summary}}}</p>
 
@@ -14,15 +14,14 @@
                 <input class="hidden-filter-input" type="radio" name="hidden-options" autocomplete="off" hidden-id="general">General Purpose
             </label>
         </div>
+        <input id="show-flow-input" type="checkbox" checked><label>Show Flow</label>
+        <input id="cluster-input" type="checkbox" checked><label>Cluster</label>
+        <input id="date-slider" class='slider' data-slider-id='ex1Slider' type="text" data-slider-min="1" data-slider-max="{{totalDates}}" data-slider-step="1" data-slider-value="{{defaultIndex}}"/> <label class="padded">Date:</label><span id="date-label">{{defaultDate}}</span>
 
         <div id="map-container">
             <div id="map">
 
             </div>
         </div>
-        <div>
-            <input id="ex1" class='slider' data-slider-id='ex1Slider' type="text" data-slider-min="1" data-slider-max="{{totalDates}}" data-slider-step="1" data-slider-value="{{defaultIndex}}"/>
-        </div>
-        <span id="date-label">{{defaultDate}}</span>
     </div>
 </div>

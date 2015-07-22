@@ -30,9 +30,10 @@ var DotLayer = L.CanvasLayer.extend({
 
     _ctx : null,
     _initialized : false,
+    _hidden : false,
 
     add : function(pos) {
-        if (!this._initialized) {
+        if (!this._initialized || this._hidden) {
             return;
         }
         var point = this._map.latLngToContainerPoint(pos.latLng);
@@ -79,15 +80,18 @@ var DotLayer = L.CanvasLayer.extend({
     },
 
     clear : function() {
-        this._ctx.clearRect(0, 0, this._width, this._height);
+        var canvas = this.getCanvas();
+        this._ctx.clearRect(0, 0, canvas.width, canvas.height);
+    },
+
+    onResize : function() {
+        this._ctx.fillStyle = this._fillStyle;
     },
 
     render: function() {
         if (!this._initialized) {
             var canvas = this.getCanvas();
             this._ctx = canvas.getContext('2d');
-            this._width = canvas.width;
-            this._height = canvas.height;
 
             this.clear();
 
@@ -100,12 +104,20 @@ var DotLayer = L.CanvasLayer.extend({
 DotLayer.prototype = _.extend(DotLayer.prototype,{
     fillStyle : function(style) {
         this._fillStyle = style;
+        this._ctx.fillStyle = this._fillStyle || 'white';
         return this;
     },
     fill : function(clr) {
         this._fillR = clr.r;
         this._fillG = clr.g;
         this._fillB = clr.b;
+    },
+    hide : function() {
+        this._hidden = true;
+        this.clear();
+    },
+    show : function() {
+        this._hidden = false;
     }
 });
 

@@ -34,9 +34,9 @@ var config = {
         max : 30
     },
     particle_velocity : DEFAULT_PARTICLE_VELOCITY,
-    particle_velocity_zoom : function(zoomLevel) {
-        return DEFAULT_PARTICLE_VELOCITY * (0.8)*zoomLevel;
-    },
+    //particle_velocity_zoom : function(zoomLevel) {
+    //    return DEFAULT_PARTICLE_VELOCITY * (0.8)*zoomLevel;
+    //},
     particle_velocity_variance_scale : {
         min : 0.5,
         max : 1.5

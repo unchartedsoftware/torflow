@@ -31,6 +31,11 @@ var Config = require('./config');
 
 var Template = require('./templates/main');
 
+var DEFAULT_ICON = L.divIcon({
+    className: 'relay-cluster',
+    iconSize:L.point(Config.node_radius.min, Config.node_radius.min)
+});
+
 /**
  * Creates the TorFlow front-end app
  * @constructor
@@ -49,6 +54,9 @@ App.prototype = _.extend(App.prototype, {
     _element : null,
     _dateLabel : null,
     _currentNodes : null,
+    _currentDate : null,
+    _showFlow : true,
+
 
     _clear : function() {
         if (this._particleSimulation) {
@@ -71,48 +79,8 @@ App.prototype = _.extend(App.prototype, {
         });
     },
 
-    _onMapClustered : function() {
+    _startSimulation : function(nodes) {
         var self = this;
-
-        var clusterset = this._clusters[this._map.getZoom()];
-        //console.log('Zoom Level : ' + this._map.getZoom() + ', Edge Count: ' + clusterset.length * clusterset.length);
-
-        var totalBandwidth = 0;
-        var aggregatesIncluded = {};
-        var nodes = clusterset.map(function(cluster) {
-            var bandwidth = 0;
-            cluster.getAllChildMarkers().forEach(function(child) {
-                child.data.circle.relays.forEach(function(relay) {
-                    bandwidth+=relay.bandwidth;
-                });
-                aggregatesIncluded[child.data.circle.id] = true;
-            });
-            totalBandwidth+=bandwidth;
-
-            return {
-                bandwidth : bandwidth,
-                latLng: cluster._latlng
-            };
-        });
-
-        // Add any singleton relays that aren't in a marker cluster
-        var allVisisbleRelays = this._getVisibleRelays();
-        allVisisbleRelays.forEach(function(relay) {
-            if (!aggregatesIncluded[relay.circle.id]) {
-                nodes.push({
-                    bandwidth: relay.circle.bandwidth,
-                    latLng: relay.latLng
-                });
-                totalBandwidth += relay.circle.bandwidth;
-            }
-        });
-
-        nodes.forEach(function(node) {
-            node.bandwidth /= totalBandwidth;
-        });
-
-
-
         if (this._particleLayer) {
             this._map.removeLayer(this._particleLayer);
             delete this._particleLayer;
@@ -134,7 +102,72 @@ App.prototype = _.extend(App.prototype, {
                 });
             });
         this._onHiddenFilterChange();
-        this._particleSimulation.start();
+
+        if (this._showFlow) {
+            this._particleSimulation.start();
+        }
+    },
+
+    _onMapClustered : function() {
+        var totalBandwidth = this._getCurrentTotalBandwidth();
+        var nodes;
+
+        if (this._useClusters() === false) {
+            nodes = this._currentNodes.objects.map(function (node) {
+                return {
+                    bandwidth: _.reduce(node.circle.relays, function(memo, relay){ return memo + relay.bandwidth; },0) / totalBandwidth,
+                    latLng: node.latLng
+                };
+            });
+            this._startSimulation(nodes);
+        } else {
+
+            var clusterset = this._clusters[this._map.getZoom()];
+
+            var aggregatesIncluded = {};
+            nodes = clusterset.map(function (cluster) {
+                var bandwidth = 0;
+                cluster.getAllChildMarkers().forEach(function (child) {
+                    child.data.circle.relays.forEach(function (relay) {
+                        bandwidth += relay.bandwidth;
+                    });
+                    aggregatesIncluded[child.data.circle.id] = true;
+                });
+
+                return {
+                    bandwidth: bandwidth,
+                    latLng: cluster._latlng
+                };
+            });
+
+            // Add any singleton relays that aren't in a marker cluster
+            var allVisisbleRelays = this._getVisibleRelays();
+            allVisisbleRelays.forEach(function (relay) {
+                if (!aggregatesIncluded[relay.circle.id]) {
+                    nodes.push({
+                        bandwidth: relay.circle.bandwidth,
+                        latLng: relay.latLng
+                    });
+                }
+            });
+
+            nodes.forEach(function (node) {
+                node.bandwidth /= totalBandwidth;
+            });
+
+            var checkedSum = 0;
+            nodes.forEach(function(n) {
+                checkedSum += n.bandwidth;
+            });
+
+            nodes = nodes.sort(function(n1,n2) { return n2.bandwidth - n1.bandwidth; });
+
+            this._startSimulation(nodes);
+        }
+    },
+
+    _useClusters : function() {
+        return this._element.find('#cluster-input').prop('checked');
     },
 
     _getFriendlyDate : function(daysFromMinDate) {
@@ -175,11 +208,32 @@ App.prototype = _.extend(App.prototype, {
         }
     },
 
-    _createMarkers : function() {
+    _onToggleFlow : function() {
+        if (this._particleSimulation.isStarted()) {
+            this._showFlow = false;
+            this._particleSimulation.stop();
+            this._particleLayer.hide();
+        } else {
+            this._showFlow = true;
+            this._particleSimulation.start();
+            this._particleLayer.show();
+        }
+    },
+
+    _onToggleClusters : function() {
+        this._onDateChange();
+    },
+
+    _onResize : function() {
+
+    },
+
+    _createClusterMarkers : function() {
         var self = this;
 
         this._markersLayer = L.markerClusterGroup({
             removeOutsideVisibleBounds : false,
+            disableClusteringAtZoom: this._useClusters() ? undefined : 1,
             tooltip : function(cluster) {
                 var markers = cluster.getAllChildMarkers();
                 var clusterRelayCount = 0;
@@ -194,7 +248,11 @@ App.prototype = _.extend(App.prototype, {
                 });
                 var bandwidthPercent = Math.round((clusterBandwidth / self._getCurrentTotalBandwidth()) * 100);
                 var relayCountPercent = Math.round((clusterRelayCount / self._getCurrentTotalRelays()) * 100);
-                return '<p>Relays in Group: ' + clusterRelayCount + '(' + relayCountPercent + '%)</p>' + '<p>Bandwidth: ' + bandwidthPercent + '%</p>';
+
+                var bandwidthPercentString = bandwidthPercent === 0 ? '<1%' : bandwidthPercent + '%';
+                var relayCountPercentString = relayCountPercent === 0 ? '<1%' : relayCountPercent + '%';
+
+                return '<p>Relays in Group: ' + clusterRelayCount + '(' + relayCountPercentString + ')</p>' + '<p>Bandwidth: ' + bandwidthPercentString + '</p>';
             },
             tooltipOffset : function(cluster,icon) {
                 return new L.Point(0,-icon.options.iconSize.x/2);
@@ -240,15 +298,10 @@ App.prototype = _.extend(App.prototype, {
         this._markersLayer.on('animationend', this._onMapClustered.bind(this));
         this._markersLayer.on('initialized',this._onMapClustered.bind(this));
 
-        var defaultIcon = L.divIcon({
-            className: 'relay-cluster',
-            iconSize:L.point(Config.node_radius.min, Config.node_radius.min)
-        });
-
 
         this._currentNodes.objects.forEach(function(node) {
             var title = node.circle.id;
-            var marker = L.marker(node.latLng, {icon: defaultIcon});
+            var marker = L.marker(node.latLng, {icon: DEFAULT_ICON});
             marker.data = node;
             marker.bindPopup(title);
             self._markersLayer.addLayer(marker);
@@ -257,16 +310,16 @@ App.prototype = _.extend(App.prototype, {
         this._map.addLayer(this._markersLayer);
     },
 
+
+
     _getCurrentTotalBandwidth : function() {
-        var totalBandwidth = 0;
-        this._currentNodes.objects.forEach(function(d,i) {
-            var groupBandwidth = 0;
-            d.circle.relays.forEach(function(relay) {
-                groupBandwidth += relay.bandwidth;
+        var total = 0;
+        this._currentNodes.objects.forEach(function(aggregate) {
+            aggregate.circle.relays.forEach(function(relay) {
+                total+=relay.bandwidth;
             });
-            totalBandwidth += groupBandwidth;
         });
-        return totalBandwidth;
+        return total;
     },
 
     _getCurrentTotalRelays : function() {
@@ -280,10 +333,8 @@ App.prototype = _.extend(App.prototype, {
     _fetch : function(isoDateStr) {
         var self = this;
         var idToLatLng = {};
-        d3.json('/nodes/' + encodeURI(isoDateStr), function (nodes) {
 
-            self._currentNodes = nodes;
-
+        function handleNodes(nodes) {
             /* Add a LatLng object to each item in the dataset */
             nodes.objects.forEach(function(d,i) {
                 d.latLng = new L.LatLng(d.circle.coordinates[0],
@@ -299,13 +350,24 @@ App.prototype = _.extend(App.prototype, {
                 self._clusters[i] = [];
             }
 
-            self._createMarkers();
+            self._createClusterMarkers();
+
 
             self._particleLayer = new DotLayer()
                 .fillStyle(Config.dot.headFill);
             self._particleLayer.addTo(self._map);
 
-        });
+        }
+
+        if (this._currentDate === isoDateStr) {
+            handleNodes(this._currentNodes);
+        } else {
+            d3.json('/nodes/' + encodeURI(isoDateStr), function (nodes) {
+                self._currentNodes = nodes;
+                self._currentDate = isoDateStr;
+                handleNodes(nodes);
+            });
+        }
     },
     
     _init : function(dateBounds) {
@@ -317,6 +379,9 @@ App.prototype = _.extend(App.prototype, {
             defaultDate : this._getFriendlyDate(totalDays)
         }))));
         this._element.find('.hidden-filter-btn').change(this._onHiddenFilterChange.bind(this));
+        this._element.find('#show-flow-input').change(this._onToggleFlow.bind(this));
+        this._element.find('#cluster-input').change(this._onToggleClusters.bind(this));
+        this._element.find('#main').resize(this._onResize.bind(this));
 
 
         this._dateLabel = this._element.find('#date-label');
@@ -347,8 +412,6 @@ App.prototype = _.extend(App.prototype, {
      * Application startup.
      */
     start: function () {
-        var ibreak = 0;
-        ibreak++;
         // Fetch the date bounds and initialize everything
         $.get('/datebounds',this._init.bind(this));
         // TODO: display wait dialog
