@@ -330,11 +330,13 @@ App.prototype = _.extend(App.prototype, {
         });
 
         this._currentNodes.objects.forEach(function(node) {
-            var title = node.circle.id;
+            var title = node.circle.relays.length === 1 ? node.circle.relays[0].name : node.circle.relays.length + ' relays at location';
             var marker;
+            var usedRadius;
             if (self._scaleBandwidth()) {
                 var nodeBW = _.reduce(node.circle.relays, function(memo, relay){ return memo + relay.bandwidth; },0);
                 var pointRadius = Lerp(Config.node_radius.min,Config.node_radius.max,nodeBW / (maxBW-minBW));
+                usedRadius = pointRadius;
                 marker = L.marker(node.latLng, {
                     icon : L.divIcon({
                         className: 'relay-cluster',
@@ -343,9 +345,18 @@ App.prototype = _.extend(App.prototype, {
                 });
             } else {
                 marker = L.marker(node.latLng, {icon: DEFAULT_ICON});
+                usedRadius = Config.node_radius.min;
             }
             marker.data = node;
-            marker.bindPopup(title);
+            marker.bindPopup(title, {
+                offset : new L.Point(0,-usedRadius/2)
+            });
+            marker.on('mouseover',function() {
+                marker.openPopup();
+            });
+            marker.on('mouseout',function() {
+                marker.closePopup();
+            });
             self._markersLayer.addLayer(marker);
         });
 
