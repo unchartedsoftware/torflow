@@ -85,7 +85,7 @@ MapParticleSimulation.prototype = _.extend(MapParticleSimulation.prototype,{
             rnd -= this._nodes[i].bandwidth;
             i++;
         }
-        return i;
+        return Math.min(i,this._nodes.length-1);
     },
     _getProbabilisticSourceDestPair : function() {
         var maxTries = 500;

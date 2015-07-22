@@ -28,7 +28,6 @@
 var DEFAULT_PARTICLE_VELOCITY = 0.2;
 
 var config = {
-    use_clusters : false,
     particle_count : 750,
     node_radius : {
         min : 5,

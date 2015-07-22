@@ -54,6 +54,7 @@ App.prototype = _.extend(App.prototype, {
     _element : null,
     _dateLabel : null,
     _currentNodes : null,
+    _currentDate : null,
     _showFlow : true,
 
 
@@ -111,7 +112,7 @@ App.prototype = _.extend(App.prototype, {
         var totalBandwidth = this._getCurrentTotalBandwidth();
         var nodes;
 
-        if (Config.use_clusters === false) {
+        if (this._useClusters() === false) {
             nodes = this._currentNodes.objects.map(function (node) {
                 return {
                     bandwidth: _.reduce(node.circle.relays, function(memo, relay){ return memo + relay.bandwidth; },0) / totalBandwidth,
@@ -132,7 +133,6 @@ App.prototype = _.extend(App.prototype, {
                     });
                     aggregatesIncluded[child.data.circle.id] = true;
                 });
-                totalBandwidth += bandwidth;
 
                 return {
                     bandwidth: bandwidth,
@@ -148,7 +148,6 @@ App.prototype = _.extend(App.prototype, {
                         bandwidth: relay.circle.bandwidth,
                         latLng: relay.latLng
                     });
-                    totalBandwidth += relay.circle.bandwidth;
                 }
             });
 
@@ -156,10 +155,19 @@ App.prototype = _.extend(App.prototype, {
                 node.bandwidth /= totalBandwidth;
             });
 
+            var checkedSum = 0;
+            nodes.forEach(function(n) {
+                checkedSum += n.bandwidth;
+            });
+
             nodes = nodes.sort(function(n1,n2) { return n2.bandwidth - n1.bandwidth; });
 
             this._startSimulation(nodes);
         }
+    },
+
+    _useClusters : function() {
+        return this._element.find('#cluster-input').prop('checked');
     },
 
     _getFriendlyDate : function(daysFromMinDate) {
@@ -212,12 +220,16 @@ App.prototype = _.extend(App.prototype, {
         }
     },
 
+    _onToggleClusters : function() {
+        this._onDateChange();
+    },
+
     _createClusterMarkers : function() {
         var self = this;
 
         this._markersLayer = L.markerClusterGroup({
             removeOutsideVisibleBounds : false,
-            disableClusteringAtZoom: Config.use_clusters ? undefined : 1,
+            disableClusteringAtZoom: this._useClusters() ? undefined : 1,
             tooltip : function(cluster) {
                 var markers = cluster.getAllChildMarkers();
                 var clusterRelayCount = 0;
@@ -313,10 +325,8 @@ App.prototype = _.extend(App.prototype, {
     _fetch : function(isoDateStr) {
         var self = this;
         var idToLatLng = {};
-        d3.json('/nodes/' + encodeURI(isoDateStr), function (nodes) {
 
-            self._currentNodes = nodes;
-
+        function handleNodes(nodes) {
             /* Add a LatLng object to each item in the dataset */
             nodes.objects.forEach(function(d,i) {
                 d.latLng = new L.LatLng(d.circle.coordinates[0],
@@ -339,7 +349,17 @@ App.prototype = _.extend(App.prototype, {
                 .fillStyle(Config.dot.headFill);
             self._particleLayer.addTo(self._map);
 
-        });
+        }
+
+        if (this._currentDate === isoDateStr) {
+            handleNodes(this._currentNodes);
+        } else {
+            d3.json('/nodes/' + encodeURI(isoDateStr), function (nodes) {
+                self._currentNodes = nodes;
+                self._currentDate = isoDateStr;
+                handleNodes(nodes);
+            });
+        }
     },
     
     _init : function(dateBounds) {
@@ -352,6 +372,7 @@ App.prototype = _.extend(App.prototype, {
         }))));
         this._element.find('.hidden-filter-btn').change(this._onHiddenFilterChange.bind(this));
         this._element.find('#show-flow-input').change(this._onToggleFlow.bind(this));
+        this._element.find('#cluster-input').change(this._onToggleClusters.bind(this));
 
 
         this._dateLabel = this._element.find('#date-label');

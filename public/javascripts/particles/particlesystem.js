@@ -69,6 +69,11 @@ ParticleSystem.prototype = _.extend(ParticleSystem.prototype, {
         if (this._available.length) {
             var particle = this._available.pop();
 
+            if (!source || !destination) {
+                var ibreak = 0;
+                ibreak++;
+            }
+
             particle
                 .source(source)
                 .destination(destination)
