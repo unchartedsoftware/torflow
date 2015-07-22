@@ -27,6 +27,7 @@
 
 var DotLayer = require('./layers/dotlayer');
 var MapParticleSimulation = require('./particles/mapparticlesimulation');
+var Lerp = require('./util/lerp');
 var Config = require('./config');
 
 var Template = require('./templates/main');
@@ -171,6 +172,10 @@ App.prototype = _.extend(App.prototype, {
         return this._element.find('#cluster-input').prop('checked');
     },
 
+    _scaleBandwidth : function() {
+        return this._element.find('#scale-bandwidth-input').prop('checked');
+    },
+
     _getFriendlyDate : function(daysFromMinDate) {
         return moment(this._dateBounds.min.value).add(daysFromMinDate,'day').format('dddd, MMMM Do YYYY');
     },
@@ -184,7 +189,7 @@ App.prototype = _.extend(App.prototype, {
             .milliseconds(0).format();
     },
 
-    _onDateChange : function() {
+    _update : function() {
         var newDateIdx = this._dateSlider.slider('getValue');
         var isoDate = this._getISODate(newDateIdx);
         this._clear();
@@ -222,8 +227,20 @@ App.prototype = _.extend(App.prototype, {
     },
 
     _onToggleClusters : function() {
-        this._onDateChange();
+        if (this._useClusters()) {
+            this._element.find('#scale-bandwidth-input')
+                .prop('disabled',true)
+                .prop('checked',true);
+        } else {
+            this._element.find('#scale-bandwidth-input').prop('disabled',false);
+        }
+        this._update();
     },
+
+    _onToggleScale : function() {
+        this._update();
+    },
+
     _onToggleLabels : function(e) {
         if (this._showingLabels) {
             this._map.removeLayer(this._labelLayer);
@@ -234,7 +251,7 @@ App.prototype = _.extend(App.prototype, {
         }
     },
 
-    _createClusterMarkers : function() {
+    _createMarkers : function() {
         var self = this;
 
         this._markersLayer = L.markerClusterGroup({
@@ -304,10 +321,29 @@ App.prototype = _.extend(App.prototype, {
         this._markersLayer.on('animationend', this._onMapClustered.bind(this));
         this._markersLayer.on('initialized',this._onMapClustered.bind(this));
 
+        var maxBW = -Number.MAX_VALUE;
+        var minBW = Number.MAX_VALUE;
+        this._currentNodes.objects.forEach(function(node) {
+            var nodeBW = _.reduce(node.circle.relays, function(memo, relay){ return memo + relay.bandwidth; },0);
+            maxBW = Math.max(maxBW,nodeBW);
+            minBW = Math.min(minBW,nodeBW);
+        });
 
         this._currentNodes.objects.forEach(function(node) {
             var title = node.circle.id;
-            var marker = L.marker(node.latLng, {icon: DEFAULT_ICON});
+            var marker;
+            if (self._scaleBandwidth()) {
+                var nodeBW = _.reduce(node.circle.relays, function(memo, relay){ return memo + relay.bandwidth; },0);
+                var pointRadius = Lerp(Config.node_radius.min,Config.node_radius.max,nodeBW / (maxBW-minBW));
+                marker = L.marker(node.latLng, {
+                    icon : L.divIcon({
+                        className: 'relay-cluster',
+                        iconSize:L.point(pointRadius, pointRadius)
+                    })
+                });
+            } else {
+                marker = L.marker(node.latLng, {icon: DEFAULT_ICON});
+            }
             marker.data = node;
             marker.bindPopup(title);
             self._markersLayer.addLayer(marker);
@@ -356,7 +392,7 @@ App.prototype = _.extend(App.prototype, {
                 self._clusters[i] = [];
             }
 
-            self._createClusterMarkers();
+            self._createMarkers();
 
 
             self._particleLayer = new DotLayer()
@@ -388,6 +424,8 @@ App.prototype = _.extend(App.prototype, {
         this._element.find('#show-flow-input').change(this._onToggleFlow.bind(this));
         this._element.find('#cluster-input').change(this._onToggleClusters.bind(this));
         this._element.find('#label-input').change(this._onToggleLabels.bind(this));
+        this._element.find('#scale-bandwidth-input').change(this._onToggleScale.bind(this));
+
 
         this._showingLabels = this._element.find('#label-input').prop('checked');
 
@@ -397,10 +435,10 @@ App.prototype = _.extend(App.prototype, {
             tooltip:'hide'
         });
 
-        this._dateSlider.on('slideStop', this._onDateChange.bind(this));
+        this._dateSlider.on('slideStop', this._update.bind(this));
         this._dateSlider.on('slide',this._onDateSlide.bind(this));
 
-        this._onDateChange();
+        this._update();
 
 
         this._map = L.map('map').setView([0, 0], 2);
