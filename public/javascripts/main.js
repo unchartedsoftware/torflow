@@ -244,7 +244,11 @@ App.prototype = _.extend(App.prototype, {
                 });
                 var bandwidthPercent = Math.round((clusterBandwidth / self._getCurrentTotalBandwidth()) * 100);
                 var relayCountPercent = Math.round((clusterRelayCount / self._getCurrentTotalRelays()) * 100);
-                return '<p>Relays in Group: ' + clusterRelayCount + '(' + relayCountPercent + '%)</p>' + '<p>Bandwidth: ' + bandwidthPercent + '%</p>';
+
+                var bandwidthPercentString = bandwidthPercent === 0 ? '<1%' : bandwidthPercent + '%';
+                var relayCountPercentString = relayCountPercent === 0 ? '<1%' : relayCountPercent + '%';
+
+                return '<p>Relays in Group: ' + clusterRelayCount + '(' + relayCountPercentString + ')</p>' + '<p>Bandwidth: ' + bandwidthPercentString + '</p>';
             },
             tooltipOffset : function(cluster,icon) {
                 return new L.Point(0,-icon.options.iconSize.x/2);
