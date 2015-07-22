@@ -56,6 +56,7 @@ App.prototype = _.extend(App.prototype, {
     _currentNodes : null,
     _currentDate : null,
     _showFlow : true,
+    _showingLabels : null,
 
 
     _clear : function() {
@@ -223,9 +224,14 @@ App.prototype = _.extend(App.prototype, {
     _onToggleClusters : function() {
         this._onDateChange();
     },
-
-    _onResize : function() {
-
+    _onToggleLabels : function(e) {
+        if (this._showingLabels) {
+            this._map.removeLayer(this._labelLayer);
+            this._showingLabels = false;
+        } else {
+            this._map.addLayer(this._labelLayer);
+            this._showingLabels = true;
+        }
     },
 
     _createClusterMarkers : function() {
@@ -381,7 +387,9 @@ App.prototype = _.extend(App.prototype, {
         this._element.find('.hidden-filter-btn').change(this._onHiddenFilterChange.bind(this));
         this._element.find('#show-flow-input').change(this._onToggleFlow.bind(this));
         this._element.find('#cluster-input').change(this._onToggleClusters.bind(this));
-        this._element.find('#main').resize(this._onResize.bind(this));
+        this._element.find('#label-input').change(this._onToggleLabels.bind(this));
+
+        this._showingLabels = this._element.find('#label-input').prop('checked');
 
 
         this._dateLabel = this._element.find('#date-label');
@@ -396,13 +404,21 @@ App.prototype = _.extend(App.prototype, {
 
 
         this._map = L.map('map').setView([0, 0], 2);
-        var mapLink = '<a href="http://openstreetmap.org">OpenStreetMap</a>';
         L.tileLayer(
-            'http://{s}.tiles.mapbox.com/v3/examples.map-0l53fhk2/{z}/{x}/{y}.png', {
-                attribution: '<span style="color:lightgrey">&copy;</span> ' + mapLink + ' | <a href="http://uncharted.software" target="_blank"><img src="/img/uncharted-logo-light-gray-small.png"</a>',
-                //prefix : '<a href="http://uncharted.software" target="_blank"><img src="/img/uncharted-logo-light-gray-small.png"</a>',
+            'http://{s}.basemaps.cartocdn.com/dark_nolabels/{z}/{x}/{y}.png', {
+                attribution: '<span class="attribution">Map tiles by <a href="http://cartodb.com/attributions#basemaps">CartoDB</a>, under <a href="https://creativecommons.org/licenses/by/3.0/">CC BY 3.0</a></span>' + '|' +
+                            '<a href="http://uncharted.software" target="_blank"><img src="/img/uncharted-logo-light-gray-small.png"</a>',
                 maxZoom: 18,
             }).addTo(this._map);
+
+        this._labelLayer = L.tileLayer(
+            'http://{s}.basemaps.cartocdn.com/dark_only_labels/{z}/{x}/{y}.png', {
+                maxZoom: 18
+            });
+
+        if (this._showingLabels) {
+            this._labelLayer.addTo(this._map);
+        }
 
         /* Initialize the SVG layer */
         this._map._initPathRoot();

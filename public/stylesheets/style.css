@@ -42,6 +42,10 @@ a {
     background: none !important;
 }
 
+.attribution {
+    color: #ababab;
+}
+
 #map-container {
     position:relative;
     width:100%;
