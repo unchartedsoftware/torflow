@@ -176,17 +176,16 @@ App.prototype = _.extend(App.prototype, {
         return this._element.find('#scale-bandwidth-input').prop('checked');
     },
 
-    _getFriendlyDate : function(daysFromMinDate) {
-        return moment(this._dateBounds.min.value).add(daysFromMinDate,'day').format('dddd, MMMM Do YYYY');
+    _getMoment : function(index) {
+        return moment(this._dates[index].key).add(1,'days');        // ...I have no idea...dates are the worst...
     },
 
-    _getISODate : function(daysFromMinDate) {
-        return moment(this._dateBounds.min.value)
-            .add(daysFromMinDate,'day')
-            .hours(0)
-            .minutes(0)
-            .seconds(0)
-            .milliseconds(0).format();
+    _getFriendlyDate : function(index) {
+        return this._getMoment(index).format('dddd, MMMM Do YYYY');
+    },
+
+    _getISODate : function(index) {
+        return this._getMoment(index).format();
     },
 
     _update : function() {
@@ -432,13 +431,12 @@ App.prototype = _.extend(App.prototype, {
         }
     },
     
-    _init : function(dateBounds) {
-        this._dateBounds = dateBounds;
-        var totalDays = moment(dateBounds.max.value).diff(moment(dateBounds.min.value),'days') + 1;
+    _init : function(dates) {
+        this._dates = dates;
+        var totalDays = dates.length;
         this._element = $(document.body).append($(Template(_.extend(Config,{
-            totalDates : totalDays,
-            defaultIndex : totalDays,
-            defaultDate : this._getFriendlyDate(totalDays)
+            maxIndex : totalDays-1,
+            defaultDate : this._getFriendlyDate(totalDays-1)
         }))));
         this._element.find('.hidden-filter-btn').change(this._onHiddenFilterChange.bind(this));
         this._element.find('#show-flow-input').change(this._onToggleFlow.bind(this));
@@ -494,8 +492,8 @@ App.prototype = _.extend(App.prototype, {
      * Application startup.
      */
     start: function () {
-        // Fetch the date bounds and initialize everything
-        $.get('/datebounds',this._init.bind(this));
+        // Fetch the dates available + relay count for each date
+        $.get('/dates',this._init.bind(this));
         // TODO: display wait dialog
     }
 });
