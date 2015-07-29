@@ -231,10 +231,19 @@ App.prototype = _.extend(App.prototype, {
             this._element.find('#scale-bandwidth-input')
                 .prop('disabled',true)
                 .prop('checked',true);
+
+            this._element.find('#step-input')
+                .prop('disabled',true)
+                .prop('checked',false);
         } else {
             this._element.find('#scale-bandwidth-input').prop('disabled',false);
+            this._element.find('#step-input').prop('disabled',false);
         }
         this._update();
+    },
+
+    _onToggleStep : function() {
+
     },
 
     _onToggleScale : function() {
@@ -383,7 +392,7 @@ App.prototype = _.extend(App.prototype, {
         return totalRelays;
     },
 
-    _fetch : function(isoDateStr) {
+    _fetch : function(isoDateStr, onNodesReady) {
         var self = this;
         var idToLatLng = {};
 
@@ -435,6 +444,7 @@ App.prototype = _.extend(App.prototype, {
         this._element.find('#show-flow-input').change(this._onToggleFlow.bind(this));
         this._element.find('#cluster-input').change(this._onToggleClusters.bind(this));
         this._element.find('#label-input').change(this._onToggleLabels.bind(this));
+        this._element.find('#step-input').change(this._onToggleStep.bind(this));
         this._element.find('#scale-bandwidth-input').change(this._onToggleScale.bind(this));
 
 
@@ -453,16 +463,23 @@ App.prototype = _.extend(App.prototype, {
 
 
         this._map = L.map('map').setView([0, 0], 2);
+        this._map.options.maxZoom = Config.maxZoom || 18;
+
+        var mapUrlBase = 'http://{s}.basemaps.cartocdn.com/dark_nolabels/{z}/{x}/{y}.png';
+        if (Config.localMapServer) {
+            mapUrlBase = 'http://{s}.' + window.location.host + '/map/';
+        }
+
         L.tileLayer(
-            'http://{s}.basemaps.cartocdn.com/dark_nolabels/{z}/{x}/{y}.png', {
+            mapUrlBase + 'dark_nolabels/{z}/{x}/{y}.png', {
                 attribution: '<span class="attribution">Map tiles by <a href="http://cartodb.com/attributions#basemaps">CartoDB</a>, under <a href="https://creativecommons.org/licenses/by/3.0/">CC BY 3.0</a></span>' + '|' +
                             '<a href="http://uncharted.software" target="_blank"><img src="/img/uncharted-logo-light-gray-small.png"</a>',
-                maxZoom: 18,
+                maxZoom: Config.maxZoom || 18,
             }).addTo(this._map);
 
         this._labelLayer = L.tileLayer(
-            'http://{s}.basemaps.cartocdn.com/dark_only_labels/{z}/{x}/{y}.png', {
-                maxZoom: 18
+            mapUrlBase + 'dark_only_labels/{z}/{x}/{y}.png', {
+                maxZoom: Config.maxZoom || 18,
             });
 
         if (this._showingLabels) {
