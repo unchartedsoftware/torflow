@@ -82,10 +82,23 @@ a {
     line-height: 50px;
 }
 
+.map-control-element {
+    display: inline-block;
+}
+
 .release-notes-container {
     margin-left: 15px;
 }
 
 .release-notes-list {
     margin-left: 5px;
+}
+
+#brightness-slider {
+    width:50px;
+}
+
+#date-label {
+    display:inline-block;
+    min-width: 210px;
 }

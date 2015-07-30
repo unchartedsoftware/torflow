@@ -66,7 +66,10 @@ var config = {
             '<p>Each circle below represents the aggregated bandwidth of relay servers grouped by proximity.  Hover over a circle to see information about that group.  Click on a circle to zoom the map to the contents of the group.</p>' +
             '<p>Use the slider below to select the simulation date.  Checkboxes can be used to configure the display.</p>',
     hiddenServiceProbability : 0.04,
-    localMapServer : true
+    localMapServer : true,
+    minBrightness : 0.01,
+    maxBrightness : 3.0,
+    defaultBrightness : 1.6
 };
 
 if (config.localMapServer) {

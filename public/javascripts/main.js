@@ -206,6 +206,12 @@ App.prototype = _.extend(App.prototype, {
         this._dateLabel.text(friendlyDate);
     },
 
+    _onBrightnessSlide : function() {
+        var newBrightness = this._brightnessSlider.slider('getValue');
+        var containerEl = this._baseTileLayer.getContainer();
+        $(containerEl).css('-webkit-filter','brightness(' + newBrightness + ')');
+    },
+
     _onHiddenFilterChange : function() {
         var checkedRadioBtn = this._element.find('#hidden-filter-btn-group').find('.active > input');
         var checkedState = checkedRadioBtn.attr('hidden-id');
@@ -459,12 +465,18 @@ App.prototype = _.extend(App.prototype, {
 
 
         this._dateLabel = this._element.find('#date-label');
-        this._dateSlider = this._element.find('input.slider').slider({
+        this._dateSlider = this._element.find('#date-slider').slider({
             tooltip:'hide'
         });
 
         this._dateSlider.on('slideStop', this._update.bind(this));
         this._dateSlider.on('slide',this._onDateSlide.bind(this));
+
+
+        this._brightnessSlider = this._element.find('#brightness-slider').slider({
+            tooltip:'hide'
+        });
+        this._brightnessSlider.on('slide',this._onBrightnessSlide.bind(this));
 
         this._update();
 
@@ -477,12 +489,13 @@ App.prototype = _.extend(App.prototype, {
             mapUrlBase = 'http://' + window.location.host + '/map/';
         }
 
-        L.tileLayer(
+        this._baseTileLayer = L.tileLayer(
             mapUrlBase + 'dark_nolabels/{z}/{x}/{y}.png', {
                 attribution: '<span class="attribution">Map tiles by <a href="http://cartodb.com/attributions#basemaps">CartoDB</a>, under <a href="https://creativecommons.org/licenses/by/3.0/">CC BY 3.0</a></span>' + '|' +
                             '<a href="http://uncharted.software" target="_blank"><img src="/img/uncharted-logo-light-gray-small.png"</a>',
                 maxZoom: Config.maxZoom || 18,
             }).addTo(this._map);
+        this._onBrightnessSlide();
 
         this._labelLayer = L.tileLayer(
             mapUrlBase + 'dark_only_labels/{z}/{x}/{y}.png', {

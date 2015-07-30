@@ -4,24 +4,47 @@
         <p>{{{summary}}}</p>
         <p><a href="/about">About</a></p>
 
-        <div class="btn-group" data-toggle="buttons" id="hidden-filter-btn-group">
-            <label class="btn btn-xs btn-primary active hidden-filter-btn active">
-                <input class="hidden-filter-input" type="radio" name="hidden-options" autocomplete="off" hidden-id="all">All
-            </label>
-            <label class="btn btn-xs btn-primary hidden-filter-btn">
-                <input class="hidden-filter-input" type="radio" name="hidden-options" autocomplete="off" hidden-id="hidden">Hidden Services
-            </label>
-            <label class="btn btn-xs btn-primary hidden-filter-btn">
-                <input class="hidden-filter-input" type="radio" name="hidden-options" autocomplete="off" hidden-id="general">General Purpose
-            </label>
+        <div class="map-control-element">
+            <div class="btn-group" data-toggle="buttons" id="hidden-filter-btn-group">
+                <label class="btn btn-xs btn-primary active hidden-filter-btn active">
+                    <input class="hidden-filter-input" type="radio" name="hidden-options" autocomplete="off" hidden-id="all">All
+                </label>
+                <label class="btn btn-xs btn-primary hidden-filter-btn">
+                    <input class="hidden-filter-input" type="radio" name="hidden-options" autocomplete="off" hidden-id="hidden">Hidden Services
+                </label>
+                <label class="btn btn-xs btn-primary hidden-filter-btn">
+                    <input class="hidden-filter-input" type="radio" name="hidden-options" autocomplete="off" hidden-id="general">General Purpose
+                </label>
+            </div>
         </div>
-        <input id="show-flow-input" type="checkbox" checked><label>Flow</label>
-        <input id="cluster-input" type="checkbox" checked><label>Cluster</label>
-        <input id="label-input" type="checkbox" checked><label>Labels</label>
-        <input id="scale-bandwidth-input" type="checkbox" checked disabled><label>Scale by Bandwidth</label>
+        <div class="map-control-element">
+            <input id="show-flow-input" type="checkbox" checked>
+            <label>Flow</label>
+        </div>
+        <div class="map-control-element">
+            <input id="cluster-input" type="checkbox" checked>
+            <label>Cluster</label>
+        </div>
+        <div class="map-control-element">
+            <input id="label-input" type="checkbox" checked>
+            <label>Labels</label>
+        </div>
+        <div class="map-control-element">
+            <input id="scale-bandwidth-input" type="checkbox" checked disabled>
+            <label>Scale by Bandwidth</label>
+        </div>
 
 
-        <input id="date-slider" class='slider' data-slider-id='ex1Slider' type="text" data-slider-min="0" data-slider-max="{{maxIndex}}" data-slider-step="1" data-slider-value="{{maxIndex}}"/> <label class="padded-left">Date:</label><span id="date-label">{{defaultDate}}</span>
+        <div class="map-control-element">
+            <input id="date-slider" class='slider' data-slider-id='date-slider' type="text" data-slider-min="0" data-slider-max="{{maxIndex}}" data-slider-step="1" data-slider-value="{{maxIndex}}"/>
+            <label class="padded-left">Date:</label>
+            <div id="date-label">{{defaultDate}}</div>
+        </div>
+        <div class="map-control-element">
+            <span class="padded-right">-</span>
+            <input id="brightness-slider" class='slider' data-slider-id='brightness-slider' type="text" data-slider-min="{{minBrightness}}" data-slider-max="{{maxBrightness}}" data-slider-step="0.01" data-slider-value="{{defaultBrightness}}"/>
+            <span class="padded-left">+</span>
+        </div>
 
         <div id="map-container">
             <div id="map">
