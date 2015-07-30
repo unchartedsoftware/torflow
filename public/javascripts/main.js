@@ -276,6 +276,7 @@ App.prototype = _.extend(App.prototype, {
         this._markersLayer = L.markerClusterGroup({
             removeOutsideVisibleBounds : false,
             disableClusteringAtZoom: this._useClusters() ? undefined : 1,
+            zoomToBoundsOnClick : false,
             tooltip : function(cluster) {
                 var markers = cluster.getAllChildMarkers();
                 var clusterRelayCount = 0;

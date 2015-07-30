@@ -73,7 +73,7 @@ var config = {
 };
 
 if (config.localMapServer) {
-    config.maxZoom = 8;
+    config.maxZoom = 6
 }
 
 module.exports = config;
