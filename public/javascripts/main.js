@@ -31,6 +31,7 @@ var Lerp = require('./util/lerp');
 var Config = require('./config');
 
 var Template = require('./templates/main');
+var AboutTemplate = require('./templates/about');
 
 var DEFAULT_ICON = L.divIcon({
     className: 'relay-cluster',
@@ -176,17 +177,20 @@ App.prototype = _.extend(App.prototype, {
         return this._element.find('#scale-bandwidth-input').prop('checked');
     },
 
-    _getFriendlyDate : function(daysFromMinDate) {
-        return moment(this._dateBounds.min.value).add(daysFromMinDate,'day').format('dddd, MMMM Do YYYY');
+    _getMoment : function(index) {
+        return moment(this._dates[index].key).add(1,'days');        // ...I have no idea...dates are the worst...
     },
 
-    _getISODate : function(daysFromMinDate) {
-        return moment(this._dateBounds.min.value)
-            .add(daysFromMinDate,'day')
+    _getFriendlyDate : function(index) {
+        return this._getMoment(index).format('dddd, MMMM Do YYYY');
+    },
+
+    _getISODate : function(index) {
+        return this._getMoment(index)
             .hours(0)
             .minutes(0)
             .seconds(0)
-            .milliseconds(0).format();
+            .format();
     },
 
     _update : function() {
@@ -231,10 +235,19 @@ App.prototype = _.extend(App.prototype, {
             this._element.find('#scale-bandwidth-input')
                 .prop('disabled',true)
                 .prop('checked',true);
+
+            this._element.find('#step-input')
+                .prop('disabled',true)
+                .prop('checked',false);
         } else {
             this._element.find('#scale-bandwidth-input').prop('disabled',false);
+            this._element.find('#step-input').prop('disabled',false);
         }
         this._update();
+    },
+
+    _onToggleStep : function() {
+
     },
 
     _onToggleScale : function() {
@@ -293,16 +306,20 @@ App.prototype = _.extend(App.prototype, {
                     clusterBandwidth += data.bandwidth;
                 });
 
-                var weightAvgLat = 0;
-                var weightedAvgLng = 0;
-                markers.forEach(function(marker,i) {
-                    weightAvgLat += marker.getLatLng().lat * dataElements[i].bandwidth;
-                    weightedAvgLng += marker.getLatLng().lng * dataElements[i].bandwidth;
-                });
-                weightAvgLat /= clusterBandwidth;
-                weightedAvgLng /= clusterBandwidth;
+                // If the aggregate bandwidth is not zero, fudge the position of the marker to be center of bandwidth instead of
+                // weighted geographic center
+                if (clusterBandwidth !== 0) {
+                    var weightAvgLat = 0;
+                    var weightedAvgLng = 0;
+                    markers.forEach(function (marker, i) {
+                        weightAvgLat += marker.getLatLng().lat * dataElements[i].bandwidth;
+                        weightedAvgLng += marker.getLatLng().lng * dataElements[i].bandwidth;
+                    });
+                    weightAvgLat /= clusterBandwidth;
+                    weightedAvgLng /= clusterBandwidth;
 
-                cluster.setLatLng(new L.LatLng(weightAvgLat,weightedAvgLng));
+                    cluster.setLatLng(new L.LatLng(weightAvgLat, weightedAvgLng));
+                }
 
                 self._clusters[self._map.getZoom()].push(cluster);
 
@@ -383,7 +400,7 @@ App.prototype = _.extend(App.prototype, {
         return totalRelays;
     },
 
-    _fetch : function(isoDateStr) {
+    _fetch : function(isoDateStr, onNodesReady) {
         var self = this;
         var idToLatLng = {};
 
@@ -423,18 +440,18 @@ App.prototype = _.extend(App.prototype, {
         }
     },
     
-    _init : function(dateBounds) {
-        this._dateBounds = dateBounds;
-        var totalDays = moment(dateBounds.max.value).diff(moment(dateBounds.min.value),'days') + 1;
+    _init : function(dates) {
+        this._dates = dates;
+        var totalDays = dates.length;
         this._element = $(document.body).append($(Template(_.extend(Config,{
-            totalDates : totalDays,
-            defaultIndex : totalDays,
-            defaultDate : this._getFriendlyDate(totalDays)
+            maxIndex : totalDays-1,
+            defaultDate : this._getFriendlyDate(totalDays-1)
         }))));
         this._element.find('.hidden-filter-btn').change(this._onHiddenFilterChange.bind(this));
         this._element.find('#show-flow-input').change(this._onToggleFlow.bind(this));
         this._element.find('#cluster-input').change(this._onToggleClusters.bind(this));
         this._element.find('#label-input').change(this._onToggleLabels.bind(this));
+        this._element.find('#step-input').change(this._onToggleStep.bind(this));
         this._element.find('#scale-bandwidth-input').change(this._onToggleScale.bind(this));
 
 
@@ -453,16 +470,23 @@ App.prototype = _.extend(App.prototype, {
 
 
         this._map = L.map('map').setView([0, 0], 2);
+        this._map.options.maxZoom = Config.maxZoom || 18;
+
+        var mapUrlBase = 'http://{s}.basemaps.cartocdn.com/dark_nolabels/{z}/{x}/{y}.png';
+        if (Config.localMapServer) {
+            mapUrlBase = 'http://' + window.location.host + '/map/';
+        }
+
         L.tileLayer(
-            'http://{s}.basemaps.cartocdn.com/dark_nolabels/{z}/{x}/{y}.png', {
+            mapUrlBase + 'dark_nolabels/{z}/{x}/{y}.png', {
                 attribution: '<span class="attribution">Map tiles by <a href="http://cartodb.com/attributions#basemaps">CartoDB</a>, under <a href="https://creativecommons.org/licenses/by/3.0/">CC BY 3.0</a></span>' + '|' +
                             '<a href="http://uncharted.software" target="_blank"><img src="/img/uncharted-logo-light-gray-small.png"</a>',
-                maxZoom: 18,
+                maxZoom: Config.maxZoom || 18,
             }).addTo(this._map);
 
         this._labelLayer = L.tileLayer(
-            'http://{s}.basemaps.cartocdn.com/dark_only_labels/{z}/{x}/{y}.png', {
-                maxZoom: 18
+            mapUrlBase + 'dark_only_labels/{z}/{x}/{y}.png', {
+                maxZoom: Config.maxZoom || 18,
             });
 
         if (this._showingLabels) {
@@ -477,9 +501,15 @@ App.prototype = _.extend(App.prototype, {
      * Application startup.
      */
     start: function () {
-        // Fetch the date bounds and initialize everything
-        $.get('/datebounds',this._init.bind(this));
+        // Fetch the dates available + relay count for each date
+        $.get('/dates',this._init.bind(this));
         // TODO: display wait dialog
+    },
+
+    about : function() {
+        $.get('data/changelog.json',function(changelog) {
+            $(document.body).append($(AboutTemplate(changelog)));
+        });
     }
 });
 

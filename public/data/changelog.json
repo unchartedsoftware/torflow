@@ -1,0 +1,16 @@
+{
+  "lastModified" : "July 30th, 2015 8:59AM",
+  "versions": [
+    {
+      "version": "1.0",
+      "releaseDate": "July 30th, 2015",
+      "notes" : [
+        "Offline map server up to zoom level 8",
+        "Clustered and unclustered mode for relays",
+        "Ability to toggle between all traffic, hidden services, or all traffic without hidden services",
+        "Toggle labels without reloading all tiles",
+        "Toggle bandwidth scaling in unclustered mode"
+      ]
+    }
+  ]
+}

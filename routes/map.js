@@ -25,67 +25,15 @@
 * SOFTWARE.
 */
 
-body {
-  padding: 50px;
-  font: 14px "Lucida Grande", Helvetica, Arial, sans-serif;
-}
+var express = require('express');
+var router = express.Router();
+var path = require('path');
 
-a {
-  color: #00B7FF;
-}
 
-.leaflet-container {
-    background: #000 !important;
-}
+/* GET home page. */
+router.get('/:map/:zoom/:x/:y', function(req, res, next) {
+	var filePath = __dirname + '/../map/' + req.params.map + '/' + req.params.zoom + '/' + req.params.x + '/' + req.params.y;
+	res.sendFile(path.resolve(filePath));
+});
 
-.leaflet-control-attribution {
-    background: none !important;
-}
-
-.attribution {
-    color: #ababab;
-}
-
-#map-container {
-    position:relative;
-    width:100%;
-    height:760px;
-}
-
-#map {
-    width: 100%;
-    height: 760px;
-    position: absolute;
-    margin: 0 auto;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-}
-
-.padded-left {
-    margin-left:10px;
-}
-
-.padded-right {
-    margin-right:10px;
-}
-
-.relay-cluster {
-    border-radius: 50%;
-    background-color: rgba(255,255,255,0.8);
-}
-
-.relay-cluster-label {
-    text-align: center;
-    vertical-align: middle;
-    line-height: 50px;
-}
-
-.release-notes-container {
-    margin-left: 15px;
-}
-
-.release-notes-list {
-    margin-left: 5px;
-}
+module.exports = router;

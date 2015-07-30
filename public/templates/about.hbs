@@ -1,0 +1,17 @@
+<div id="main ">
+    <div>
+        {{#each versions}}
+            <h2>TorFlow Version - {{this.version}} ({{this.releaseDate}})</h2>
+            <div class="release-notes-container">
+                <h4>Release Notes:</h4>
+                <ul class="release-notes-list">
+                    {{#each this.notes}}
+                        <li>{{{this}}}</li>
+                    {{/each}}
+                </ul>
+            </div>
+            <br><br>
+        {{/each}}
+    </div>
+    <p>Last Updated: {{lastModified}}</p>
+</div>

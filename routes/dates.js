@@ -24,68 +24,44 @@
 * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 * SOFTWARE.
 */
+var express = require('express');
+var request = require('request');
+var Config = require('../config');
+var router = express.Router();
 
-body {
-  padding: 50px;
-  font: 14px "Lucida Grande", Helvetica, Arial, sans-serif;
-}
+/* GET home page. */
+router.get('/', function(req, res, next) {
 
-a {
-  color: #00B7FF;
-}
+    // Return a terms aggregation that gives unique dates -> document count
+    var q ={
+        size: 0,
+        aggs : {
+            dates : {
+                terms : {
+                    field : 'date',
+                    size : 0            // ensure we return all unique dates, not just top 10
+                }
+            }
+        }
+    };
 
-.leaflet-container {
-    background: #000 !important;
-}
 
-.leaflet-control-attribution {
-    background: none !important;
-}
+    request({
+        url: 'http://' + Config.elasticsearch.host + ':' + Config.elasticsearch.port + '/' + Config.relays_index_name + '/_search',
+        method: 'POST',
+        json: q
+    }, function(error, response, body){
+        if(error || body.error) {
+            console.log(error || body.error);
+            res.status(500).send(error || body.error);
+        } else {
+            // Sort by earliest first
+            var dates = body.aggregations.dates.buckets.sort(function(b1,b2) {
+                return b1.key - b2.key;
+            });
+            res.send(dates);
+        }
+    });
+});
 
-.attribution {
-    color: #ababab;
-}
-
-#map-container {
-    position:relative;
-    width:100%;
-    height:760px;
-}
-
-#map {
-    width: 100%;
-    height: 760px;
-    position: absolute;
-    margin: 0 auto;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-}
-
-.padded-left {
-    margin-left:10px;
-}
-
-.padded-right {
-    margin-right:10px;
-}
-
-.relay-cluster {
-    border-radius: 50%;
-    background-color: rgba(255,255,255,0.8);
-}
-
-.relay-cluster-label {
-    text-align: center;
-    vertical-align: middle;
-    line-height: 50px;
-}
-
-.release-notes-container {
-    margin-left: 15px;
-}
-
-.release-notes-list {
-    margin-left: 5px;
-}
+module.exports = router;
