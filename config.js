@@ -1,6 +1,6 @@
 var config = {
     elasticsearch : {
-        host : '6kq1ms1.oculus.local',
+        host : 'localhost',
         port : 9200
     },
     relays_index_name : 'relays_monthly'

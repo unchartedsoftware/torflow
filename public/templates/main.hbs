@@ -2,6 +2,7 @@
     <div>
         <h1>{{title}}</h1>
         <p>{{{summary}}}</p>
+        <p><a href="/about">About</a></p>
 
         <div class="btn-group" data-toggle="buttons" id="hidden-filter-btn-group">
             <label class="btn btn-xs btn-primary active hidden-filter-btn active">
@@ -18,7 +19,7 @@
         <input id="cluster-input" type="checkbox" checked><label>Cluster</label>
         <input id="label-input" type="checkbox" checked><label>Labels</label>
         <input id="scale-bandwidth-input" type="checkbox" checked disabled><label>Scale by Bandwidth</label>
-        <input id="step-input" type="checkbox" disabled><label class="padded-right">Step Time</label>
+
 
         <input id="date-slider" class='slider' data-slider-id='ex1Slider' type="text" data-slider-min="0" data-slider-max="{{maxIndex}}" data-slider-step="1" data-slider-value="{{maxIndex}}"/> <label class="padded-left">Date:</label><span id="date-label">{{defaultDate}}</span>
 

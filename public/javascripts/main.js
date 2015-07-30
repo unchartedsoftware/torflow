@@ -31,6 +31,7 @@ var Lerp = require('./util/lerp');
 var Config = require('./config');
 
 var Template = require('./templates/main');
+var AboutTemplate = require('./templates/about');
 
 var DEFAULT_ICON = L.divIcon({
     className: 'relay-cluster',
@@ -185,7 +186,11 @@ App.prototype = _.extend(App.prototype, {
     },
 
     _getISODate : function(index) {
-        return this._getMoment(index).format();
+        return this._getMoment(index)
+            .hours(0)
+            .minutes(0)
+            .seconds(0)
+            .format();
     },
 
     _update : function() {
@@ -301,16 +306,20 @@ App.prototype = _.extend(App.prototype, {
                     clusterBandwidth += data.bandwidth;
                 });
 
-                var weightAvgLat = 0;
-                var weightedAvgLng = 0;
-                markers.forEach(function(marker,i) {
-                    weightAvgLat += marker.getLatLng().lat * dataElements[i].bandwidth;
-                    weightedAvgLng += marker.getLatLng().lng * dataElements[i].bandwidth;
-                });
-                weightAvgLat /= clusterBandwidth;
-                weightedAvgLng /= clusterBandwidth;
+                // If the aggregate bandwidth is not zero, fudge the position of the marker to be center of bandwidth instead of
+                // weighted geographic center
+                if (clusterBandwidth !== 0) {
+                    var weightAvgLat = 0;
+                    var weightedAvgLng = 0;
+                    markers.forEach(function (marker, i) {
+                        weightAvgLat += marker.getLatLng().lat * dataElements[i].bandwidth;
+                        weightedAvgLng += marker.getLatLng().lng * dataElements[i].bandwidth;
+                    });
+                    weightAvgLat /= clusterBandwidth;
+                    weightedAvgLng /= clusterBandwidth;
 
-                cluster.setLatLng(new L.LatLng(weightAvgLat,weightedAvgLng));
+                    cluster.setLatLng(new L.LatLng(weightAvgLat, weightedAvgLng));
+                }
 
                 self._clusters[self._map.getZoom()].push(cluster);
 
@@ -465,7 +474,7 @@ App.prototype = _.extend(App.prototype, {
 
         var mapUrlBase = 'http://{s}.basemaps.cartocdn.com/dark_nolabels/{z}/{x}/{y}.png';
         if (Config.localMapServer) {
-            mapUrlBase = 'http://{s}.' + window.location.host + '/map/';
+            mapUrlBase = 'http://' + window.location.host + '/map/';
         }
 
         L.tileLayer(
@@ -495,6 +504,12 @@ App.prototype = _.extend(App.prototype, {
         // Fetch the dates available + relay count for each date
         $.get('/dates',this._init.bind(this));
         // TODO: display wait dialog
+    },
+
+    about : function() {
+        $.get('data/changelog.json',function(changelog) {
+            $(document.body).append($(AboutTemplate(changelog)));
+        });
     }
 });
 
