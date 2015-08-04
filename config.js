@@ -6,4 +6,4 @@ var config = {
     relays_index_name : 'relays_monthly'
 };
 
-module.exports = config;
+module.exports = config; 
