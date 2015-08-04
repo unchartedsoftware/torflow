@@ -2,6 +2,7 @@
   <configuration default="false" name="bin/www" type="NodeJSConfigurationType" factoryName="Node.js" path-to-node="/usr/local/bin/node" path-to-js-file="bin/www" working-dir="$PROJECT_DIR$">
     <envs>
       <env name="DEBUG" value="TorFlow:*" />
+      <env name="PORT" value="3001" />
     </envs>
     <browser url="http://localhost:3000/" />
     <method />
