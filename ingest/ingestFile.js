@@ -1,7 +1,11 @@
 var fs = require('fs');
 var readline = require('readline');
 var relayParser = require('./relayParser');
-var _ = require('underscore');
+var RelayDB = require('../db/relay');
+var lodash = require('lodash');
+var process = require('../util/process_each');
+
+var BATCH_INSERT_SIZE = 2000;
 
 /**
  * Ingest a csv relay file into the database
@@ -12,9 +16,52 @@ var _ = require('underscore');
  */
 var ingestFile = function(conn, resolvedFilePath, onSuccess, onError) {
 
-	var success = function(relaySpecs,numSkipped) {
-		_insertRelays(conn,relaySpecs,function() {
-			onSuccess(relaySpecs.length,numSkipped);
+	var success = function(relaySpecs,numSkipped,guardClients,countryCount,date) {
+
+		// Insert the relay data into the relays table
+		_insertRelayData(conn,relaySpecs,guardClients,countryCount,function() {
+
+			// Get a mapping from fingerprint -> relay id (in table) and append it to each element we have guard client data for
+			RelayDB.fingerprints(date,function(fingerprintToId) {
+				Object.keys(fingerprintToId).forEach(function(fingerprint) {
+					if (guardClients[fingerprint]) {
+						guardClients[fingerprint].id = fingerprintToId[fingerprint];
+					}
+				});
+
+				var guardClientSpecs = [];
+
+				// For each relay data, push to the list of guard client rows in the database
+				Object.keys(guardClients).forEach(function(fingerprint) {
+					var dataForRelay = guardClients[fingerprint];
+
+					//Iterate over each country this guard was accessed from and add it to the array
+					Object.keys(dataForRelay.guardClients).forEach(function(cc) {
+						var count = dataForRelay.guardClients[cc];
+						guardClientSpecs.push([
+							guardClients[fingerprint].id,
+							cc,
+							count,
+							date
+						]);
+					});
+				});
+
+				if (guardClientSpecs.length > 0) {
+					var chunks = lodash.chunk(guardClientSpecs, BATCH_INSERT_SIZE);
+					process.each(chunks, function (chunk, processNext) {
+						_insertGuardClientData(conn, chunk, function () {
+							processNext();
+						}, onError);
+
+					},function() {
+						onSuccess(relaySpecs.length,numSkipped);
+					});
+				} else {
+					onSuccess(relaySpecs.length,numSkipped);
+				}
+			},onError);
+
 		},onError);
 	};
 
@@ -53,6 +100,7 @@ var _getSQLDateFromFilename = function(filename) {
  */
 var _extractFromCSV = function(filename,onSuccess,onError) {
 	var relays = [];
+	var guardClients = {};
 
 	var dateString =_getSQLDateFromFilename(filename);
 
@@ -95,11 +143,14 @@ var _extractFromCSV = function(filename,onSuccess,onError) {
 			return;
 		}
 
-		var relaySpec = relayParser.parseLine(line,dateString);
+		var relaySpec = relayParser.parseRelayLine(line,dateString);
+		var guardClientMap = relayParser.parseCountryCodeLine(line,dateString);
+
 		if (relaySpec === null) {
 			numSkipped++;
 		} else {
 			relays.push(relaySpec);
+			guardClients[guardClientMap.fingerprint] = guardClientMap;
 		}
 
 
@@ -107,22 +158,41 @@ var _extractFromCSV = function(filename,onSuccess,onError) {
 	});
 
 	rd.on('close',function() {
-		onSuccess(relays,numSkipped);
+
+		// Get a count for every country for this date
+		var countryCount = {};
+		Object.keys(guardClients).forEach(function(fingerprint) {
+			Object.keys(guardClients[fingerprint].guardClients).forEach(function(cc) {
+				if (cc === '??') {
+					return;
+				} else {
+					var existingCount = countryCount[cc];
+					if (!existingCount) {
+						existingCount = 0;
+					}
+					existingCount += guardClients[fingerprint].guardClients[cc];
+					countryCount[cc] = existingCount;
+				}
+			});
+		});
+
+
+		onSuccess(relays,numSkipped,guardClients,countryCount,dateString);
 	});
 }
 
 /**
  * Inserts a list of relays into the db
  * @param conn - open db connection
- * @param specs - array of spec arrays describing a list of relays
+ * @param relaySpecs - array of spec arrays describing a list of relays
  * @param onSuccess - success callback
  * @param onError - error callback
  * @private
  */
-var _insertRelays = function(conn,specs,onSuccess,onError) {
+var _insertRelayData = function(conn,relaySpecs,guardClients,countryCount,onSuccess,onError) {
 	conn.query(
 		'INSERT INTO relays (' + relayParser.DB_ORDER + ') VALUES ?',
-		[specs],
+		[relaySpecs],
 		function (err, rows) {
 			if (err) {
 				onError(err);
@@ -130,6 +200,20 @@ var _insertRelays = function(conn,specs,onSuccess,onError) {
 				onSuccess();
 			}
 	});
+};
+
+var _insertGuardClientData = function(conn,specs,onSuccess,onError) {
+
+	conn.query(
+		'INSERT INTO guard_clients (relay_id,cc,guardclientcount,date) VALUES ?',
+		[specs],
+		function (err, rows) {
+			if (err) {
+				onError(err);
+			} else {
+				onSuccess();
+			}
+		});
 };
 
 module.exports = ingestFile;

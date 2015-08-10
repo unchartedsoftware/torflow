@@ -23,7 +23,8 @@
     "node-dir": "^0.1.8",
     "mysql": "^2.8.0",
     "generic-pool": "^2.2.0",
-    "moment-timezone": "^0.4.0"
+    "moment-timezone": "^0.4.0",
+    "lodash": "^3.10.1"
   },
   "devDependencies": {
     "browserify": "^9.0.7",
