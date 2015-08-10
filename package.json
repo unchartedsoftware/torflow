@@ -19,7 +19,11 @@
     "request": "^2.58.0",
     "serve-favicon": "~2.3.0",
     "underscore": "^1.8.3",
-    "express-subdomain": "^1.0.3"
+    "express-subdomain": "^1.0.3",
+    "node-dir": "^0.1.8",
+    "mysql": "^2.8.0",
+    "generic-pool": "^2.2.0",
+    "moment-timezone": "^0.4.0"
   },
   "devDependencies": {
     "browserify": "^9.0.7",

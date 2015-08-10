@@ -3,14 +3,9 @@ var poolModule = require('generic-pool');
 var config = require('../config');
 
 var pool = poolModule.Pool({
-	name 	: 'mysql-connection-pool',
+	name 	: 'general-pool',
 	create 	: function(callback) {
-		var connection = mysql.createConnection({
-			host     : config.db.host,
-			user     : config.db.user,
-			password : config.db.password,
-			database : config.db.database
-		});
+		var connection = mysql.createConnection(config.db);
 		connection.connect(function(err) {
             if (err) {
                 console.error('error connecting: ' + err.stack);
@@ -24,12 +19,12 @@ var pool = poolModule.Pool({
 	destroy	: function(connection) {
 		connection.end();
 	},
-	max : 10,
+	max : 1,
 	idleTimeoutMillis : 30000,
 	log : false
 });
 
-var open = function(callback) {
+var open = function(callback,generalConnection) {
 	pool.acquire(function(err,connection) {
 		if (err) throw err;
 		else {

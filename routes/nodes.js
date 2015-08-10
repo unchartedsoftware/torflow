@@ -31,6 +31,8 @@ var router = express.Router();
 var MathUtil = require('../util/mathutil');
 var moment = require('moment');
 var Config = require('../config');
+var RelayDB = require('../db/relay');
+var DBUtil = require('../db/db_utils');
 
 /* GET home page. */
 router.get('/:date', function(req, res, next) {
@@ -40,62 +42,12 @@ router.get('/:date', function(req, res, next) {
     var month = momentDate.month() + 1; // indexed from 0?
     var year = momentDate.year();
 
-    var q ={
-        "size":999999999,
-        "query" : {
-            "range" : {
-                "date" : {
-                    "from" : year + '-' + month + '-'+ day,
-                    "to" : year + '-' + month + '-'+ day
-                }
-            }
-        }
-    };
-
-    request({
-        url: 'http://' + Config.elasticsearch.host + ':' + Config.elasticsearch.port + '/' + Config.relays_index_name + '/_search',
-        method: 'POST',
-        json: q
-    }, function(error, response, body){
-        var hits = body.hits.hits;
-        var relayData = {};
-        var skipped = [];
-        hits.map(function(hit) {
-            var data = hit._source;
-            var latlngStr = data.gps;
-            var pieces = latlngStr.split('/');
-            var lat = parseFloat(pieces[0]);
-            var lon = parseFloat(pieces[1]);
-            var bw = parseFloat(data.bandwidth);
-            if (isNaN(lat) || isNaN(lon) || isNaN(bw) || (lat === 0 && lon===0)) {
-                skipped.push(data);
-                return undefined;
-            }
-
-            return {
-                fingerprint : data.fingerprint,
-                bandwidth : bw,
-                name : data.name,
-                gps : {
-                    lat: lat,
-                    lon: lon
-                },
-                ip : data.ip,
-                uptime : data.uptime,
-                flags : data.flags
-            };
-        })
-            .filter(function(res) { return res !== undefined; })
-            .forEach(function(res) { relayData[res.fingerprint] = res; });
-
-        if (skipped.length > 0) {
-            console.error('Skipped ' + skipped.length + ' due to malformatted data');
-        }
+    RelayDB.get(DBUtil.getMySQLDate(year,month,day),function(relays) {
 
         // Aggregate on equal lat/lon
         var buckets = {};
-        Object.keys(relayData).forEach(function(id) {
-            var key = relayData[id].gps.lat.toString() + relayData[id].gps.lon.toString();
+        Object.keys(relays).forEach(function(id) {
+            var key = relays[id].lat.toString() + relays[id].lng.toString();
             var bucket = buckets[key] || [];
             bucket.push(id);
             buckets[key] = bucket;
@@ -106,13 +58,14 @@ router.get('/:date', function(req, res, next) {
             var ids = buckets[latlon];
             var totalBW = 0;
             ids.forEach(function(id){
-                totalBW += relayData[id].bandwidth;
+                totalBW += relays[id].bandwidth;
             });
             return {
                 id : 'aggregate_' + i++,
-                gps : relayData[ids[0]].gps,
+                lat : relays[ids[0]].lat,
+                lng : relays[ids[0]].lng,
                 bandwidth : totalBW,
-                relays : ids.map(function(id) { return relayData[id]; })
+                relays : ids.map(function(id) { return relays[id]; })
             };
         });
 
@@ -123,7 +76,7 @@ router.get('/:date', function(req, res, next) {
             objects : aggregatedRelayData.map(function(aggregate,i) {
                 return {
                     circle : {
-                        coordinates : [aggregate.gps.lat,aggregate.gps.lon],
+                        coordinates : [aggregate.lat,aggregate.lng],
                         bandwidth : (aggregate.bandwidth - aggregatedBandwidthExtends.min) / aggregatedBandwidthExtends.max,
                         id : aggregate.id,
                         relays : aggregate.relays
@@ -138,7 +91,7 @@ router.get('/:date', function(req, res, next) {
         });
 
         res.send(payload);
-    }, function (error) {
+    }, function(error) {
         console.trace(error.message);
     });
 });

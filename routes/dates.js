@@ -27,40 +27,15 @@
 var express = require('express');
 var request = require('request');
 var Config = require('../config');
+var RelayDB = require('../db/relay');
 var router = express.Router();
 
 /* GET home page. */
 router.get('/', function(req, res, next) {
-
-    // Return a terms aggregation that gives unique dates -> document count
-    var q ={
-        size: 0,
-        aggs : {
-            dates : {
-                terms : {
-                    field : 'date',
-                    size : 0            // ensure we return all unique dates, not just top 10
-                }
-            }
-        }
-    };
-
-
-    request({
-        url: 'http://' + Config.elasticsearch.host + ':' + Config.elasticsearch.port + '/' + Config.relays_index_name + '/_search',
-        method: 'POST',
-        json: q
-    }, function(error, response, body){
-        if(error || body.error) {
-            console.log(error || body.error);
-            res.status(500).send(error || body.error);
-        } else {
-            // Sort by earliest first
-            var dates = body.aggregations.dates.buckets.sort(function(b1,b2) {
-                return b1.key - b2.key;
-            });
-            res.send(dates);
-        }
+    RelayDB.getDates(function(dates) {
+        res.send(dates);
+    }, function(error) {
+        console.trace(error.message);
     });
 });
 
