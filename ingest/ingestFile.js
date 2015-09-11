@@ -85,9 +85,9 @@ var _getSQLDateFromFilename = function(filename) {
 	var year = datePieces[1];
 	var month = datePieces[2];
 	var day = datePieces[3];
-	var hour = parseInt(datePieces[4].charAt(0) === '0' ? datePieces[4].charAt(1) : datePieces[4]);
-	var minute = parseInt(datePieces[5].charAt(0) === '0' ? datePieces[5].charAt(1) : datePieces[5]);
-	var second = parseInt(datePieces[6].charAt(0) === '0' ? datePieces[6].charAt(1) : datePieces[6]);
+	//var hour = parseInt(datePieces[4].charAt(0) === '0' ? datePieces[4].charAt(1) : datePieces[4]);
+	//var minute = parseInt(datePieces[5].charAt(0) === '0' ? datePieces[5].charAt(1) : datePieces[5]);
+	//var second = parseInt(datePieces[6].charAt(0) === '0' ? datePieces[6].charAt(1) : datePieces[6]);
 	return year + '/' + month + '/' + day + ' 00:00:00';
 };
 
@@ -99,6 +99,7 @@ var _getSQLDateFromFilename = function(filename) {
  * @private
  */
 var _extractFromCSV = function(filename,onSuccess,onError) {
+	console.log('Parsing csv file: ' + filename);
 	var relays = [];
 	var guardClients = {};
 

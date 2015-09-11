@@ -186,11 +186,14 @@ App.prototype = _.extend(App.prototype, {
     },
 
     _getISODate : function(index) {
-        return this._getMoment(index)
+        var m = this._getMoment(index)
             .hours(0)
             .minutes(0)
-            .seconds(0)
-            .format();
+            .seconds(0);
+
+        var mStr = m.format();
+
+        return mStr;
     },
 
     _update : function() {

@@ -45,8 +45,7 @@ var _getTableSpecs = function() {
 			db_utils.createColumnString('date','datetime',nonNull)
 		],
 		primaryKey : 'id'
-
-	}
+	};
 
 	tables.push(relays);
 	tables.push(countrybydate);

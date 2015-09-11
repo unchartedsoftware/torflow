@@ -1,4 +1,5 @@
 var connectionPool = require('./connection');
+var config = require('../config');
 
 var getRelays = function(date,onComplete,onError) {
     var connection = null;
@@ -20,7 +21,7 @@ var getRelays = function(date,onComplete,onError) {
     connectionPool.open(function(conn) {
         connection = conn;
 
-        connection.query('SELECT * FROM relays WHERE date=?',[date], function(err,rows) {
+        connection.query('SELECT * FROM ' + config.db.database + '.relays WHERE date=?',[date], function(err,rows) {
             if (err) {
                 error(err);
             } else {
@@ -54,7 +55,7 @@ var getFingerprints = function(date,onComplete,onError) {
     connectionPool.open(function(conn) {
         connection = conn;
 
-        connection.query('SELECT id,fingerprint FROM relays WHERE date=?',[date], function(err,rows) {
+        connection.query('SELECT id,fingerprint FROM ' + config.db.database + '.relays WHERE date=?',[date], function(err,rows) {
             if (err) {
                 error(err);
             } else {
@@ -88,7 +89,7 @@ var dates = function(onSuccess,onError) {
     connectionPool.open(function(conn) {
         connection = conn;
 
-        connection.query('SELECT distinct date FROM torflow.relays order by date asc', function(err,rows) {
+        connection.query('SELECT distinct date FROM ' + config.db.database + '.relays order by date asc', function(err,rows) {
             if (err) {
                 error(err);
             } else {

@@ -82,3 +82,4 @@ esdata/
 eslogs/
 data/**/*.csv
 map/
+/config.js

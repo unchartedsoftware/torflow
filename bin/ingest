@@ -11,10 +11,10 @@ if (process.argv.length < 3) {
 var filePath = path.resolve(process.argv[2]);
 console.log('Importing from ' + filePath);
 
-onSuccess = function() {
+var onSuccess = function() {
 	console.log('IMPORT COMPLETED SUCCESSFULLY');
 	process.exit(0);
-}
+};
 
 db_init.initialize(function() {
 	ingestFiles(filePath,onSuccess);

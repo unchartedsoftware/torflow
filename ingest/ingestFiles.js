@@ -1,6 +1,7 @@
 var dir = require('node-dir');
 var connectionPool = require('../db/connection');
 var ingestFile = require('./ingestFile');
+var process = require('../util/process_each');
 
 /**
  * Ingest a list of csv files from the path specified
@@ -39,14 +40,11 @@ var ingestFiles = function(resolvedPath,onSuccess,onError) {
 			if (err) {
 				throw err;
 			} else {
-				var total = files.length;
-				var processed = 0;
-
 				// Ingest each file
-				files.forEach(function (csvPath) {
-
+				process.each(files,function(csvPath, processNext) {
 					// Skip files not ending with .csv
 					if (csvPath.indexOf('.csv') !== csvPath.length - 4) {
+						processNext();
 						return;
 					}
 
@@ -56,18 +54,16 @@ var ingestFiles = function(resolvedPath,onSuccess,onError) {
 							logStr += ' (' + numSkipped + ' of ' + numImported+numSkipped + ' skipped due to malformed data)';
 						}
 						console.log(logStr);
-						processed++;
-						if (processed >= total) {
-							complete();
-						}
+						processNext();
 					};
 
 					var onFileError = function(err) {
 						error(err);
+						processNext();
 					};
 
 					ingestFile(conn, csvPath,onFileSuccess,onFileError);
-				});
+				}, complete);
 			}
 		});
 	});
