@@ -1,0 +1,24 @@
+var path = require('path');
+var ingestFiles = require('../ingest/ingestFiles');
+var db_init = require('../db/db_init');
+
+
+if (process.argv.length < 3) {
+	console.log('usage:\n\tnode bin/ingest %DATA_DIRECTORY%');
+	console.log('\twhere DATA_DIRECTORY% is the absolute path to the directory containing the csv files to import.');
+}
+
+var filePath = path.resolve(process.argv[2]);
+console.log('Importing from ' + filePath);
+
+var onSuccess = function() {
+	console.log('IMPORT COMPLETED SUCCESSFULLY');
+	process.exit(0);
+};
+
+db_init.initialize(function() {
+	ingestFiles(filePath,onSuccess);
+}, function(err) {
+	console.log(err);
+});
+

@@ -32,6 +32,7 @@
 	  	"module":true,
         "d3":true,
 	  	"L":true,
-	  	"moment":true
+	  	"moment":true,
+	  	"process":true
 	}
 }

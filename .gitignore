@@ -80,5 +80,6 @@ build/data/
 esdata.tar
 esdata/
 eslogs/
-data/processed/
+data/**/*.csv
 map/
+/config.js
