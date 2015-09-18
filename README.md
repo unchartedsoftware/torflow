@@ -9,6 +9,8 @@ NodeJS and NPM are required for building and running.  Once NPM is installed, in
 Install modules (from root project directory):
 
     npm install
+    
+To connect to the data, copy the config.template.js file to config.js and enter your database credentials in there.
 
 Build:
 
