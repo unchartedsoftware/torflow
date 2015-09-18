@@ -26,6 +26,7 @@
 */
 
 var DotLayer = require('./layers/dotlayer');
+var CountryLayer = require('./layers/countrylayer');
 var MapParticleSimulation = require('./particles/mapparticlesimulation');
 var Lerp = require('./util/lerp');
 var Config = require('./config');
@@ -59,6 +60,7 @@ App.prototype = _.extend(App.prototype, {
     _currentDate : null,
     _showFlow : true,
     _showingLabels : null,
+    _countryLayer : null,
 
 
     _clear : function() {
@@ -512,6 +514,9 @@ App.prototype = _.extend(App.prototype, {
 
         /* Initialize the SVG layer */
         this._map._initPathRoot();
+
+        this._countryLayer = new CountryLayer(this._map);
+
     },
 
     /**
