@@ -38,6 +38,7 @@ var nodes = require('./routes/nodes');
 var dates = require('./routes/dates');
 var map = require('./routes/map');
 var geo = require('./routes/geo');
+var country = require('./routes/country');
 
 var app = express();
 
@@ -59,6 +60,7 @@ app.use('/nodes',nodes);
 app.use('/dates',dates);
 app.use('/map',map);
 app.use('/geo',geo);
+app.use('/country',country);
 
 
 // catch 404 and forward to error handler
