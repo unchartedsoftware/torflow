@@ -92,6 +92,10 @@ CountryLayer.prototype = _.extend(CountryLayer.prototype, {
 
     clear : function() {
         this._geoJSONLayer.clearLayers();
+    },
+
+    setOpacity : function(opacity) {
+        // TODO:  how to handle this?
     }
 });
 module.exports = CountryLayer;

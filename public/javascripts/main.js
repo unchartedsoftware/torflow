@@ -221,6 +221,11 @@ App.prototype = _.extend(App.prototype, {
         $(containerEl).css('-webkit-filter','brightness(' + newBrightness + ')');
     },
 
+    _onOpacitySlide : function() {
+        var newOpacity = this._opacitySlider.slider('getValue');
+        this._countryLayer.setOpacity(newOpacity);
+    },
+
     _onHiddenFilterChange : function() {
         var checkedRadioBtn = this._element.find('#hidden-filter-btn-group').find('.active > input');
         var checkedState = checkedRadioBtn.attr('hidden-id');
@@ -450,6 +455,7 @@ App.prototype = _.extend(App.prototype, {
 
         if (this._currentDate === isoDateStr) {
             handleNodes(this._currentNodes);
+            handleHistogram(this._currentHistogram);
         } else {
             d3.json('/nodes/' + encodeURI(isoDateStr), function (nodes) {
                 self._currentNodes = nodes;
@@ -494,6 +500,11 @@ App.prototype = _.extend(App.prototype, {
             tooltip:'hide'
         });
         this._brightnessSlider.on('slide',this._onBrightnessSlide.bind(this));
+
+        this._opacitySlider = this._element.find('#opacity-slider').slider({
+            tooltip:'hide'
+        });
+        this._opacitySlider.on('slide',this._onOpacitySlide.bind(this));
 
         this._map = L.map('map').setView([0, 0], 2);
         this._map.options.maxZoom = Config.maxZoom || 18;
