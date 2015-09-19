@@ -1,5 +1,7 @@
 var CountryLayer = function(map) {
+
     this._map = map;
+    this._map._initPathRoot();
 
     var getStyleFn = this._getFeatureStyle.bind(this);
     this._geoJSONLayer = L.geoJson(null,{
@@ -84,7 +86,7 @@ CountryLayer.prototype = _.extend(CountryLayer.prototype, {
         return {
             color : fillColor,
             weight : 1,
-            opacity : 0.65
+            opacity : 1
         };
     },
 

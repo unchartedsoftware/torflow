@@ -511,6 +511,9 @@ App.prototype = _.extend(App.prototype, {
             }).addTo(this._map);
         this._onBrightnessSlide();
 
+        /* Initialize the SVG layer */
+        this._countryLayer = new CountryLayer(this._map);
+
         this._labelLayer = L.tileLayer(
             mapUrlBase + 'dark_only_labels/{z}/{x}/{y}.png', {
                 maxZoom: Config.maxZoom || 18,
@@ -519,11 +522,6 @@ App.prototype = _.extend(App.prototype, {
         if (this._showingLabels) {
             this._labelLayer.addTo(this._map);
         }
-
-        /* Initialize the SVG layer */
-        this._map._initPathRoot();
-
-        this._countryLayer = new CountryLayer(this._map);
 
         this._update();
 
