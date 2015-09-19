@@ -29,6 +29,7 @@ var express = require('express');
 var router = express.Router();
 var fs = require('fs');
 var path = require('path');
+var ccLookup = require('../util/countrycode');
 
 var JSONFileCache = {};
 
@@ -37,11 +38,17 @@ var getGeoJSON = function(cc) {
     if (JSONFileCache[cc]) {
         json = JSONFileCache[cc];
     } else {
-        var relativeFilePath = __dirname + '/../data/' + cc.toUpperCase() + '.geo.json';
+        var relativeFilePath = __dirname + '/../data/countries/' + cc.toUpperCase() + '.geo.json';
         var absoluteFilePath = path.resolve(relativeFilePath);
 
-        json = JSON.parse(fs.readFileSync(absoluteFilePath, 'utf8'));
-        JSONFileCache[cc] = json;
+        try {
+            json = JSON.parse(fs.readFileSync(absoluteFilePath, 'utf8'));
+            json.cc_2 = ccLookup.threeToTwo[cc];
+            json.cc_3 = cc;
+            JSONFileCache[cc] = json;
+        } catch (e) {
+            console.log(e.message);
+        }
     }
     return json;
 };
@@ -53,7 +60,10 @@ router.post('/', function(req, res, next) {
     var result = {};
     if (countryCodes && countryCodes.length) {
         countryCodes.forEach(function (cc) {
-            result[cc] = getGeoJSON(cc);
+            var threeLetterCC = ccLookup.twoToThree[cc.toUpperCase()];
+            if (threeLetterCC) {
+                result[cc] = getGeoJSON(threeLetterCC);
+            }
         });
     }
 
