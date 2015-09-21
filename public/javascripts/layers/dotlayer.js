@@ -25,100 +25,109 @@
 * SOFTWARE.
 */
 
-var Config = require('../config');
-var DotLayer = L.CanvasLayer.extend({
+var Config = require('../config.js');
+var CanvasOverlay = require('./canvasoverlay');
 
-    _ctx : null,
-    _initialized : false,
-    _hidden : false,
+var DotLayer = CanvasOverlay.extend({
 
-    add : function(pos) {
-        if (!this._initialized || this._hidden) {
-            return;
+    bufferPositions : function(positions) {
+        var self = this,
+            points = new Float32Array( positions.length * 2 );
+        positions.forEach( function( pos, index ) {
+            var px = self._map.latLngToContainerPoint(pos.latLng);
+            points[ index*2 ] = px.x;
+            points[ index*2 + 1 ] = self._canvas.height - px.y;
+        });
+        if ( !this._renderable ) {
+            this._createBuffers();
         }
-        var point = this._map.latLngToContainerPoint(pos.latLng);
-        var tailDirectionX = 0, tailDirectionY = 0;
-        if (pos.source && pos.source.latLng) {
-            var sourcePoint = this._map.latLngToContainerPoint(pos.source.latLng);
-
-            tailDirectionX = sourcePoint.x - point.x;
-            tailDirectionY = sourcePoint.y - point.y;
-            var dirMagnitude = Math.sqrt(tailDirectionX * tailDirectionX + tailDirectionY * tailDirectionY);
-            tailDirectionX /= dirMagnitude;
-            tailDirectionY /= dirMagnitude;
-        }
-
-        // Draw 10 line segments
-        var head = {
-            x: point.x,
-            y: point.y
-        };
-
-        if (pos.fill) {
-            this.fill(pos.fill);
-        }
-
-        var tailSegmentLength = Config.dot.tailSegmentLength;
-        var tailSegments = Config.dot.tailSegments;
-        this._ctx.strokeWidth = Config.dot.thickness + 'px';
-        for (var i = 0; i < tailSegments; i++) {
-            this._ctx.strokeStyle = 'rgba(' +
-                                        this._fillR + ',' +
-                                        this._fillG + ',' +
-                                        this._fillB + ',' +
-                                        (1.0 - (i/tailSegments)) + ')';
-
-            this._ctx.beginPath();
-            this._ctx.moveTo(head.x,head.y);
-            this._ctx.lineTo(head.x + (tailDirectionX*tailSegmentLength), head.y + (tailDirectionY*tailSegmentLength));
-            this._ctx.stroke();
-            head.x += (tailDirectionX*tailSegmentLength);
-            head.y += (tailDirectionY*tailSegmentLength);
-        }
-
-        this._ctx.fillRect(point.x - Config.dot.thickness/2,point.y - Config.dot.thickness/2,Config.dot.thickness,Config.dot.thickness);
+        this._renderable.vertexBuffers[0].bufferData( points );
     },
 
-    clear : function() {
-        var canvas = this.getCanvas();
-        this._ctx.clearRect(0, 0, canvas.width, canvas.height);
+    _createBuffers: function() {
+
+        function createIndices( n ) {
+            var indices = new Array( n ),
+                i;
+            for ( i=0; i<n; i++ ) {
+                indices[i] = i;
+            }
+            return indices;
+        }
+
+        function createPositions( n ) {
+            var positions = new Array( n ),
+                i;
+            for ( i=0; i<n; i++ ) {
+                positions[i] = [ 0, 0 ];
+            }
+            return positions;
+        }
+
+        this._renderable = new esper.Renderable({
+            positions: createPositions( Config.particle_count ),
+            indices: createIndices( Config.particle_count ),
+            options: {
+                mode: 'POINTS'
+            }
+        });
     },
 
-    onResize : function() {
-        this._ctx.fillStyle = this._fillStyle;
+    /*
+    _createRenderer: function() {
+        var gl = this._gl,
+            viewport = this._viewport,
+            shader = this._shader;
+        this._renderer = new esper.Renderer([
+            new esper.RenderTechnique({
+                id: 'point',
+                passes: [
+                    new esper.RenderPass({
+                        before: function( camera ) {
+
+                            //gl.disable( gl.CULL_FACE );
+                            //gl.disable( gl.DEPTH_TEST );
+                            //gl.enable( gl.BLEND );
+                            //gl.blendFunc( gl.SRC_ALPHA, gl.ONE );
+                            gl.clearColor( 0, 0, 0, 0 );
+                            gl.clear( gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT );
+
+                            viewport.push();
+                            shader.push();
+                            shader.setUniform( 'uProjectionMatrix', camera.projectionMatrix() );
+                            //shader.setUniform( 'uPointSampler', 0 );
+                        },
+                        forEachMesh: function( mesh, entity ) {
+                            // only draw if the texture is attached
+                            //mesh.material.diffuseTexture.push( 0 );
+                            mesh.draw();
+                            //mesh.material.diffuseTexture.pop( 0 );
+                        },
+                        after: function() {
+                            shader.pop();
+                            viewport.pop();
+                        }
+                    })
+                ]
+            })
+        ]);
     },
+    */
 
-    render: function() {
-        if (!this._initialized) {
-            var canvas = this.getCanvas();
-            this._ctx = canvas.getContext('2d');
-
-            this.clear();
-
-            this._ctx.fillStyle = this._fillStyle || 'white';
-            this._initialized = true;
+    draw: function() {
+        if ( this._initialized && this._renderable ) {
+            var gl = this._gl;
+            gl.clearColor( 0, 0, 0, 0 );
+            gl.clear( gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT );
+            this._viewport.push();
+            this._shader.push();
+            this._shader.setUniform( 'uProjectionMatrix', this._camera.projectionMatrix() );
+            this._renderable.draw();
+            this._shader.pop();
+            this._viewport.pop();
         }
     }
-});
 
-DotLayer.prototype = _.extend(DotLayer.prototype,{
-    fillStyle : function(style) {
-        this._fillStyle = style;
-        this._ctx.fillStyle = this._fillStyle || 'white';
-        return this;
-    },
-    fill : function(clr) {
-        this._fillR = clr.r;
-        this._fillG = clr.g;
-        this._fillB = clr.b;
-    },
-    hide : function() {
-        this._hidden = true;
-        this.clear();
-    },
-    show : function() {
-        this._hidden = false;
-    }
 });
 
 module.exports = DotLayer;

@@ -62,6 +62,7 @@ App.prototype = _.extend(App.prototype, {
 
 
     _clear : function() {
+        console.log('clearing');
         if (this._particleSimulation) {
             this._particleSimulation.stop();
             this._particleSimulation.destroy();
@@ -73,6 +74,7 @@ App.prototype = _.extend(App.prototype, {
         if (this._markersLayer) {
             this._map.removeLayer(this._markersLayer);
         }
+        console.log('_clear');
     },
 
     _getVisibleRelays : function() {
@@ -93,16 +95,12 @@ App.prototype = _.extend(App.prototype, {
             this._particleSimulation.destroy();
         }
 
-        this._particleLayer = new DotLayer()
-            .fillStyle('rgba(255,255,255,0.8');
+        this._particleLayer = new DotLayer();
         this._particleLayer.addTo(this._map);
 
         this._particleSimulation = new MapParticleSimulation(nodes,Config.particle_count,this._map)
             .onPositionsAvailable(function(positions) {
-                self._particleLayer.clear();
-                positions.forEach(function(pos) {
-                    self._particleLayer.add(pos);
-                });
+                self._particleLayer.bufferPositions(positions);
             });
         this._onHiddenFilterChange();
 
@@ -199,6 +197,7 @@ App.prototype = _.extend(App.prototype, {
     _update : function() {
         var newDateIdx = this._dateSlider.slider('getValue');
         var isoDate = this._getISODate(newDateIdx);
+        console.log('updating');
         this._clear();
         this._fetch(isoDate);
     },
@@ -231,11 +230,11 @@ App.prototype = _.extend(App.prototype, {
         if (this._particleSimulation.isStarted()) {
             this._showFlow = false;
             this._particleSimulation.stop();
-            this._particleLayer.hide();
+            //this._particleLayer.hide();
         } else {
             this._showFlow = true;
             this._particleSimulation.start();
-            this._particleLayer.show();
+            //this._particleLayer.show();
         }
     },
 
@@ -432,10 +431,14 @@ App.prototype = _.extend(App.prototype, {
 
             self._createMarkers();
 
-
-            self._particleLayer = new DotLayer()
-                .fillStyle(Config.dot.headFill);
+            /*
+            if (self._particleLayer) {
+                self._map.removeLayer(self._particleLayer);
+                delete self._particleLayer;
+            }
+            self._particleLayer = new DotLayer();
             self._particleLayer.addTo(self._map);
+            */
 
         }
 
@@ -449,7 +452,7 @@ App.prototype = _.extend(App.prototype, {
             });
         }
     },
-    
+
     _init : function(dates) {
         this._dates = dates;
         var totalDays = dates.length;
@@ -488,7 +491,7 @@ App.prototype = _.extend(App.prototype, {
         this._map = L.map('map').setView([0, 0], 2);
         this._map.options.maxZoom = Config.maxZoom || 18;
 
-        var mapUrlBase = 'http://{s}.basemaps.cartocdn.com/dark_nolabels/{z}/{x}/{y}.png';
+        var mapUrlBase = 'http://{s}.basemaps.cartocdn.com/';
         if (Config.localMapServer) {
             mapUrlBase = 'http://' + window.location.host + '/map/';
         }

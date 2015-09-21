@@ -60,26 +60,14 @@ coverage
 benchmarks/graphs
 
 # ----------------------------------------
-## Colosseo Ignores
+## App Specific Ignores
 # ----------------------------------------
-
 
 #compiled things
 torflow.js
 **/templates/**/*.js
+**/extern.js
+**/extern.css
 .vagrant/
-build/app.js
-build/public/
-build/views/
-build/util/
-build/config.js
-build/package.json
-build/routes/
-build/bin/
-build/data/
-esdata.tar
-esdata/
-eslogs/
 data/**/*.csv
-map/
 /config.js
