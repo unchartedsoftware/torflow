@@ -3,31 +3,18 @@
 # ----------------------------------------
 
 # User-specific stuff:
-.idea/workspace.xml
-.idea/tasks.xml
-.idea/dictionaries
-.idea/watcherTasks.xml
-
-# Sensitive or high-churn files:
-.idea/dataSources.ids
-.idea/dataSources.xml
-.idea/sqlDataSources.xml
-.idea/dynamic.xml
-.idea/uiDesigner.xml
-.idea/deployment.xml
-.idea/scopes/scope_settings.xml
+.idea
 
 # File-based project format:
 .ipr
 .iws
+*.iml
 
 # IntelliJ
 /out/
 
 # JIRA plugin
 atlassian-ide-plugin.xml
-
-
 
 # ----------------------------------------
 ## NodeJS Express Gitignore
@@ -60,26 +47,7 @@ coverage
 benchmarks/graphs
 
 # ----------------------------------------
-## Colosseo Ignores
+## Bower Gitignore
 # ----------------------------------------
 
-
-#compiled things
-torflow.js
-**/templates/**/*.js
-.vagrant/
-build/app.js
-build/public/
-build/views/
-build/util/
-build/config.js
-build/package.json
-build/routes/
-build/bin/
-build/data/
-esdata.tar
-esdata/
-eslogs/
-data/**/*.csv
-map/
-/config.js
+public/extern/**/*

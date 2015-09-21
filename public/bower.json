@@ -1,0 +1,35 @@
+{
+  "name": "TorFlow",
+  "version": "0.0.0",
+  "private": true,
+  "dependencies": {
+    "bootstrap": "3.3.5",
+    "seiyria-bootstrap-slider": "4.10.4",
+    "cyborg-bootstrap": "~0.0.1",
+    "d3": "~3.5.6",
+    "esper": "~1.1.2",
+    "handlebars": "3.0.3",
+    "jquery": "2.1.4",
+    "leaflet": "0.7.5",
+    "leaflet-canvas-layer": "https://github.com/CartoDB/Leaflet.CanvasLayer.git#gh-pages",
+    "leaflet-geoetryutil": "https://github.com/makinacorpus/Leaflet.GeometryUtil.git",
+    "leaflet.markercluster": "~0.4.0",
+    "moment": "~2.10.6",
+    "underscore": "~1.8.3"
+  },
+  "overrides": {
+    "bootstrap": {
+      "main": [
+        "dist/css/bootstrap-theme.min.css",
+        "dist/js/bootstrap.min.js"
+      ]
+    },
+    "leaflet.markercluster": {
+      "main": [
+        "dist/leaflet.markercluster.js",
+        "dist/MarkerCluster.Default.css",
+        "dist/MarkerCluster.css"
+      ]
+    }
+  }
+}
