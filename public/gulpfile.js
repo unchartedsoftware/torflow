@@ -143,7 +143,7 @@ gulp.task('templates_build',function(cb) {
 });
 
 gulp.task('install',function(cb) {
-    runSequence('templates',['less','lint'],['build']);
+    runSequence('templates',['less','lint'],['build','build-extern-js','build-extern-css']);
 });
 gulp.task('deploy',function(cb) {
     runSequence('templates',['less','minifyCss','lint'],['minify']);
