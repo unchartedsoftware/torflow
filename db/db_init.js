@@ -54,30 +54,17 @@ var _getTableSpecs = function() {
 	return tables;
 };
 
-var initialize = function(success,error) {
+var initialize = function(onComplete,onError) {
 	db_utils.conditionalCreateDatabase(Config.db.database,function() {
-		connectionPool.open(function(connection) {
-
-			function onSuccess() {
-				connectionPool.close(connection);
-				success();
-			}
-
-			function onError(err) {
-				connectionPool.close(connection);
-				if (error) {
-					error(err);
-				} else {
-					console.error(err);
-				}
-			}
-
-
-			var specs = _getTableSpecs();
-			db_utils.createTables(connection,specs,onSuccess,onError);
-		});
-	}, error);
+		connectionPool.open(
+			function(connection) {
+				var specs = _getTableSpecs();
+				db_utils.createTables(connection,specs,connectionPool.complete,connectionPool.error);
+			},
+			function(err) {
+				onError(err);
+			});
+	}, onError);
 };
-
 
 module.exports.initialize = initialize;
