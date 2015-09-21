@@ -20,7 +20,7 @@
   "overrides": {
     "bootstrap": {
       "main": [
-        "dist/css/bootstrap-theme.min.css",
+        "dist/css/bootstrap.min.css",
         "dist/js/bootstrap.min.js"
       ]
     },
@@ -30,6 +30,11 @@
         "dist/MarkerCluster.Default.css",
         "dist/MarkerCluster.css"
       ]
+    },
+    "leaflet-canvas-layer": {
+        "main": [
+            "leaflet_canvas_layer.js"
+        ]
     }
   }
 }

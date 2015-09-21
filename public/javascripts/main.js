@@ -346,7 +346,6 @@ App.prototype = _.extend(App.prototype, {
         });
 
         this._markersLayer.on('animationend', this._onMapClustered.bind(this));
-        this._markersLayer.on('initialized',this._onMapClustered.bind(this));
 
         var maxBW = -Number.MAX_VALUE;
         var minBW = Number.MAX_VALUE;
@@ -388,6 +387,8 @@ App.prototype = _.extend(App.prototype, {
         });
 
         this._map.addLayer(this._markersLayer);
+
+        this._onMapClustered();
     },
 
 
@@ -449,7 +450,7 @@ App.prototype = _.extend(App.prototype, {
             });
         }
     },
-    
+
     _init : function(dates) {
         this._dates = dates;
         var totalDays = dates.length;
@@ -488,7 +489,7 @@ App.prototype = _.extend(App.prototype, {
         this._map = L.map('map').setView([0, 0], 2);
         this._map.options.maxZoom = Config.maxZoom || 18;
 
-        var mapUrlBase = 'http://{s}.basemaps.cartocdn.com/dark_nolabels/{z}/{x}/{y}.png';
+        var mapUrlBase = 'http://{s}.basemaps.cartocdn.com/';
         if (Config.localMapServer) {
             mapUrlBase = 'http://' + window.location.host + '/map/';
         }

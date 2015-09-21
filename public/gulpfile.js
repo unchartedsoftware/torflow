@@ -107,7 +107,7 @@ gulp.task('lint',function() {
         .pipe(jshint.reporter('default'));
 });
 
-gulp.task('build', ['build-extern-js', 'build-extern-css'], function () {
+gulp.task('build', function () {
     return doBuild(false);
 });
 
@@ -149,5 +149,5 @@ gulp.task('deploy',function(cb) {
     runSequence('templates',['less','minifyCss','lint'],['minify']);
 });
 gulp.task('default', function(cb) {
-    runSequence('templates',['less','lint'],['build'],'watch');
+    runSequence('templates',['less','lint'],['build','build-extern-js','build-extern-css'],'watch');
 });
