@@ -68,12 +68,13 @@ L.CanvasOverlay = L.Class.extend({
 
     _initCanvas: function () {
         console.log('init canvas');
-        var canvas = this._canvas = L.DomUtil.create('canvas', 'leaflet-webgl-layer leaflet-layer');
+        this._canvas = L.DomUtil.create('canvas', 'leaflet-webgl-layer leaflet-layer');
         var size = this._map.getSize();
-        canvas.width  = size.x;
-        canvas.height = size.y;
+        this._canvas.width = size.x;
+        this._canvas.height = size.y;
+        //this._canvas.style.backgroundColor = 'rgba(255,0,0,0.2)';
         var animated = this._map.options.zoomAnimation && L.Browser.any3d;
-        L.DomUtil.addClass(canvas, 'leaflet-zoom-' + (animated ? 'animated' : 'hide'));
+        L.DomUtil.addClass(this._canvas, 'leaflet-zoom-' + (animated ? 'animated' : 'hide'));
     },
 
     onAdd: function (map) {
@@ -89,8 +90,9 @@ L.CanvasOverlay = L.Class.extend({
 
         this._initGL();
 
-        map.on('moveend', this._reset, this);
+        map.on('move', this._reset, this);
         map.on('resize',  this._resize, this);
+        map.on('zoomend', this._reset, this);
 
         if (map.options.zoomAnimation && L.Browser.any3d) {
             map.on('zoomanim', this._animateZoom, this);
@@ -100,17 +102,19 @@ L.CanvasOverlay = L.Class.extend({
     },
 
     onRemove: function (map) {
+        console.log('removing from map');
         map.getPanes().overlayPane.removeChild(this._canvas);
-        map.off('moveend', this._reset, this);
+        map.off('move', this._reset, this);
         map.off('resize', this._resize, this);
+        map.off('zoomend', this._reset, this);
         if (map.options.zoomAnimation) {
             map.off('zoomanim', this._animateZoom, this);
         }
+        this._gl = null;
         this._canvas = null;
         this._viewport = null;
         this._camera = null;
         this._initialized = false;
-        this._gl = null;
     },
 
     addTo: function (map) {
@@ -119,6 +123,7 @@ L.CanvasOverlay = L.Class.extend({
     },
 
     _resize: function (resizeEvent) {
+        console.log('resizing');
         var width = resizeEvent.newSize.x,
             height = resizeEvent.newSize.y;
         if ( this._initialized ) {
@@ -128,17 +133,17 @@ L.CanvasOverlay = L.Class.extend({
     },
 
     _reset: function () {
+        console.log('reset');
         var topLeft = this._map.containerPointToLayerPoint([0, 0]);
         L.DomUtil.setPosition(this._canvas, topLeft);
     },
 
+    redraw: function() {
+        this.draw();
+        return this;
+    },
+
     _redraw: function () {
-        /*
-        var size = this._map.getSize();
-        var bounds = this._map.getBounds();
-        var zoomScale = (size.x * 180) / (20037508.34  * (bounds.getEast() - bounds.getWest())); // resolution = 1/zoomScale
-        var zoom = this._map.getZoom();
-        */
         this.draw();
         if ( this._initialized ) {
             requestAnimationFrame( this._redraw.bind( this ) );
@@ -146,6 +151,7 @@ L.CanvasOverlay = L.Class.extend({
     },
 
     _animateZoom: function (e) {
+        console.log('animate zoom');
         var scale = this._map.getZoomScale(e.zoom),
             offset = this._map._getCenterOffset(e.center)._multiplyBy(-scale).subtract(this._map._getMapPanePos());
         this._canvas.style[L.DomUtil.TRANSFORM] = L.DomUtil.getTranslateString(offset) + ' scale(' + scale + ')';
