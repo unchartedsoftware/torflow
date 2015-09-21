@@ -51,3 +51,13 @@ benchmarks/graphs
 # ----------------------------------------
 
 public/extern/**/*
+
+# ----------------------------------------
+## App Specific
+# ----------------------------------------
+
+config.js
+**/torflow.js
+**/templates/*.js
+**/extern.js
+**/extern.css
