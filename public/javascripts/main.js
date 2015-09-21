@@ -450,6 +450,7 @@ App.prototype = _.extend(App.prototype, {
             self._particleLayer = new DotLayer();
             self._particleLayer.addTo(self._map);
             */
+        }
 
         function handleHistogram(histogram) {
             self._countryLayer.set(histogram);
