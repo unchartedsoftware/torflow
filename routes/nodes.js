@@ -32,16 +32,16 @@ var moment = require('moment');
 var RelayDB = require('../db/relay');
 var DBUtil = require('../db/db_utils');
 
-/* GET home page. */
-router.get('/:date', function(req, res, next) {
-    var momentDate = moment(req.params.date);
-
+/**
+ * GET /nodes/:nodeid
+ */
+router.get('/:nodeid', function(req, res, next) {
+    var momentDate = moment(req.params.nodeid);
     var day = momentDate.date();    // date == day of month, day == day of week.
     var month = momentDate.month() + 1; // indexed from 0?
     var year = momentDate.year();
-
-    RelayDB.get(DBUtil.getMySQLDate(year,month,day),function(relays) {
-
+    var sqlDate = DBUtil.getMySQLDate(year,month,day);
+    RelayDB.get(sqlDate,function(relays) {
         // Aggregate on equal lat/lon
         var buckets = {};
         Object.keys(relays).forEach(function(id) {
@@ -50,7 +50,6 @@ router.get('/:date', function(req, res, next) {
             bucket.push(id);
             buckets[key] = bucket;
         });
-
         var i = 0;
         var aggregatedRelayData = Object.keys(buckets).map(function(latlon) {
             var ids = buckets[latlon];
@@ -66,10 +65,8 @@ router.get('/:date', function(req, res, next) {
                 relays : ids.map(function(id) { return relays[id]; })
             };
         });
-
         var aggregatedBandwidth = aggregatedRelayData.map(function(a) { return a.bandwidth; });
         var aggregatedBandwidthExtends = MathUtil.minmax(aggregatedBandwidth);
-
         var payload = {
             objects : aggregatedRelayData.map(function(aggregate,i) {
                 return {
@@ -82,15 +79,13 @@ router.get('/:date', function(req, res, next) {
                 };
             })
         };
-
         // Ensure larger nodes sit on top
         payload.objects = payload.objects.sort(function(o1,o2) {
             return o1.circle.bandwidth - o2.circle.bandwidth;
         });
-
         res.send(payload);
     }, function(error) {
-        console.trace(error.message);
+        res.status(500).send('Node data could not be retrieved.');
     });
 });
 

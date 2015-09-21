@@ -31,25 +31,20 @@ var countryDB = require('../db/country');
 var DBUtil = require('../db/db_utils');
 var moment = require('moment');
 
-
-/* GET home page. */
-router.get('/:date', function(req, res, next) {
-    var momentDate = moment(req.params.date);
-
+/**
+ * GET /country/:countryid
+ */
+router.get('/:countryid', function(req, res, next) {
+    var momentDate = moment(req.params.countryid);
     var day = momentDate.date();    // date == day of month, day == day of week.
     var month = momentDate.month() + 1; // indexed from 0?
     var year = momentDate.year();
-
-    var onComplete = function(histogram) {
+    var sqlDate = DBUtil.getMySQLDate(year,month,day);
+    countryDB.getCountryHistogram(sqlDate,function(histogram) {
         res.send(histogram);
-    };
-
-    var onError = function(err) {
-        console.log(err);
-        res.send({});
-    }
-
-    countryDB.getCountryHistogram(DBUtil.getMySQLDate(year,month,day),onComplete,onError);
+    }, function(err) {
+        res.status(500).send('Country data could not be retrieved.');
+    });
 });
 
 module.exports = router;

@@ -30,7 +30,6 @@ var router = express.Router();
 var fs = require('fs');
 var path = require('path');
 var ccLookup = require('../util/countrycode');
-
 var JSONFileCache = {};
 
 var getGeoJSON = function(cc) {
@@ -40,7 +39,6 @@ var getGeoJSON = function(cc) {
     } else {
         var relativeFilePath = __dirname + '/../data/countries/' + cc.toUpperCase() + '.geo.json';
         var absoluteFilePath = path.resolve(relativeFilePath);
-
         try {
             json = JSON.parse(fs.readFileSync(absoluteFilePath, 'utf8'));
             json.cc_2 = ccLookup.threeToTwo[cc];
@@ -53,10 +51,11 @@ var getGeoJSON = function(cc) {
     return json;
 };
 
-/* GET home page. */
+/**
+ * GET /geo/
+ */
 router.post('/', function(req, res, next) {
     var countryCodes = req.body.cc;
-
     var result = {};
     if (countryCodes && countryCodes.length) {
         countryCodes.forEach(function (cc) {
@@ -66,7 +65,6 @@ router.post('/', function(req, res, next) {
             }
         });
     }
-
     res.send(result);
 });
 

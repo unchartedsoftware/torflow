@@ -30,7 +30,7 @@ var router = express.Router();
 
 /* GET home page. */
 router.get('/', function(req, res, next) {
-  res.render('index', { title: 'TorFlow' });
+    res.render('index', { title: 'TorFlow' });
 });
 
 module.exports = router;
