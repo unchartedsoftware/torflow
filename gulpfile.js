@@ -25,8 +25,8 @@
 * SOFTWARE.
 */
 
-var gulp            = require('gulp');
-var del             = require('del');
+var gulp = require('gulp');
+var jshint = require('gulp-jshint');
 
 gulp.task('copy', function() {
     gulp.src(['app.js', 'config.js', 'package.json'])
@@ -45,5 +45,14 @@ gulp.task('copy', function() {
         .pipe(gulp.dest('./build/views/'));
 });
 
+gulp.task('lint',function() {
+    return gulp.src([
+            './util/**/*.js',
+            './routes/**/*.js',
+            './db/**/*.js',
+        ])
+        .pipe(jshint())
+        .pipe(jshint.reporter('default'));
+});
 
-gulp.task('build', ['copy']);
+gulp.task('build', ['lint','copy']);

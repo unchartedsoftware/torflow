@@ -89,11 +89,7 @@ function processRelayData(filename,callback) {
     });
 }
 
-function centerPoint(relayData) {
-    return Geo.average(points(relayData));
-}
-
-function points(relayData) {
+function createPointsFromData(relayData) {
     var points = [];
     Object.keys(relayData).forEach(function(fingerprint) {
         var data = relayData[fingerprint];
@@ -102,7 +98,11 @@ function points(relayData) {
     return points;
 }
 
-function bandwidth(relayData) {
+function centerPoint(relayData) {
+    return Geo.average(createPointsFromData(relayData));
+}
+
+function createBandwidthFromData(relayData) {
     var bandwidth = [];
     Object.keys(relayData).forEach(function(fingerprint) {
         bandwidth.push(relayData[fingerprint].observedbw);
@@ -128,7 +128,7 @@ function aggregateCache(data) {
 
 module.exports.processRelayData = processRelayData;
 module.exports.centerPoint = centerPoint;
-module.exports.points = points;
-module.exports.bandwidth = bandwidth;
+module.exports.points = createPointsFromData;
+module.exports.bandwidth = createBandwidthFromData;
 module.exports.cache = cache;
 module.exports.aggregateCache = aggregateCache;

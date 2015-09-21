@@ -100,4 +100,3 @@ exports.each = processEach;
 exports.cancel = cancelProcess;
 exports.cancelAll = cancelAllProcesses;
 exports.isActive = isActive;
-

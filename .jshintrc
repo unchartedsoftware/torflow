@@ -33,6 +33,7 @@
         "d3":true,
 	  	"L":true,
 	  	"moment":true,
-	  	"process":true
+	  	"process":true,
+		"__dirname":true
 	}
 }
