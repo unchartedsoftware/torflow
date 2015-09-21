@@ -2,9 +2,9 @@
 
 ## Building
 
-NodeJS and NPM are required for building and running.  Once NPM is installed, install the gulp plugin globally to build the Javascript source:
+NodeJS and NPM are required for building and running. Once NPM is installed, install the gulp and bower plugins globally to build the Javascript source:
 
-	npm install -g gulp
+	npm install -g gulp bower
 
 Install modules (from root project directory):
 
@@ -13,6 +13,7 @@ Install modules (from root project directory):
 Build:
 
     cd public
+	bower install
     gulp install
 
 ## Running
@@ -30,7 +31,7 @@ In your browser:
 Ingest relays into ElasticSearch via Logstash.  There is a set of sample data in the $PROJECT_ROOT/data/relays_small folder.  To import this from logstash:
 
 	logstash -f $PROJECT_ROOT$/data/es_import_small.conf
-	
+
 NOTE: You must manually edit the configuration file!  It only supports absolute file paths, so the ones checked into source control will be wrong for your local machine
 
 ## Building the Docker container
@@ -62,11 +63,11 @@ Ingest the data:
 
 	cd ~
 	wget https://download.elastic.co/logstash/logstash/logstash-1.5.2.tar.gz ; tar xzf logstash-1.5.2.tar.gz
-	
+
 This installs logstash in your vagrant home directory.  We will use logstash to ingest the data.  Copy the processed Tor csv files into the mounted vagrant data directory temporarily under the path:
 
 	/vagrant/data/processed
-	
+
 (We don't check these files into source control as they are several GB of data).  Invoke logstash to start the import process:
 
 	cd logstash-1.5.2/bin/
