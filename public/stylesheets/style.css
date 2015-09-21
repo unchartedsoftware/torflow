@@ -107,6 +107,9 @@ a {
 #brightness-slider {
     width:50px;
 }
+#opacity-slider {
+    width:50px;
+}
 
 #date-label {
     display:inline-block;

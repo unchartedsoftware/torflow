@@ -26,6 +26,7 @@
 */
 
 var DotLayer = require('./layers/dotlayer');
+var CountryLayer = require('./layers/countrylayer');
 var MapParticleSimulation = require('./particles/mapparticlesimulation');
 var Lerp = require('./util/lerp');
 var Config = require('./config');
@@ -52,11 +53,13 @@ App.prototype = _.extend(App.prototype, {
     _particleSimulation : null,
     _particleLayer : null,
     _markersLayer : null,
+    _countryLayer : null,
     _map : null,
     _element : null,
     _dateLabel : null,
     _currentNodes : null,
     _currentDate : null,
+    _currentHistogram : null,
     _showFlow : true,
     _showingLabels : null,
 
@@ -74,7 +77,9 @@ App.prototype = _.extend(App.prototype, {
         if (this._markersLayer) {
             this._map.removeLayer(this._markersLayer);
         }
-        console.log('_clear');
+        if (this._countryLayer) {
+            this._countryLayer.clear();
+        }
     },
 
     _getVisibleRelays : function() {
@@ -212,6 +217,11 @@ App.prototype = _.extend(App.prototype, {
         var newBrightness = this._brightnessSlider.slider('getValue');
         var containerEl = this._baseTileLayer.getContainer();
         $(containerEl).css('-webkit-filter','brightness(' + newBrightness + ')');
+    },
+
+    _onOpacitySlide : function() {
+        var newOpacity = this._opacitySlider.slider('getValue');
+        this._countryLayer.setOpacity(newOpacity);
     },
 
     _onHiddenFilterChange : function() {
@@ -441,15 +451,22 @@ App.prototype = _.extend(App.prototype, {
             self._particleLayer.addTo(self._map);
             */
 
+        function handleHistogram(histogram) {
+            self._countryLayer.set(histogram);
         }
 
         if (this._currentDate === isoDateStr) {
             handleNodes(this._currentNodes);
+            handleHistogram(this._currentHistogram);
         } else {
             d3.json('/nodes/' + encodeURI(isoDateStr), function (nodes) {
                 self._currentNodes = nodes;
                 self._currentDate = isoDateStr;
                 handleNodes(nodes);
+            });
+            d3.json('/country/' + encodeURI(isoDateStr),function(histogram) {
+                self._currentHistogram = histogram;
+                handleHistogram(histogram);
             });
         }
     },
@@ -486,8 +503,10 @@ App.prototype = _.extend(App.prototype, {
         });
         this._brightnessSlider.on('slide',this._onBrightnessSlide.bind(this));
 
-        this._update();
-
+        this._opacitySlider = this._element.find('#opacity-slider').slider({
+            tooltip:'hide'
+        });
+        this._opacitySlider.on('slide',this._onOpacitySlide.bind(this));
 
         this._map = L.map('map').setView([0, 0], 2);
         this._map.options.maxZoom = Config.maxZoom || 18;
@@ -505,6 +524,9 @@ App.prototype = _.extend(App.prototype, {
             }).addTo(this._map);
         this._onBrightnessSlide();
 
+        /* Initialize the SVG layer */
+        this._countryLayer = new CountryLayer(this._map);
+
         this._labelLayer = L.tileLayer(
             mapUrlBase + 'dark_only_labels/{z}/{x}/{y}.png', {
                 maxZoom: Config.maxZoom || 18,
@@ -514,8 +536,8 @@ App.prototype = _.extend(App.prototype, {
             this._labelLayer.addTo(this._map);
         }
 
-        /* Initialize the SVG layer */
-        this._map._initPathRoot();
+        this._update();
+
     },
 
     /**

@@ -69,7 +69,10 @@ var config = {
     localMapServer : false,
     minBrightness : 0.01,
     maxBrightness : 3.0,
-    defaultBrightness : 1.6
+    defaultBrightness : 1.6,
+    minOpacity : 0,
+    maxOpacity : 1,
+    defaultOpacity : 0.45
 };
 
 if (config.localMapServer) {

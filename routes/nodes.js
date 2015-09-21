@@ -26,11 +26,9 @@
 */
 
 var express = require('express');
-var request = require('request');
 var router = express.Router();
 var MathUtil = require('../util/mathutil');
 var moment = require('moment');
-var Config = require('../config');
 var RelayDB = require('../db/relay');
 var DBUtil = require('../db/db_utils');
 
