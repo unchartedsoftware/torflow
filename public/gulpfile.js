@@ -32,13 +32,15 @@ var buffer          = require('vinyl-buffer');
 var uglify          = require('gulp-uglify');
 var handlebars      = require('gulp-handlebars');
 var defineModule    = require('gulp-define-module');
-var rename          = require('gulp-rename');
 var less            = require('gulp-less');
 var path            = require('path');
 var jshint          = require('gulp-jshint');
 var wait            = require('gulp-wait');
 var runSequence     = require('gulp-run-sequence');
 var minifyCss       = require('gulp-minify-css');
+var filter          = require('gulp-filter');
+var bower           = require('main-bower-files');
+var concat          = require('gulp-concat');
 
 var config = {
     src: './javascripts/',
@@ -68,7 +70,6 @@ function doBuild(shouldMinify) {
            }));
     }
     build.pipe( gulp.dest( config.dist ) );
-
     return build;
 }
 
@@ -96,6 +97,8 @@ gulp.task('templates',function() {
 
 gulp.task('lint',function() {
     return gulp.src([
+            '!' + config.src + '/extern.js',
+            '!' + config.styles + '/extern.css',
             config.src + '**/*.js',
             '!' + config.src + 'extern/**/*.js',
             '!' + config.src + 'templates/**/*.js'
@@ -108,13 +111,29 @@ gulp.task('build', function () {
     return doBuild(false);
 });
 
+gulp.task('build-extern-js', function() {
+    return gulp.src( bower() )
+        .pipe( filter('**/*.js') ) // filter js files
+        .pipe( concat('extern.js') )
+        .pipe( uglify() )
+        .pipe( gulp.dest( './javascripts/' ) );
+});
+
+gulp.task('build-extern-css', function() {
+    return gulp.src( bower() )
+        .pipe( filter('**/*.css') ) // filter css files
+        //.pipe( order(['cyborg.bootstrap.css', '*']) )
+        .pipe( minifyCss({compatibility: 'ie8'}) )
+        .pipe( concat('extern.css') )
+        .pipe( gulp.dest( './stylesheets/' ) );
+});
 
 gulp.task('minify',function() {
     return doBuild(true);
 });
 
 gulp.task('watch',function () {
-    gulp.watch(config.less + '**/*.less', ['less'])
+    gulp.watch(config.less + '**/*.less', ['less']);
     gulp.watch(config.src + '**/*.js', ['lint','build']);
     gulp.watch(config.templates + '**/*.hbs', ['templates_build']);
 });
@@ -130,5 +149,5 @@ gulp.task('deploy',function(cb) {
     runSequence('templates',['less','minifyCss','lint'],['minify']);
 });
 gulp.task('default', function(cb) {
-    runSequence('templates',['less','lint'],['build'],'watch');
+    runSequence('templates',['less','lint'],['build','build-extern-js','build-extern-css'],'watch');
 });

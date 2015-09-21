@@ -345,7 +345,6 @@ App.prototype = _.extend(App.prototype, {
         });
 
         this._markersLayer.on('animationend', this._onMapClustered.bind(this));
-        this._markersLayer.on('initialized',this._onMapClustered.bind(this));
 
         var maxBW = -Number.MAX_VALUE;
         var minBW = Number.MAX_VALUE;
@@ -387,6 +386,8 @@ App.prototype = _.extend(App.prototype, {
         });
 
         this._map.addLayer(this._markersLayer);
+
+        this._onMapClustered();
     },
 
 
