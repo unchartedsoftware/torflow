@@ -50,6 +50,7 @@ benchmarks/graphs
 ## Bower Gitignore
 # ----------------------------------------
 
+!public/extern/.gitignore
 public/extern/**/*
 
 # ----------------------------------------
