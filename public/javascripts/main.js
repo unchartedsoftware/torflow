@@ -63,16 +63,10 @@ App.prototype = _.extend(App.prototype, {
     _showFlow : true,
     _showingLabels : null,
 
-
     _clear : function() {
-        console.log('clearing');
         if (this._particleSimulation) {
             this._particleSimulation.stop();
             this._particleSimulation.destroy();
-        }
-        if (this._particleLayer) {
-            this._map.removeLayer(this._particleLayer);
-            delete this._particleLayer;
         }
         if (this._markersLayer) {
             this._map.removeLayer(this._markersLayer);
@@ -91,17 +85,11 @@ App.prototype = _.extend(App.prototype, {
 
     _startSimulation : function(nodes) {
         var self = this;
-        if (this._particleLayer) {
-            this._map.removeLayer(this._particleLayer);
-            delete this._particleLayer;
-        }
+
         if (this._particleSimulation) {
             this._particleSimulation.stop();
             this._particleSimulation.destroy();
         }
-
-        this._particleLayer = new DotLayer();
-        this._particleLayer.addTo(this._map);
 
         this._particleSimulation = new MapParticleSimulation(nodes,Config.particle_count,this._map)
             .onPositionsAvailable(function(positions) {
@@ -125,7 +113,6 @@ App.prototype = _.extend(App.prototype, {
                     latLng: node.latLng
                 };
             });
-            this._startSimulation(nodes);
         } else {
 
             var clusterset = this._clusters[this._map.getZoom()];
@@ -167,9 +154,8 @@ App.prototype = _.extend(App.prototype, {
             });
 
             nodes = nodes.sort(function(n1,n2) { return n2.bandwidth - n1.bandwidth; });
-
-            this._startSimulation(nodes);
         }
+        this._startSimulation(nodes);
     },
 
     _useClusters : function() {
@@ -202,7 +188,6 @@ App.prototype = _.extend(App.prototype, {
     _update : function() {
         var newDateIdx = this._dateSlider.slider('getValue');
         var isoDate = this._getISODate(newDateIdx);
-        console.log('updating');
         this._clear();
         this._fetch(isoDate);
     },
@@ -240,11 +225,11 @@ App.prototype = _.extend(App.prototype, {
         if (this._particleSimulation.isStarted()) {
             this._showFlow = false;
             this._particleSimulation.stop();
-            //this._particleLayer.hide();
+            this._particleLayer.hide();
         } else {
             this._showFlow = true;
             this._particleSimulation.start();
-            //this._particleLayer.show();
+            this._particleLayer.show();
         }
     },
 
@@ -400,8 +385,6 @@ App.prototype = _.extend(App.prototype, {
         this._onMapClustered();
     },
 
-
-
     _getCurrentTotalBandwidth : function() {
         var total = 0;
         this._currentNodes.objects.forEach(function(aggregate) {
@@ -432,7 +415,6 @@ App.prototype = _.extend(App.prototype, {
                 idToLatLng[d.circle.id] = d.latLng;
             });
 
-
             // Initialize zoom -> clusters map
             var minZoom = self._map.getMinZoom();
             var maxZoom = self._map.getMaxZoom();
@@ -441,15 +423,6 @@ App.prototype = _.extend(App.prototype, {
             }
 
             self._createMarkers();
-
-            /*
-            if (self._particleLayer) {
-                self._map.removeLayer(self._particleLayer);
-                delete self._particleLayer;
-            }
-            self._particleLayer = new DotLayer();
-            self._particleLayer.addTo(self._map);
-            */
         }
 
         function handleHistogram(histogram) {
@@ -486,9 +459,7 @@ App.prototype = _.extend(App.prototype, {
         this._element.find('#step-input').change(this._onToggleStep.bind(this));
         this._element.find('#scale-bandwidth-input').change(this._onToggleScale.bind(this));
 
-
         this._showingLabels = this._element.find('#label-input').prop('checked');
-
 
         this._dateLabel = this._element.find('#date-label');
         this._dateSlider = this._element.find('#date-slider').slider({
@@ -497,7 +468,6 @@ App.prototype = _.extend(App.prototype, {
 
         this._dateSlider.on('slideStop', this._update.bind(this));
         this._dateSlider.on('slide',this._onDateSlide.bind(this));
-
 
         this._brightnessSlider = this._element.find('#brightness-slider').slider({
             tooltip:'hide'
@@ -509,36 +479,43 @@ App.prototype = _.extend(App.prototype, {
         });
         this._opacitySlider.on('slide',this._onOpacitySlide.bind(this));
 
-        this._map = L.map('map').setView([0, 0], 2);
+        // Initialize the map object
+        this._map = L.map('map', {
+            inertia: false
+        }).setView([0, 0], 2);
         this._map.options.maxZoom = Config.maxZoom || 18;
 
+        // Initialize the baselayer
         var mapUrlBase = 'http://{s}.basemaps.cartocdn.com/';
         if (Config.localMapServer) {
             mapUrlBase = 'http://' + window.location.host + '/map/';
         }
-
         this._baseTileLayer = L.tileLayer(
-            mapUrlBase + 'dark_nolabels/{z}/{x}/{y}.png', {
-                attribution: '<span class="attribution">Map tiles by <a href="http://cartodb.com/attributions#basemaps">CartoDB</a>, under <a href="https://creativecommons.org/licenses/by/3.0/">CC BY 3.0</a></span>' + '|' +
-                            '<a href="http://uncharted.software" target="_blank"><img src="/img/uncharted-logo-light-gray-small.png"</a>',
+            mapUrlBase + 'dark_nolabels/{z}/{x}/{y}.png',
+            {
+                attribution: Config.mapAttribution,
                 maxZoom: Config.maxZoom || 18,
             }).addTo(this._map);
         this._onBrightnessSlide();
 
-        /* Initialize the SVG layer */
-        this._countryLayer = new CountryLayer(this._map);
-
+        // Initialize the label layer
         this._labelLayer = L.tileLayer(
-            mapUrlBase + 'dark_only_labels/{z}/{x}/{y}.png', {
+            mapUrlBase + 'dark_only_labels/{z}/{x}/{y}.png',
+            {
                 maxZoom: Config.maxZoom || 18,
             });
-
         if (this._showingLabels) {
             this._labelLayer.addTo(this._map);
         }
 
-        this._update();
+        // Initialize the country layer
+        this._countryLayer = new CountryLayer(this._map);
 
+        // Initialize particle layer
+        this._particleLayer = new DotLayer();
+        this._particleLayer.addTo(this._map);
+
+        this._update();
     },
 
     /**

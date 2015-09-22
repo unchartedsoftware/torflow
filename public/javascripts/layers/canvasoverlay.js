@@ -35,12 +35,7 @@ L.CanvasOverlay = L.Class.extend({
         console.error('\'draw\' function for CanvasOverlay class must be implemented');
     },
 
-    canvas: function() {
-        return this._canvas;
-    },
-
     _initGL : function() {
-        console.log('init gl');
         var self = this,
             canvas = this._canvas;
         this._gl = esper.WebGLContext.get( this._canvas );
@@ -67,54 +62,49 @@ L.CanvasOverlay = L.Class.extend({
     },
 
     _initCanvas: function () {
-        console.log('init canvas');
         this._canvas = L.DomUtil.create('canvas', 'leaflet-webgl-layer leaflet-layer');
         var size = this._map.getSize();
         this._canvas.width = size.x;
         this._canvas.height = size.y;
-        //this._canvas.style.backgroundColor = 'rgba(255,0,0,0.2)';
-        var animated = this._map.options.zoomAnimation && L.Browser.any3d;
-        L.DomUtil.addClass(this._canvas, 'leaflet-zoom-' + (animated ? 'animated' : 'hide'));
     },
 
     onAdd: function (map) {
-
-        console.log('adding to map');
         this._map = map;
-
         if (!this._canvas) {
             this._initCanvas();
         }
-
         map._panes.overlayPane.appendChild(this._canvas);
-
         this._initGL();
-
         map.on('move', this._reset, this);
         map.on('resize',  this._resize, this);
+        map.on('zoomstart', this.hide, this);
         map.on('zoomend', this._reset, this);
-
-        if (map.options.zoomAnimation && L.Browser.any3d) {
-            map.on('zoomanim', this._animateZoom, this);
-        }
-
+        map.on('zoomend', this.show, this);
         this._reset();
     },
 
     onRemove: function (map) {
-        console.log('removing from map');
         map.getPanes().overlayPane.removeChild(this._canvas);
         map.off('move', this._reset, this);
         map.off('resize', this._resize, this);
+        map.off('zoomstart', this.hide, this);
         map.off('zoomend', this._reset, this);
-        if (map.options.zoomAnimation) {
-            map.off('zoomanim', this._animateZoom, this);
-        }
+        map.off('zoomend', this.show, this);
         this._gl = null;
         this._canvas = null;
         this._viewport = null;
         this._camera = null;
         this._initialized = false;
+    },
+
+    show: function() {
+        this._canvas.style.display = 'block';
+        this._hidden = false;
+    },
+
+    hide: function() {
+        this._canvas.style.display = 'none';
+        this._hidden = true;
     },
 
     addTo: function (map) {
@@ -123,7 +113,6 @@ L.CanvasOverlay = L.Class.extend({
     },
 
     _resize: function (resizeEvent) {
-        console.log('resizing');
         var width = resizeEvent.newSize.x,
             height = resizeEvent.newSize.y;
         if ( this._initialized ) {
@@ -133,14 +122,8 @@ L.CanvasOverlay = L.Class.extend({
     },
 
     _reset: function () {
-        console.log('reset');
         var topLeft = this._map.containerPointToLayerPoint([0, 0]);
         L.DomUtil.setPosition(this._canvas, topLeft);
-    },
-
-    redraw: function() {
-        this.draw();
-        return this;
     },
 
     _redraw: function () {
@@ -148,13 +131,6 @@ L.CanvasOverlay = L.Class.extend({
         if ( this._initialized ) {
             requestAnimationFrame( this._redraw.bind( this ) );
         }
-    },
-
-    _animateZoom: function (e) {
-        console.log('animate zoom');
-        var scale = this._map.getZoomScale(e.zoom),
-            offset = this._map._getCenterOffset(e.center)._multiplyBy(-scale).subtract(this._map._getMapPanePos());
-        this._canvas.style[L.DomUtil.TRANSFORM] = L.DomUtil.getTranslateString(offset) + ' scale(' + scale + ')';
     }
 });
 

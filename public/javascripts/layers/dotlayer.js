@@ -73,49 +73,8 @@ var DotLayer = CanvasOverlay.extend({
         });
     },
 
-    /*
-    _createRenderer: function() {
-        var gl = this._gl,
-            viewport = this._viewport,
-            shader = this._shader;
-        this._renderer = new esper.Renderer([
-            new esper.RenderTechnique({
-                id: 'point',
-                passes: [
-                    new esper.RenderPass({
-                        before: function( camera ) {
-
-                            //gl.disable( gl.CULL_FACE );
-                            //gl.disable( gl.DEPTH_TEST );
-                            //gl.enable( gl.BLEND );
-                            //gl.blendFunc( gl.SRC_ALPHA, gl.ONE );
-                            gl.clearColor( 0, 0, 0, 0 );
-                            gl.clear( gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT );
-
-                            viewport.push();
-                            shader.push();
-                            shader.setUniform( 'uProjectionMatrix', camera.projectionMatrix() );
-                            //shader.setUniform( 'uPointSampler', 0 );
-                        },
-                        forEachMesh: function( mesh, entity ) {
-                            // only draw if the texture is attached
-                            //mesh.material.diffuseTexture.push( 0 );
-                            mesh.draw();
-                            //mesh.material.diffuseTexture.pop( 0 );
-                        },
-                        after: function() {
-                            shader.pop();
-                            viewport.pop();
-                        }
-                    })
-                ]
-            })
-        ]);
-    },
-    */
-
     draw: function() {
-        if ( this._initialized && this._renderable ) {
+        if ( this._initialized && this._renderable && !this._hidden ) {
             var gl = this._gl;
             gl.clearColor( 0, 0, 0, 0 );
             gl.clear( gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT );

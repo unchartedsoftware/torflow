@@ -59,14 +59,22 @@ var config = {
     },
     title : 'Data Flow in the Tor Network',
     summary : '<p>The Tor network is a group of volunteer-operated servers (relays) that allows people to improve their privacy and' +
-            ' security on the Internet. Tor\'s users employ this network by connecting through a series of virtual tunnels' +
-            ' rather than making a direct connection, thus allowing both organizations and individuals to share information ' +
-            'over public networks without compromising their privacy.<a href="https://www.torproject.org/about/overview.html.en"><sup>[1]</sup></a></p>' +
-            '<p>The following visualization shows information flow between the ~6500 relay servers.  General purpose Tor traffic is shown in blue.  Traffic to hidden services is shown in red.</p>' +
-            '<p>Each circle below represents the aggregated bandwidth of relay servers grouped by proximity.  Hover over a circle to see information about that group.  Click on a circle to zoom the map to the contents of the group.</p>' +
-            '<p>Use the slider below to select the simulation date.  Checkboxes can be used to configure the display.</p>',
+        ' security on the Internet. Tor\'s users employ this network by connecting through a series of virtual tunnels' +
+        ' rather than making a direct connection, thus allowing both organizations and individuals to share information ' +
+        'over public networks without compromising their privacy.<a href="https://www.torproject.org/about/overview.html.en"><sup>[1]</sup></a></p>' +
+        '<p>The following visualization shows information flow between the ~6500 relay servers.  General purpose Tor traffic is shown in blue.  Traffic to hidden services is shown in red.</p>' +
+        '<p>Each circle below represents the aggregated bandwidth of relay servers grouped by proximity.  Hover over a circle to see information about that group.  Click on a circle to zoom the map to the contents of the group.</p>' +
+        '<p>Use the slider below to select the simulation date.  Checkboxes can be used to configure the display.</p>',
     hiddenServiceProbability : 0.04,
     localMapServer : false,
+    mapAttribution:
+        '<span class="attribution">' +
+            'Map tiles by ' +
+            '<a href="http://cartodb.com/attributions#basemaps">CartoDB</a>,' +
+            ' under ' +
+            '<a href="https://creativecommons.org/licenses/by/3.0/">CC BY 3.0</a>' +
+        '</span>' + '|' +
+        '<a href="http://uncharted.software" target="_blank"><img src="/img/uncharted-logo-light-gray-small.png"</a>',
     minBrightness : 0.01,
     maxBrightness : 3.0,
     defaultBrightness : 1.6,
