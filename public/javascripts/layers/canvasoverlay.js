@@ -35,29 +35,36 @@ L.CanvasOverlay = L.Class.extend({
         console.error('\'draw\' function for CanvasOverlay class must be implemented');
     },
 
+    initShaders: function( done ) {
+        console.error('\'initShaders\' function for CanvasOverlay class must be implemented');
+    },
+
+    initBuffers: function( done ) {
+        console.error('\'initBuffers\' function for CanvasOverlay class must be implemented');
+    },
+
     _initGL : function() {
         var self = this,
-            canvas = this._canvas;
+            shadersDone = $.Deferred(),
+            buffersDone = $.Deferred();
         this._gl = esper.WebGLContext.get( this._canvas );
-        this._shader = new esper.Shader({
-            vert: '../../shaders/point.vert',
-            frag: '../../shaders/point.frag'
-        }, function() {
-            if ( !self._canvas || self._canvas !== canvas ) {
-                // layer has been detached since last add.
-                return;
-            }
+        this.initShaders( function() {
+            shadersDone.resolve();
+        });
+        this.initBuffers( function() {
+            buffersDone.resolve();
+        });
+        $.when( shadersDone, buffersDone ).then( function() {
             var width = self._canvas.width,
                 height = self._canvas.height;
             self._viewport = new esper.Viewport({
                 width: width,
                 height: height
             });
-            self._camera = new esper.Camera({
-                projection: esper.Mat44.ortho( 0, width, 0, height, -1, 1 )
-            });
+            self._camera = new esper.Camera();
+            self._updateProjection();
             self._initialized = true;
-            self._redraw();
+            self._draw();
         });
     },
 
@@ -107,9 +114,34 @@ L.CanvasOverlay = L.Class.extend({
         this._hidden = true;
     },
 
+    isHidden: function() {
+        return this._hidden;
+    },
+
     addTo: function (map) {
         map.addLayer(this);
         return this;
+    },
+
+    _updateProjection: function() {
+        // var bounds = this._map.getPixelBounds(),
+        //     dim = Math.pow( 2, this._map.getZoom() ) * 256,
+        //     ortho = esper.Mat44.ortho(
+        //         bounds.min.x,
+        //         bounds.max.x,
+        //         dim - bounds.min.y,
+        //         dim - bounds.max.y
+        //         -1, 1 );
+        var bounds = this._map.getBounds(),
+            ortho = esper.Mat44.ortho(
+                bounds.getWest(),
+                bounds.getEast(),
+                bounds.getSouth(),
+                bounds.getNorth(),
+                -1, 1 );
+        if ( this._camera ) {
+            this._camera.projectionMatrix( ortho );
+        }
     },
 
     _resize: function (resizeEvent) {
@@ -117,21 +149,25 @@ L.CanvasOverlay = L.Class.extend({
             height = resizeEvent.newSize.y;
         if ( this._initialized ) {
             this._viewport.resize( width, height );
-            this._camera.projectionMatrix( esper.Mat44.ortho( 0, width, 0, height, -1, 1 ) );
+            this._updateProjection();
         }
     },
 
     _reset: function () {
         var topLeft = this._map.containerPointToLayerPoint([0, 0]);
         L.DomUtil.setPosition(this._canvas, topLeft);
+        this._updateProjection();
     },
 
-    _redraw: function () {
-        this.draw();
+    _draw: function () {
         if ( this._initialized ) {
-            requestAnimationFrame( this._redraw.bind( this ) );
+            if ( !this._hidden ) {
+                this.draw();
+            }
+            requestAnimationFrame( this._draw.bind( this ) );
         }
     }
+
 });
 
 module.exports = L.CanvasOverlay;

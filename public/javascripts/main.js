@@ -27,7 +27,6 @@
 
 var DotLayer = require('./layers/dotlayer');
 var CountryLayer = require('./layers/countrylayer');
-var MapParticleSimulation = require('./particles/mapparticlesimulation');
 var Lerp = require('./util/lerp');
 var Config = require('./config');
 
@@ -50,7 +49,6 @@ var App = function() {
 App.prototype = _.extend(App.prototype, {
 
     _clusters : {},     // zoom level -> list of clusters
-    _particleSimulation : null,
     _particleLayer : null,
     _markersLayer : null,
     _countryLayer : null,
@@ -64,10 +62,6 @@ App.prototype = _.extend(App.prototype, {
     _showingLabels : null,
 
     _clear : function() {
-        if (this._particleSimulation) {
-            this._particleSimulation.stop();
-            this._particleSimulation.destroy();
-        }
         if (this._markersLayer) {
             this._map.removeLayer(this._markersLayer);
         }
@@ -83,23 +77,8 @@ App.prototype = _.extend(App.prototype, {
         });
     },
 
-    _startSimulation : function(nodes) {
-        var self = this;
-
-        if (this._particleSimulation) {
-            this._particleSimulation.stop();
-            this._particleSimulation.destroy();
-        }
-
-        this._particleSimulation = new MapParticleSimulation(nodes,Config.particle_count,this._map)
-            .onPositionsAvailable(function(positions) {
-                self._particleLayer.bufferPositions(positions);
-            });
-        this._onHiddenFilterChange();
-
-        if (this._showFlow) {
-            this._particleSimulation.start();
-        }
+    _updateSimulation : function(nodes) {
+        this._particleLayer.updateNodes(nodes);
     },
 
     _onMapClustered : function() {
@@ -155,7 +134,7 @@ App.prototype = _.extend(App.prototype, {
 
             nodes = nodes.sort(function(n1,n2) { return n2.bandwidth - n1.bandwidth; });
         }
-        this._startSimulation(nodes);
+        this._updateSimulation(nodes);
     },
 
     _useClusters : function() {
@@ -213,23 +192,21 @@ App.prototype = _.extend(App.prototype, {
         var checkedRadioBtn = this._element.find('#hidden-filter-btn-group').find('.active > input');
         var checkedState = checkedRadioBtn.attr('hidden-id');
         if (checkedState === 'all') {
-            this._particleSimulation.showTraffic('all');
+            this._particleLayer.showTraffic('all');
         } else if (checkedState === 'hidden') {
-            this._particleSimulation.showTraffic('hidden');
+            this._particleLayer.showTraffic('hidden');
         } else if (checkedState === 'general') {
-            this._particleSimulation.showTraffic('general');
+            this._particleLayer.showTraffic('general');
         }
     },
 
     _onToggleFlow : function() {
-        if (this._particleSimulation.isStarted()) {
-            this._showFlow = false;
-            this._particleSimulation.stop();
-            this._particleLayer.hide();
-        } else {
+        if (this._particleLayer.isHidden()) {
             this._showFlow = true;
-            this._particleSimulation.start();
             this._particleLayer.show();
+        } else {
+            this._showFlow = false;
+            this._particleLayer.hide();
         }
     },
 
@@ -495,6 +472,7 @@ App.prototype = _.extend(App.prototype, {
             {
                 attribution: Config.mapAttribution,
                 maxZoom: Config.maxZoom || 18,
+                noWrap: true
             }).addTo(this._map);
         this._onBrightnessSlide();
 
@@ -503,6 +481,7 @@ App.prototype = _.extend(App.prototype, {
             mapUrlBase + 'dark_only_labels/{z}/{x}/{y}.png',
             {
                 maxZoom: Config.maxZoom || 18,
+                noWrap: true
             });
         if (this._showingLabels) {
             this._labelLayer.addTo(this._map);
