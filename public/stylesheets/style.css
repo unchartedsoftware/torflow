@@ -26,12 +26,22 @@
 */
 
 body {
-  padding: 50px;
-  font: 14px "Lucida Grande", Helvetica, Arial, sans-serif;
+    padding: 4px 10px;
+    font: 14px "Lucida Grande", Helvetica, Arial, sans-serif;
+    font-size: 14px;
+    line-height: 1.42857143;
+    color: #888888;
+    background-color: #060606;
+}
+
+h1 {
+    font-size: 36px;
+    margin: 0;
+    padding: 0;
 }
 
 a {
-  color: #00B7FF;
+    color: #00B7FF;
 }
 
 .leaflet-container {
