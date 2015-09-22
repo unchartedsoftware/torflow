@@ -132,26 +132,24 @@ var DotLayer = CanvasOverlay.extend({
             pairs = this._getProbabilisticPairs();
         pairs.forEach( function( pair, index ) {
 
-            // var src = self._map.project( pair.source.latLng ),
-            //     dst = self._map.project( pair.dest.latLng ),
-            //     dim = Math.pow( 2, self._map.getZoom() ) * 256;
-            //
-            // self._positions[ index ] = [
-            //     src.x,
-            //     dim - src.y,
-            //     dst.x,
-            //     dim - dst.y ];
+            var src = self._map.project( pair.source.latLng ),
+                dst = self._map.project( pair.dest.latLng ),
+                dim = Math.pow( 2, self._map.getZoom() ) * 256;
 
             self._positions[ index ] = [
-                pair.source.latLng.lng,
-                pair.source.latLng.lat,
-                pair.dest.latLng.lng,
-                pair.dest.latLng.lat ];
+                src.x,
+                dim - src.y,
+                dst.x,
+                dim - dst.y ];
+
+            var dist = new esper.Vec2([ dst.x, dim - dst.y ]).sub([ src.x, dim - src.y ]).lengthSquared(),
+                speed = Config.particle_base_speed_ms + Config.particle_speed_variance_ms * Math.random(),
+                offset = dist * Config.particle_offset;
 
             self._offsets[ index ] = [
-                -3 + Math.random()*6,
-                -3 + Math.random()*6,
-                1000 + Math.random()*4000 ];
+                -offset/2 + Math.random()*offset,
+                -offset/2 + Math.random()*offset,
+                speed ];
         });
         var pack = new esper.VertexPackage([ this._positions, this._offsets ]);
         this._vertexBuffer.bufferData( pack.buffer() );

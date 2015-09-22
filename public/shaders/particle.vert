@@ -15,7 +15,7 @@ void main() {
     highp float q = sin( t * 3.1415926 );
     // calc interpolated position and offset
     highp vec2 interpOffset = offset * q;
-    highp vec2 interpPos = startPos + ( stopPos - startPos ) * t;
+    highp vec2 interpPos = startPos + (offset / 3.0) + ( stopPos - startPos ) * t;
     // set point size
     gl_PointSize = 1.0;
     // set position
