@@ -183,6 +183,8 @@ var DotLayer = CanvasOverlay.extend({
         var gl = this._gl;
         gl.clearColor( 0, 0, 0, 0 );
         gl.clear( gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT );
+        gl.enable( gl.BLEND );
+        gl.blendFunc( gl.SRC_ALPHA, gl.ONE );
         this._viewport.push();
         this._shader.push();
         this._shader.setUniform( 'uProjectionMatrix', this._camera.projectionMatrix() );

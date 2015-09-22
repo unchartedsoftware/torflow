@@ -17,7 +17,7 @@ void main() {
     highp vec2 interpOffset = offset * q;
     highp vec2 interpPos = startPos + (offset / 3.0) + ( stopPos - startPos ) * t;
     // set point size
-    gl_PointSize = 1.0;
+    gl_PointSize = 2.0;
     // set position
     gl_Position = uProjectionMatrix * vec4( interpPos + interpOffset, 0.0, 1.0 );
 }
