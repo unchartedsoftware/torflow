@@ -1,44 +1,43 @@
 var mysql = require('mysql');
-var poolModule = require('generic-pool');
 var config = require('../config');
 
-var pool = poolModule.Pool({
-	name 	: 'general-pool',
-	create 	: function(callback) {
-		var connection = mysql.createConnection(config.db);
-		connection.connect(function(err) {
-            if (err) {
-                console.error('error connecting: ' + err.stack);
-                callback(err,null);
-                return;
-            }
-            callback(null,connection);
-            console.log('connected as id ' + connection.threadId);
-        });
-	},
-	destroy	: function(connection) {
-		connection.end();
-	},
-	max : 10,
-	idleTimeoutMillis : 30000,
-	log : false
-});
+var pool = mysql.createPool(config.db);
 
-var open = function(callback,generalConnection) {
-	pool.acquire(function(err,connection) {
-		if (err) throw err;
-		else {
-			connection.query("SET NAMES 'utf8mb4';",function() {
-				callback(connection);
+var closeConnection = function(connection) {
+	connection.release();
+};
+
+var openConnection = function(onSuccess,onError) {
+	pool.getConnection(function(err,connection) {
+		if (err) {
+			console.trace(err.message);
+			closeConnection(connection);
+			if ( onError ) {
+				onError(err);
+			} else {
+				onSuccess(err);
+			}
+		} else {
+			connection.query('SET NAMES \'utf8mb4\';', function() {
+				onSuccess(connection);
 			});
-
 		}
 	});
 };
 
-var close = function(connection) {
-	pool.release(connection);
+var complete = function(result,connection,onComplete) {
+    closeConnection(connection);
+    onComplete(result);
 };
 
-module.exports.open = open;
-module.exports.close = close;
+var error = function(err,connection,onError) {
+    closeConnection(connection);
+    if (onError) {
+        onError(err);
+    }
+};
+
+module.exports.open = openConnection;
+module.exports.close = closeConnection;
+module.exports.complete = complete;
+module.exports.error = error;

@@ -88,26 +88,18 @@ function conditionalCreateTable(conn,schemaname,tableSpec,success,error) {
 }
 
 function createTables(conn,tableSpecs,success,error) {
-
-	function onComplete() {
-		success();
-	}
-
 	var PID = Process.each(tableSpecs,function(spec,processNext) {
-
 		function eachSuccess() {
 			processNext();
 		}
-
 		function eachError(err) {
 			Process.cancel(PID);
 			if (error) {
 				error(err);
 			}
 		}
-
 		conditionalCreateTable(conn,Config.db.database,spec,eachSuccess,eachError);
-	}, onComplete);
+	}, success);
 }
 
 function createColumnString(name, type, nn, autoinc) {
@@ -120,9 +112,7 @@ function conditionalCreateDatabase(name,success,error) {
 		user: Config.db.user,
 		password: Config.db.password
 	});
-
 	connection.connect();
-
 	connection.query('CREATE DATABASE IF NOT EXISTS ' + name, function(err,rows) {
 		if (err) {
 			connection.end();
@@ -132,7 +122,7 @@ function conditionalCreateDatabase(name,success,error) {
 			success();
 		}
 	});
-};
+}
 
 exports.tableExists = tableExists;
 exports.getTableNames = getTableNames;

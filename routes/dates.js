@@ -25,17 +25,17 @@
 * SOFTWARE.
 */
 var express = require('express');
-var request = require('request');
-var Config = require('../config');
 var RelayDB = require('../db/relay');
 var router = express.Router();
 
-/* GET home page. */
+/**
+ * GET /dates
+ */
 router.get('/', function(req, res, next) {
     RelayDB.getDates(function(dates) {
         res.send(dates);
     }, function(error) {
-        console.trace(error.message);
+        res.status(500).send('Dates data could not be retrieved.');
     });
 });
 

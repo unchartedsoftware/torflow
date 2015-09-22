@@ -100,7 +100,6 @@ gulp.task('lint',function() {
             '!' + config.src + '/extern.js',
             '!' + config.styles + '/extern.css',
             config.src + '**/*.js',
-            '!' + config.src + 'extern/**/*.js',
             '!' + config.src + 'templates/**/*.js'
         ])
         .pipe(jshint())

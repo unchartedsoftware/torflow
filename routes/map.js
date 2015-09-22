@@ -29,8 +29,9 @@ var express = require('express');
 var router = express.Router();
 var path = require('path');
 
-
-/* GET home page. */
+/**
+ * GET /map/:map/:zoom/:x/:y
+ */
 router.get('/:map/:zoom/:x/:y', function(req, res, next) {
 	var filePath = __dirname + '/../map/' + req.params.map + '/' + req.params.zoom + '/' + req.params.x + '/' + req.params.y;
 	res.sendFile(path.resolve(filePath));
