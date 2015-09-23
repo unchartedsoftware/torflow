@@ -132,13 +132,6 @@ L.CanvasOverlay = L.Class.extend({
                 dim - bounds.max.y,
                 dim - bounds.min.y,
                 -1, 1 );
-        // var bounds = this._map.getBounds(),
-        //     ortho = esper.Mat44.ortho(
-        //         bounds.getWest(),
-        //         bounds.getEast(),
-        //         bounds.getSouth(),
-        //         bounds.getNorth(),
-        //         -1, 1 );
         if ( this._camera ) {
             this._camera.projectionMatrix( ortho );
         }

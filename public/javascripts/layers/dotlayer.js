@@ -62,8 +62,9 @@ var DotLayer = CanvasOverlay.extend({
          * x: offsetX
          * y: offsetY
          * y: speed
+         * w: noise
          */
-        this._offsets = _.fill( new Array( Config.particle_count ), [ 0,0,0 ] );
+        this._offsets = _.fill( new Array( Config.particle_count ), [ 0,0,0,0 ] );
 
         // create vertex buffer, this will be updated periodically
         this._vertexBuffer = new esper.VertexBuffer(
@@ -101,7 +102,7 @@ var DotLayer = CanvasOverlay.extend({
             dest = this._getProbabilisticNodeIndex();
             tries++;
             if (tries === MAX_TRIES) {
-                throw 'Cannot find destination.  Something is wrong with the probaility bandwidths on your nodes!';
+                throw 'Cannot find destination. Something is wrong with the probaility bandwidths on your nodes!';
             }
         }
         return {
@@ -134,22 +135,34 @@ var DotLayer = CanvasOverlay.extend({
 
             var src = self._map.project( pair.source.latLng ),
                 dst = self._map.project( pair.dest.latLng ),
-                dim = Math.pow( 2, self._map.getZoom() ) * 256;
+                dim = Math.pow( 2, self._map.getZoom() ) * 256,
+                start = {
+                    x: src.x,
+                    y: dim - src.y
+                },
+                end = {
+                    x: dst.x,
+                    y: dim - dst.y
+                };
 
             self._positions[ index ] = [
-                src.x,
-                dim - src.y,
-                dst.x,
-                dim - dst.y ];
+                start.x,
+                start.y,
+                end.x,
+                end.y ];
 
-            var dist = new esper.Vec2([ dst.x, dim - dst.y ]).sub([ src.x, dim - src.y ]).lengthSquared(),
+            var difference = new esper.Vec2( end ).sub( start ),
+                dist = difference.length(),
                 speed = Config.particle_base_speed_ms + Config.particle_speed_variance_ms * Math.random(),
-                offset = dist * Config.particle_offset;
+                offset = Math.min( Config.particle_max_channel_width, dist * Config.particle_offset ),
+                perp = new esper.Vec3( difference.x, difference.y, 0.0 ).cross([ 0, 0, 1.0 ]).normalize(),
+                perpOffset = perp.mult( -offset/2 + Math.random() * offset );
 
             self._offsets[ index ] = [
-                -offset/2 + Math.random()*offset,
-                -offset/2 + Math.random()*offset,
-                speed ];
+                perpOffset.x,
+                perpOffset.y,
+                speed,
+                Math.random() ];
         });
         var pack = new esper.VertexPackage([ this._positions, this._offsets ]);
         this._vertexBuffer.bufferData( pack.buffer() );

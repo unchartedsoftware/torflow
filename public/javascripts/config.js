@@ -31,7 +31,8 @@ var config = {
         max : 40
     },
     particle_count : 200000,
-    particle_offset : 0.00025,
+    particle_offset : 0.05,
+    particle_max_channel_width: 20,
     particle_base_speed_ms : 1000,
     particle_speed_variance_ms : 4000,
     title : 'Data Flow in the Tor Network',
