@@ -138,7 +138,7 @@ App.prototype = _.extend(App.prototype, {
     },
 
     _useClusters : function() {
-        return this._element.find('#cluster-input').prop('checked');
+        return false; //this._element.find('#cluster-input').prop('checked');
     },
 
     _scaleBandwidth : function() {
@@ -431,7 +431,7 @@ App.prototype = _.extend(App.prototype, {
         }))));
         this._element.find('.hidden-filter-btn').change(this._onHiddenFilterChange.bind(this));
         this._element.find('#show-flow-input').change(this._onToggleFlow.bind(this));
-        this._element.find('#cluster-input').change(this._onToggleClusters.bind(this));
+        //this._element.find('#cluster-input').change(this._onToggleClusters.bind(this));
         this._element.find('#label-input').change(this._onToggleLabels.bind(this));
         this._element.find('#step-input').change(this._onToggleStep.bind(this));
         this._element.find('#scale-bandwidth-input').change(this._onToggleScale.bind(this));
@@ -459,7 +459,7 @@ App.prototype = _.extend(App.prototype, {
         // Initialize the map object
         this._map = L.map('map', {
             inertia: false
-        }).setView([0, 0], 2);
+        }).setView([30, 0], 3);
         this._map.options.maxZoom = Config.maxZoom || 18;
 
         // Initialize the baselayer

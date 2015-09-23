@@ -134,11 +134,7 @@ gulp.task('minify',function() {
 gulp.task('watch',function () {
     gulp.watch(config.less + '**/*.less', ['less']);
     gulp.watch(config.src + '**/*.js', ['lint','build']);
-    gulp.watch(config.templates + '**/*.hbs', ['templates_build']);
-});
-
-gulp.task('templates_build',function(cb) {
-   runSequence('templates',['build']);
+    gulp.watch(config.templates + '**/*.hbs', ['templates']);
 });
 
 gulp.task('install',function(cb) {

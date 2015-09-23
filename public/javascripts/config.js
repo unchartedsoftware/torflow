@@ -51,8 +51,11 @@ var config = {
             '<a href="http://cartodb.com/attributions#basemaps">CartoDB</a>,' +
             ' under ' +
             '<a href="https://creativecommons.org/licenses/by/3.0/">CC BY 3.0</a>' +
-        '</span>' + '|' +
-        '<a href="http://uncharted.software" target="_blank"><img src="/img/uncharted-logo-light-gray-small.png"</a>',
+            '|' +
+            '<div class="uncharted-logo">' +
+                '<a href="http://uncharted.software" target="_blank"><img src="/img/uncharted-logo-light-gray-small.png"</a>' +
+            '</div>' +
+        '</span>',
     minBrightness : 0.01,
     maxBrightness : 3.0,
     defaultBrightness : 1.6,
