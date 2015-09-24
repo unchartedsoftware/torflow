@@ -25,85 +25,65 @@
 * SOFTWARE.
 */
 
-var Particle = require('./particle');
+var Config = require('../config');
 
-var ParticleSystem = function(count,GetParticle) {
-    this._count = count;
-    this._available = [];
-    this._active = {};
-    this._getParticleFn = GetParticle || function() { return new Particle(); };
-
-    this._init();
+var ParticleSystem = function() {
+    this._nodes = [];
+    this._pairs = [];
 };
 
-ParticleSystem.prototype = _.extend(ParticleSystem.prototype, {
-    _init : function() {
-        for (var i = 0; i < this._count; i++) {
-            this._available.push(this._getParticleFn());
-        }
-    },
-    _onParticleDied : function(particle) {
-        // Release it into the wild and notify listeners
-        particle.reset();
-        delete this._active[particle.id()];
-        if (Object.keys(this._active).length + this._available.length < this._count) {
-            this._available.push(particle);
-            this._onParticlesAvailable(this._available.length);
-        }
-    },
-    count : function(count) {
-        if (count!==undefined) {
-            if (count > this._count) {
-                for (var i = this._count; i < count; i++) {
-                    this._available.push(this._getParticleFn());
-                }
-                this._onParticlesAvailable(this._available.length);
+ParticleSystem.prototype = _.extend(ParticleSystem.prototype,{
 
+    _getProbabilisticNodeIndex : function( nodes ) {
+        var rnd = Math.random();
+        var i = 0;
+        while (i < this._nodes.length && rnd > this._nodes[i].bandwidth) {
+            rnd -= this._nodes[i].bandwidth;
+            i++;
+        }
+        return Math.min(i,this._nodes.length-1);
+    },
+
+    _getProbabilisticPair: function() {
+        var MAX_TRIES = 500;
+        var tries = 0;
+        // TODO: return a source/dest pair from nodes based on bandwidth probability
+        var source = this._getProbabilisticNodeIndex();
+        var dest = this._getProbabilisticNodeIndex();
+        while (source === dest) {
+            dest = this._getProbabilisticNodeIndex();
+            tries++;
+            if (tries === MAX_TRIES) {
+                throw 'Cannot find destination. Something is wrong with the probaility bandwidths on your nodes!';
             }
-            this._count = count;
-        } else {
-            return this._count;
         }
+        return {
+            source : this._nodes[source],
+            dest : this._nodes[dest]
+        };
     },
-    addParticle : function(source,destination,color) {
-        if (this._available.length) {
-            var particle = this._available.pop();
 
-            if (!source || !destination) {
-                var ibreak = 0;
-                ibreak++;
-            }
-
-            particle
-                .source(source)
-                .destination(destination)
-                .tailColor(color || null)
-                .onDeath(this._onParticleDied.bind(this))
-                .start();
-            this._active[particle.id()] = particle;
+    getProbabilisticPairs: function(count) {
+        if ( !this._dirty ) {
+            return this._pairs;
         }
-        return this;
+        this._pairs = [];
+        var i;
+        count = count || Config.particle_count;
+        for ( i=0; i<count; i++ ) {
+            this._pairs.push( this._getProbabilisticPair() );
+        }
+        this._dirty = false;
+        return this._pairs;
     },
-    destroy : function() {
-        this._available.forEach(function(inactiveParticle) {
-            inactiveParticle.destroy();
-        });
-        var self = this;
-        Object.keys(this._active).forEach(function(particleId) {
-            var activeParticle = self._active[particleId];
-            activeParticle.destroy();
-        });
-    },
-    onParticlesAvailable : function(callback) {
-        this._onParticlesAvailable = callback;
-        return this;
-    },
-    positions : function() {
-        var self = this;
-        return Object.keys(this._active).map(function(particleId) {
-            return self._active[particleId].position();
-        });
+
+    updateNodes: function(nodes) {
+        if (this._nodes !== nodes) {
+            this._nodes = nodes;
+            this._dirty = true;
+        }
     }
+
 });
 
 module.exports = ParticleSystem;
