@@ -59,9 +59,26 @@ var initialize = function(onComplete,onError) {
 		connectionPool.open(
 			function(connection) {
 				var specs = _getTableSpecs();
-				db_utils.createTables(connection,specs,connectionPool.complete,connectionPool.error);
+
+				function complete(res) {
+					connectionPool.close(connection);
+					onComplete(res);
+				}
+
+				function error(err) {
+					connectionPool.close(connection);
+					if (onError) {
+						onError(err);
+					} else {
+						console.error(err);
+						console.trace(err.message);
+					}
+				}
+
+				db_utils.createTables(connection,specs,complete,error);
 			},
-			function(err) {
+			function(err,connection) {
+				connectionPool.close(connection);
 				onError(err);
 			});
 	}, onError);
