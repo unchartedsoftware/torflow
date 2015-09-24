@@ -137,12 +137,12 @@ var DotLayer = CanvasOverlay.extend({
                 dst = self._map.project( pair.dest.latLng ),
                 dim = Math.pow( 2, self._map.getZoom() ) * 256,
                 start = {
-                    x: src.x,
-                    y: dim - src.y
+                    x: src.x / dim,
+                    y: ( dim - src.y ) / dim
                 },
                 end = {
-                    x: dst.x,
-                    y: dim - dst.y
+                    x: dst.x / dim,
+                    y: ( dim - dst.y ) / dim
                 };
 
             self._positions[ index ] = [
