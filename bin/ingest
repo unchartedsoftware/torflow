@@ -4,7 +4,6 @@ var path = require('path');
 var ingestFiles = require('../ingest/ingestFiles');
 var db_init = require('../db/db_init');
 
-
 if (process.argv.length < 3) {
 	console.log('usage:\n\tnode bin/ingest %DATA_DIRECTORY%');
 	console.log('\twhere DATA_DIRECTORY% is the absolute path to the directory containing the csv files to import.');

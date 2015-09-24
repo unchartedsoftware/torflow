@@ -6,6 +6,7 @@ var _getTableSpecs = function() {
 	var tables = [];
 	var nonNull = true;
 	var autoIncrement = true;
+
 	var relays = {
 		name : 'relays',
 		columns : [

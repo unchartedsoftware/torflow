@@ -35,13 +35,19 @@ var ingestFiles = function(resolvedPath,onSuccess,onError) {
 							processNext();
 						};
 
-						var onFileError = function(err) {
-							connectionPool.error(err);
+						var onFileError = function(msg) {
+							console.trace(msg);
+							connectionPool.close(conn);
 							processNext();
 						};
 
 						ingestFile(conn, csvPath,onFileSuccess,onFileError);
-					}, connectionPool.complete);
+
+					}, function() {
+						// when finished
+						connectionPool.close(conn);
+						onSuccess();
+					});
 				}
 			});
 		},
