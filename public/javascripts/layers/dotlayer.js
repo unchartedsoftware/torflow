@@ -36,21 +36,12 @@ var DotLayer = CanvasOverlay.extend({
             vert: '../../shaders/particle.vert',
             frag: '../../shaders/particle.frag'
         }, function() {
+            // execute callback
             done();
         });
     },
 
     initBuffers: function( done ) {
-
-        function createIndices( n ) {
-            var indices = new Array( n ),
-                i;
-            for ( i=0; i<n; i++ ) {
-                indices[i] = i;
-            }
-            return indices;
-        }
-
         /**
          * x: startX
          * y: startY
@@ -58,7 +49,6 @@ var DotLayer = CanvasOverlay.extend({
          * w: endY
          */
         this._positions = _.fill( new Array( Config.particle_count ), [ 0,0,0,0 ] );
-
         /**
          * x: offsetX
          * y: offsetY
@@ -66,16 +56,10 @@ var DotLayer = CanvasOverlay.extend({
          * w: noise
          */
         this._offsets = _.fill( new Array( Config.particle_count ), [ 0,0,0,0 ] );
-
         // create vertex buffer, this will be updated periodically
-        var pack = new esper.VertexPackage([ this._positions, this._offsets ]);
-        this._vertexBuffer = new esper.VertexBuffer( pack );
-
-        // create index buffer, this will never be changed
-        this._indexBuffer = new esper.IndexBuffer( createIndices( Config.particle_count ), {
-                mode: 'POINTS'
-            });
-
+        this._vertexBuffer = new esper.VertexBuffer(
+            new esper.VertexPackage([ this._positions, this._offsets ])
+        );
         // execute callback
         done();
     },
@@ -139,7 +123,6 @@ var DotLayer = CanvasOverlay.extend({
         } else {
             this._particleCount = hiddenServicesCount;
         }
-        this._indexBuffer.count = this._particleCount;
     },
 
     showTraffic: function(state) {
@@ -163,9 +146,7 @@ var DotLayer = CanvasOverlay.extend({
         this._shader.setUniform( 'uProjectionMatrix', this._camera.projectionMatrix() );
         this._shader.setUniform( 'uTime', Date.now() - this._timestamp );
         this._vertexBuffer.bind();
-        this._indexBuffer.bind();
-        this._indexBuffer.draw();
-        this._indexBuffer.unbind();
+        gl.drawArrays( gl.POINTS, 0, this._particleCount || Config.particle_count );
         this._vertexBuffer.unbind();
         this._shader.pop();
         this._viewport.pop();
