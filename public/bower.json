@@ -6,7 +6,7 @@
     "bootstrap": "3.3.5",
     "cyborg-bootstrap": "~0.0.1",
     "d3": "~3.5.6",
-    "esper": "~0.2.0",
+    "esper": "^0.2.0",
     "handlebars": "3.0.3",
     "jquery": "2.1.4",
     "leaflet": "0.7.5",

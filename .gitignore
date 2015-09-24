@@ -50,6 +50,7 @@ benchmarks/graphs
 ## Bower Gitignore
 # ----------------------------------------
 
+!public/extern/.gitignore
 public/extern/**/*
 
 # ----------------------------------------
@@ -62,3 +63,4 @@ config.js
 **/extern.js
 **/extern.css
 .vagrant/
+map/
