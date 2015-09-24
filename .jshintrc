@@ -35,6 +35,7 @@
 	  	"moment":true,
 	  	"process":true,
 	  	"esper": true,
+		"swal": true,
 		"__dirname":true
 	}
 }

@@ -316,7 +316,7 @@ App.prototype = _.extend(App.prototype, {
             }
         });
 
-        this._markersLayer.on('animationend', this._onMapClustered.bind(this));
+        //this._markersLayer.on('animationend', this._onMapClustered.bind(this));
 
         var maxBW = -Number.MAX_VALUE;
         var minBW = Number.MAX_VALUE;
@@ -436,6 +436,15 @@ App.prototype = _.extend(App.prototype, {
         this._element.find('#step-input').change(this._onToggleStep.bind(this));
         this._element.find('#scale-bandwidth-input').change(this._onToggleScale.bind(this));
 
+        this._element.find('#summary-button').click( function() {
+            swal({
+                title: null,
+                text: Config.summary,
+                html: true,
+                confirmButtonColor: '#149BDF'
+            });
+        });
+
         this._showingLabels = this._element.find('#label-input').prop('checked');
 
         this._dateLabel = this._element.find('#date-label');
@@ -458,9 +467,15 @@ App.prototype = _.extend(App.prototype, {
 
         // Initialize the map object
         this._map = L.map('map', {
-            inertia: false
-        }).setView([30, 0], 3);
-        this._map.options.maxZoom = Config.maxZoom || 18;
+            inertia: false,
+            zoomControl: false,
+            maxZoom: Config.maxZoom || 18
+        });
+        this._map.setView([30, 0], 3);
+
+        // Initialize zoom controls
+        this._zoomControls = new L.Control.Zoom({ position: 'topright' });
+        this._zoomControls.addTo(this._map);
 
         // Initialize the baselayer
         var mapUrlBase = 'http://{s}.basemaps.cartocdn.com/';

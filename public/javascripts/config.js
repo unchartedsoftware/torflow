@@ -35,8 +35,10 @@ var config = {
     particle_max_channel_width: 20,
     particle_base_speed_ms : 1000,
     particle_speed_variance_ms : 4000,
-    title : 'Data Flow in the Tor Network',
-    summary : '<p>The Tor network is a group of volunteer-operated servers (relays) that allows people to improve their privacy and' +
+    title : 'TorFlow',
+    summary :
+        '<h2>Data Flow in the Tor Network</h2>' +
+        '<p>The Tor network is a group of volunteer-operated servers (relays) that allows people to improve their privacy and' +
         ' security on the Internet. Tor\'s users employ this network by connecting through a series of virtual tunnels' +
         ' rather than making a direct connection, thus allowing both organizations and individuals to share information ' +
         'over public networks without compromising their privacy.<a href="https://www.torproject.org/about/overview.html.en"><sup>[1]</sup></a></p>' +
@@ -58,7 +60,7 @@ var config = {
         '</span>',
     minBrightness : 0.01,
     maxBrightness : 3.0,
-    defaultBrightness : 1.6,
+    defaultBrightness : 1.0,
     minOpacity : 0,
     maxOpacity : 1,
     defaultOpacity : 0.45

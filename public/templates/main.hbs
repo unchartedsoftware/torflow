@@ -1,7 +1,11 @@
 <div id="main ">
-    <h1>{{title}}</h1>
-    <p>{{{summary}}}</p>
-    <p><a href="/about">About</a></p>
+    <header>
+        <h1>{{title}}</h1>
+    </header>
+
+    <div id="summary-button" class="summary-button">
+        <i class="icon fa fa-question-circle"></i>
+    </div>
 
     <div class="date-controls">
         <div class="map-control-element">
@@ -12,12 +16,14 @@
 
     <div class="map-controls">
         <div class="map-control-element">
-            <span class="padded-right">Brightness</span>
+            <Label class="padded-right">Brightness</Label>
+            <span class="padded-right">-</span>
             <input id="brightness-slider" class='slider' data-slider-id='brightness-slider' type="text" data-slider-min="{{minBrightness}}" data-slider-max="{{maxBrightness}}" data-slider-step="0.01" data-slider-value="{{defaultBrightness}}"/>
             <span class="padded-left">+</span>
         </div>
         <div class="map-control-element">
-            <span class="padded-right">Opacity</span>
+            <Label class="padded-right">Opacity</Label>
+            <span class="padded-right">-</span>
             <input id="opacity-slider" class='slider' data-slider-id='opacity-slider' type="text" data-slider-min="{{minOpacity}}" data-slider-max="{{maxOpacity}}" data-slider-step="0.01" data-slider-value="{{defaultOpacity}}"/>
             <span class="padded-left">+</span>
         </div>
