@@ -73,6 +73,8 @@ L.CanvasOverlay = L.Class.extend({
         var size = this._map.getSize();
         this._canvas.width = size.x;
         this._canvas.height = size.y;
+        var animated = this._map.options.zoomAnimation && L.Browser.any3d;
+        L.DomUtil.addClass(this._canvas, 'leaflet-zoom-' + (animated ? 'animated' : 'hide'));
     },
 
     onAdd: function (map) {
@@ -84,9 +86,12 @@ L.CanvasOverlay = L.Class.extend({
         this._initGL();
         map.on('move', this._reset, this);
         map.on('resize',  this._resize, this);
-        map.on('zoomstart', this.hide, this);
+        //map.on('zoomstart', this.hide, this);
         map.on('zoomend', this._reset, this);
-        map.on('zoomend', this.show, this);
+        //map.on('zoomend', this.show, this);
+        if (map.options.zoomAnimation && L.Browser.any3d) {
+            map.on('zoomanim', this._animateZoom, this);
+        }
         this._reset();
     },
 
@@ -94,9 +99,12 @@ L.CanvasOverlay = L.Class.extend({
         map.getPanes().overlayPane.removeChild(this._canvas);
         map.off('move', this._reset, this);
         map.off('resize', this._resize, this);
-        map.off('zoomstart', this.hide, this);
+        //map.off('zoomstart', this.hide, this);
         map.off('zoomend', this._reset, this);
-        map.off('zoomend', this.show, this);
+        //map.off('zoomend', this.show, this);
+        if (map.options.zoomAnimation) {
+            map.off('zoomanim', this._animateZoom, this);
+        }
         this._gl = null;
         this._canvas = null;
         this._viewport = null;
@@ -127,14 +135,20 @@ L.CanvasOverlay = L.Class.extend({
         var bounds = this._map.getPixelBounds(),
             dim = Math.pow( 2, this._map.getZoom() ) * 256,
             ortho = esper.Mat44.ortho(
-                bounds.min.x,
-                bounds.max.x,
-                dim - bounds.max.y,
-                dim - bounds.min.y,
+                bounds.min.x / dim,
+                bounds.max.x / dim,
+                ( dim - bounds.max.y ) / dim,
+                ( dim - bounds.min.y ) / dim,
                 -1, 1 );
         if ( this._camera ) {
             this._camera.projectionMatrix( ortho );
         }
+    },
+
+    _animateZoom: function (e) {
+        var scale = this._map.getZoomScale(e.zoom),
+            offset = this._map._getCenterOffset(e.center)._multiplyBy(-scale).subtract(this._map._getMapPanePos());
+        this._canvas.style[L.DomUtil.TRANSFORM] = L.DomUtil.getTranslateString(offset) + ' scale(' + scale + ')';
     },
 
     _resize: function (resizeEvent) {
