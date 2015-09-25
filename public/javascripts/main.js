@@ -492,7 +492,7 @@ App.prototype = _.extend(App.prototype, {
             minZoom: 3,
             maxZoom: Config.maxZoom || 18
         });
-        this._map.setView([30, 0], 4);
+        this._map.setView([40, -42], 4);
 
         // Initialize zoom controls
         this._zoomControls = new L.Control.Zoom({ position: 'topright' });
