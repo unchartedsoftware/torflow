@@ -12,7 +12,7 @@
 	"noempty":true,
 	"nonew":true,
 	"undef":true,
-	"unused":"vars",
+	"unused": true,
 	"smarttabs":false,
 	"sub":true,
 	"laxbreak":true,
