@@ -516,7 +516,8 @@ App.prototype = _.extend(App.prototype, {
             mapUrlBase + 'dark_only_labels/{z}/{x}/{y}.png',
             {
                 maxZoom: Config.maxZoom || 18,
-                noWrap: true
+                noWrap: true,
+                zIndex: 10
             });
         if (this._showingLabels) {
             this._labelLayer.addTo(this._map);
