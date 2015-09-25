@@ -48,14 +48,21 @@ L.WebGLOverlay = L.Class.extend({
     _initGL : function() {
         var self = this,
             shadersDone = $.Deferred(),
-            buffersDone = $.Deferred();
-        this._gl = esper.WebGLContext.get( this._canvas );
+            buffersDone = $.Deferred(),
+            gl = this._gl = esper.WebGLContext.get( this._canvas );
+        // init the webgl state
+        gl.clearColor( 0, 0, 0, 0 );
+        gl.enable( gl.BLEND );
+        gl.blendFunc( gl.SRC_ALPHA, gl.ONE );
+        // load shaders
         this.initShaders( function() {
             shadersDone.resolve();
         });
+        // init buffers
         this.initBuffers( function() {
             buffersDone.resolve();
         });
+        // once finished
         $.when( shadersDone, buffersDone ).then( function() {
             var width = self._canvas.width,
                 height = self._canvas.height;

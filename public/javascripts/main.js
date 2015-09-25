@@ -29,24 +29,14 @@ var DotLayer = require('./layers/dotlayer');
 var CountryLayer = require('./layers/countrylayer');
 var Lerp = require('./util/lerp');
 var Config = require('./config');
-
 var MarkerTooltip = require('./util/markertooltip');
-
 var Template = require('./templates/main');
-var AboutTemplate = require('./templates/about');
-
-var DEFAULT_ICON = L.divIcon({
-    className: 'relay-cluster',
-    iconSize:L.point(Config.node_radius.min, Config.node_radius.min)
-});
 
 /**
  * Creates the TorFlow front-end app
  * @constructor
  */
-var App = function() {
-
-};
+var App = function() {};
 
 App.prototype = _.extend(App.prototype, {
 
@@ -79,10 +69,6 @@ App.prototype = _.extend(App.prototype, {
         });
     },
 
-    _updateSimulation : function(nodes) {
-        this._particleLayer.updateNodes(nodes);
-    },
-
     _latLngToNormalizedCoord : function(latLng) {
         var px = this._map.project( latLng ),
             dim = Math.pow( 2, this._map.getZoom() ) * 256;
@@ -92,70 +78,29 @@ App.prototype = _.extend(App.prototype, {
         };
     },
 
-    _onMapClustered : function() {
-        var totalBandwidth = this._getCurrentTotalBandwidth();
-        var nodes;
+    _sumRelaysBandwidth : function( relays ) {
+        return _.reduce(relays, function(memo, relay) {
+            return memo + relay.bandwidth;
+        }, 0);
+    },
+
+    _getNormalizedBandwidth : function( relays ) {
+        return this._sumRelaysBandwidth(relays) / this._getCurrentTotalBandwidth();
+    },
+
+    _createParticles : function() {
         var self = this;
-        if (this._useClusters() === false) {
-            nodes = this._currentNodes.objects.map(function (node) {
-                return {
-                    bandwidth: _.reduce(node.circle.relays, function(memo, relay){ return memo + relay.bandwidth; },0) / totalBandwidth,
-                    latLng: node.latLng,
-                    pos: self._latLngToNormalizedCoord(node.latLng)
-                };
-            });
-        } else {
-
-            var clusterset = this._clusters[this._map.getZoom()];
-
-            var aggregatesIncluded = {};
-            nodes = clusterset.map(function (cluster) {
-                var bandwidth = 0;
-                cluster.getAllChildMarkers().forEach(function (child) {
-                    child.data.circle.relays.forEach(function (relay) {
-                        bandwidth += relay.bandwidth;
-                    });
-                    aggregatesIncluded[child.data.circle.id] = true;
-                });
-
-                return {
-                    bandwidth: bandwidth,
-                    latLng: cluster._latlng,
-                    pos: self._latLngToNormalizedCoord(cluster.latLng)
-                };
-            });
-
-            // Add any singleton relays that aren't in a marker cluster
-            var allVisisbleRelays = this._getVisibleRelays();
-            allVisisbleRelays.forEach(function (relay) {
-                if (!aggregatesIncluded[relay.circle.id]) {
-                    nodes.push({
-                        bandwidth: relay.circle.bandwidth,
-                        latLng: relay.latLng,
-                        pos: self._latLngToNormalizedCoord(relay.latLng)
-                    });
-                }
-            });
-
-            nodes.forEach(function (node) {
-                node.bandwidth /= totalBandwidth;
-            });
-
-            var checkedSum = 0;
-            nodes.forEach(function(n) {
-                checkedSum += n.bandwidth;
-            });
-
-            nodes = nodes.sort(function(n1,n2) { return n2.bandwidth - n1.bandwidth; });
-        }
-        this._updateSimulation(nodes);
+        var nodes = this._currentNodes.objects.map(function (node) {
+            return {
+                bandwidth: self._getNormalizedBandwidth(node.circle.relays),
+                latLng: node.latLng,
+                pos: self._latLngToNormalizedCoord(node.latLng)
+            };
+        });
+        this._particleLayer.updateNodes(nodes);
     },
 
-    _useClusters : function() {
-        return false; //this._element.find('#cluster-input').prop('checked');
-    },
-
-    _scaleBandwidth : function() {
+    _scaleByBandwidth : function() {
         return this._element.find('#scale-bandwidth-input').prop('checked');
     },
 
@@ -172,10 +117,7 @@ App.prototype = _.extend(App.prototype, {
             .hours(0)
             .minutes(0)
             .seconds(0);
-
-        var mStr = m.format();
-
-        return mStr;
+        return m.format();
     },
 
     _update : function() {
@@ -234,17 +176,6 @@ App.prototype = _.extend(App.prototype, {
         }
     },
 
-    _onToggleClusters : function() {
-        if (this._useClusters()) {
-            this._element.find('#scale-bandwidth-input')
-                .prop('disabled',true)
-                .prop('checked',true);
-        } else {
-            this._element.find('#scale-bandwidth-input').prop('disabled',false);
-        }
-        this._update();
-    },
-
     _onToggleScale : function() {
         this._update();
     },
@@ -264,31 +195,8 @@ App.prototype = _.extend(App.prototype, {
 
         this._markersLayer = L.markerClusterGroup({
             removeOutsideVisibleBounds : false,
-            disableClusteringAtZoom: this._useClusters() ? undefined : 1,
+            disableClusteringAtZoom: true,
             zoomToBoundsOnClick : false,
-            tooltip : function(cluster) {
-                var markers = cluster.getAllChildMarkers();
-                var clusterRelayCount = 0;
-                var clusterBandwidth = 0;
-                markers.forEach(function(markerCluster) {
-                    clusterRelayCount += markerCluster.data.circle.relays.length;
-                    var groupBandwidth = 0;
-                    markerCluster.data.circle.relays.forEach(function(relay) {
-                        groupBandwidth += relay.bandwidth;
-                    });
-                    clusterBandwidth += groupBandwidth;
-                });
-                var bandwidthPercent = Math.round((clusterBandwidth / self._getCurrentTotalBandwidth()) * 100);
-                var relayCountPercent = Math.round((clusterRelayCount / self._getCurrentTotalRelays()) * 100);
-
-                var bandwidthPercentString = bandwidthPercent === 0 ? '<1%' : bandwidthPercent + '%';
-                var relayCountPercentString = relayCountPercent === 0 ? '<1%' : relayCountPercent + '%';
-
-                return '<p>Relays in Group: ' + clusterRelayCount + '(' + relayCountPercentString + ')</p>' + '<p>Bandwidth: ' + bandwidthPercentString + '</p>';
-            },
-            tooltipOffset : function(cluster,icon) {
-                return new L.Point(0,-icon.options.iconSize.x/2);
-            },
             iconCreateFunction: function (cluster) {
                 var markers = cluster.getAllChildMarkers();
 
@@ -313,12 +221,10 @@ App.prototype = _.extend(App.prototype, {
                     });
                     weightAvgLat /= clusterBandwidth;
                     weightedAvgLng /= clusterBandwidth;
-
                     cluster.setLatLng(new L.LatLng(weightAvgLat, weightedAvgLng));
                 }
 
                 self._clusters[self._map.getZoom()].push(cluster);
-
 
                 var radius = Config.node_radius.min + (Config.node_radius.max-Config.node_radius.min)*clusterBandwidth;
 
@@ -331,24 +237,21 @@ App.prototype = _.extend(App.prototype, {
             }
         });
 
-        //this._markersLayer.on('animationend', this._onMapClustered.bind(this));
-
         var maxBW = -Number.MAX_VALUE;
         var minBW = Number.MAX_VALUE;
         this._currentNodes.objects.forEach(function(node) {
-            var nodeBW = _.reduce(node.circle.relays, function(memo, relay){ return memo + relay.bandwidth; },0);
+            var nodeBW = self._sumRelaysBandwidth(node.circle.relays);
             maxBW = Math.max(maxBW,nodeBW);
             minBW = Math.min(minBW,nodeBW);
         });
 
         this._currentNodes.objects.forEach(function(node) {
-            var title = node.circle.relays.length === 1 ? node.circle.relays[0].name : node.circle.relays.length + ' relays at location';
+            var relays = node.circle.relays;
+            var title = relays.length === 1 ? relays[0].name : relays.length + ' relays at location';
             var marker;
-            var usedRadius;
-            if (self._scaleBandwidth()) {
-                var nodeBW = _.reduce(node.circle.relays, function(memo, relay){ return memo + relay.bandwidth; },0);
+            if (self._scaleByBandwidth()) {
+                var nodeBW = self._sumRelaysBandwidth(relays);
                 var pointRadius = Lerp(Config.node_radius.min,Config.node_radius.max,nodeBW / (maxBW-minBW));
-                usedRadius = pointRadius;
                 marker = L.marker(node.latLng, {
                     icon : L.divIcon({
                         className: 'relay-cluster',
@@ -356,8 +259,12 @@ App.prototype = _.extend(App.prototype, {
                     })
                 });
             } else {
-                marker = L.marker(node.latLng, {icon: DEFAULT_ICON});
-                usedRadius = Config.node_radius.min;
+                marker = L.marker(node.latLng, {
+                    icon: L.divIcon({
+                        className: 'relay-cluster',
+                        iconSize: L.point(Config.node_radius.min, Config.node_radius.min)
+                    })
+                });
             }
             marker.data = node;
             MarkerTooltip( marker, title );
@@ -365,8 +272,6 @@ App.prototype = _.extend(App.prototype, {
         });
 
         this._map.addLayer(this._markersLayer);
-
-        this._onMapClustered();
     },
 
     _getCurrentTotalBandwidth : function() {
@@ -388,31 +293,34 @@ App.prototype = _.extend(App.prototype, {
     },
 
     _fetch : function(isoDateStr) {
-        var self = this;
-        var idToLatLng = {};
 
         function handleNodes(nodes) {
-            /* Add a LatLng object to each item in the dataset */
+            // Add a LatLng object to each item in the dataset
             nodes.objects.forEach(function(node) {
                 node.latLng = new L.LatLng(
                     node.circle.coordinates[0],
                     node.circle.coordinates[1]);
-                idToLatLng[node.circle.id] = node.latLng;
             });
-
             // Initialize zoom -> clusters map
             var minZoom = self._map.getMinZoom();
             var maxZoom = self._map.getMaxZoom();
             for (var i = minZoom; i <= maxZoom; i++) {
                 self._clusters[i] = [];
             }
-
+            // Create markers
             self._createMarkers();
+            // Update particles
+            if ( oldNodes !== self._currentNodes ) {
+                self._createParticles();
+            }
         }
 
         function handleHistogram(histogram) {
             self._countryLayer.set(histogram);
         }
+
+        var oldNodes = this._currentNodes,
+            self = this;
 
         if (this._currentDate === isoDateStr) {
             handleNodes(this._currentNodes);
@@ -420,13 +328,13 @@ App.prototype = _.extend(App.prototype, {
         } else {
             d3.json('/nodes/' + encodeURI(isoDateStr), function (nodes) {
                 self._currentNodes = nodes;
-                self._currentDate = isoDateStr;
                 handleNodes(nodes);
             });
             d3.json('/country/' + encodeURI(isoDateStr),function(histogram) {
                 self._currentHistogram = histogram;
                 handleHistogram(histogram);
             });
+            self._currentDate = isoDateStr;
         }
     },
 
@@ -529,14 +437,8 @@ App.prototype = _.extend(App.prototype, {
     start: function () {
         // Fetch the dates available + relay count for each date
         $.get('/dates',this._init.bind(this));
-        // TODO: display wait dialog
-    },
-
-    about : function() {
-        $.get('data/changelog.json',function(changelog) {
-            $(document.body).append($(AboutTemplate(changelog)));
-        });
     }
+
 });
 
 exports.App = App;

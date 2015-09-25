@@ -73,6 +73,8 @@ var DotLayer = WebGLOverlay.extend({
         }
         this._loadingBar = new LoadingBar();
         var self = this;
+        // flag as not ready to draw
+        this._isReady = false;
         // create web worker to generate particles
         var worker = new Worker('javascripts/particles/particlesystem.js');
         worker.addEventListener('message', function( e ) {
@@ -83,6 +85,7 @@ var DotLayer = WebGLOverlay.extend({
                 case 'complete':
                     self._vertexBuffer.bufferData( new Float32Array( e.data.buffer ) );
                     self._timestamp = Date.now();
+                    self._isReady = true; // flag as ready to draw
                     worker.terminate();
                     break;
             }
@@ -147,24 +150,28 @@ var DotLayer = WebGLOverlay.extend({
         return Config.particle_size;
     },
 
+    clear: function() {
+        var gl = this._gl;
+        gl.clear( gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT );
+    },
+
     draw: function() {
         var gl = this._gl;
-        gl.clearColor( 0, 0, 0, 0 );
-        gl.clear( gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT );
-        gl.enable( gl.BLEND );
-        gl.blendFunc( gl.SRC_ALPHA, gl.ONE );
-        this._viewport.push();
-        this._shader.push();
-        this._shader.setUniform( 'uProjectionMatrix', this._camera.projectionMatrix() );
-        this._shader.setUniform( 'uTime', Date.now() - this._timestamp );
-        this._shader.setUniform( 'uSpeedFactor', this.getSpeed() );
-        this._shader.setUniform( 'uOffsetFactor', this.getPathOffset() );
-        this._shader.setUniform( 'uPointSize', this.getParticleSize() );
-        this._vertexBuffer.bind();
-        gl.drawArrays( gl.POINTS, 0, this._particleCount || Config.particle_count );
-        this._vertexBuffer.unbind();
-        this._shader.pop();
-        this._viewport.pop();
+        this.clear();
+        if ( this._isReady ) {
+            this._viewport.push();
+            this._shader.push();
+            this._shader.setUniform( 'uProjectionMatrix', this._camera.projectionMatrix() );
+            this._shader.setUniform( 'uTime', Date.now() - this._timestamp );
+            this._shader.setUniform( 'uSpeedFactor', this.getSpeed() );
+            this._shader.setUniform( 'uOffsetFactor', this.getPathOffset() );
+            this._shader.setUniform( 'uPointSize', this.getParticleSize() );
+            this._vertexBuffer.bind();
+            gl.drawArrays( gl.POINTS, 0, this._particleCount || Config.particle_count );
+            this._vertexBuffer.unbind();
+            this._shader.pop();
+            this._viewport.pop();
+        }
     }
 
 });

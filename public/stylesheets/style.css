@@ -139,7 +139,16 @@ a {
     position: absolute;
     top: 10px;
     right: 44px;
+    width: 26px;
+    height: 26px;
     z-index: 2;
+    background-color: rgb(20, 155, 223);
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.summary-button:hover {
+    background-color: rgb(40, 96, 144);
 }
 
 .map-control-element {
@@ -156,16 +165,11 @@ a {
 }
 
 .icon {
-    height: 24px;
-    width: 24px;
-    font-size: 24px;
-    line-height: 24px;
-    color: rgb(20, 155, 223);
-    cursor: pointer;
-}
-
-.icon:hover {
-    color: rgb(40, 96, 144);
+    width: 100%;
+    font-size: 16px;
+    line-height: 26px;
+    text-align: center;
+    color: #fff;
 }
 
 #brightness-slider,
@@ -175,6 +179,17 @@ a {
     width:80px;
 }
 
+.btn-primary,
+.slider-handle {
+    background-color: rgb(20, 155, 223);
+}
+
+.btn-primary:hover,
+.btn-primary.active,
+.slider-handle:hover {
+    background-color: rgb(40, 96, 144);
+}
+
 #date-label {
     display:inline-block;
     min-width: 210px;
@@ -182,6 +197,7 @@ a {
 
 .sweet-alert {
     background-color: #222;
+    border: 1px solid #111;
 }
 
 .sweet-alert p {
