@@ -28,7 +28,6 @@
 var Config = require('../config.js');
 var WebGLOverlay = require('./webgloverlay');
 var LoadingBar = require('../util/loadingbar');
-//var ParticleSystem = require('../particles/particlesystem');
 
 var DotLayer = WebGLOverlay.extend({
 
@@ -88,14 +87,14 @@ var DotLayer = WebGLOverlay.extend({
                     break;
             }
         });
+        var offsetFactor = this._pathOffset !== undefined ? this._pathOffset : 1;
         // start the webworker
         worker.postMessage({
             type: 'start',
             particleConfig: {
                 speed: Config.particle_base_speed_ms,
                 variance: Config.particle_speed_variance_ms,
-                max_offset: Config.particle_max_offset,
-                offset: Config.particle_offset,
+                offset: Config.particle_offset * offsetFactor,
                 count: Config.particle_count
             },
             nodes: nodes,
@@ -127,6 +126,10 @@ var DotLayer = WebGLOverlay.extend({
 
     setSpeed: function( speed ) {
         this._speed = speed;
+    },
+
+    setPathOffset: function( offset ) {
+        this._pathOffset = offset;
     },
 
     draw: function() {

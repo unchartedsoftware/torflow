@@ -98,6 +98,7 @@ a {
     right: 0;
     bottom: 0;
     z-index: 1;
+    cursor: default;
 }
 
 .padded-left {
@@ -162,11 +163,11 @@ a {
     cursor: pointer;
 }
 
-#brightness-slider {
-    width:50px;
-}
-#opacity-slider {
-    width:50px;
+#brightness-slider,
+#opacity-slider,
+#speed-slider,
+#path-slider {
+    width:80px;
 }
 
 #date-label {
@@ -205,4 +206,15 @@ a {
     background-color: rgb(20, 155, 223);
     height: 5px;
     width: 0%;
+}
+
+.marker-tooltip {
+    position: absolute;
+    border: 1px solid #111;
+    background-color: #222;
+    border-radius: 7px;
+    display: inline-block;
+    padding: 10px;
+    z-index: 2;
+    opacity: 1;
 }

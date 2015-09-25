@@ -106,7 +106,7 @@ var _generateParticles = function(particleConfig,nodes,count) {
         var difference = _subtract( end, start ),
             dist = _length2( difference ),
             speed = particleConfig.speed + particleConfig.variance * Math.random(),
-            offset = Math.min( particleConfig.max_offset, dist * particleConfig.offset ),
+            offset = dist * particleConfig.offset,
             perp = _normalize(
                     _cross({
                         x: difference.x,

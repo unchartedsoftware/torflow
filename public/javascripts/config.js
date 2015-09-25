@@ -30,15 +30,16 @@ var config = {
         min : 3,
         max : 40
     },
-    particle_count : 1000000,
+    particle_count : 500000,
     particle_offset : 0.05,
-    particle_max_offset: 20,
+    particle_min_offset: 0.0001,
+    particle_max_offset: 2.0,
     particle_base_speed_ms : 20000, // ms for particle to circle the earth
     particle_speed_variance_ms : 40000,
     particle_speed_min_factor : 0.01,
     particle_speed_max_factor : 4.0,
     particle_zoom_scale: function( zoom, config_particle_size ) {
-        return Math.max( 1, config_particle_size * ( zoom - 3 ) );
+        return Math.max( 1, config_particle_size * ( zoom - 3 ) / 1.5 );
     },
     particle_size: 1,
     title : 'TorFlow',
@@ -61,7 +62,7 @@ var config = {
             '<a href="https://creativecommons.org/licenses/by/3.0/">CC BY 3.0</a>' +
             '|' +
             '<div class="uncharted-logo">' +
-                '<a href="http://uncharted.software" target="_blank"><img src="/img/uncharted-logo-light-gray-small.png"</a>' +
+                '<a href="http://uncharted.software" target="_blank"><img src="/img/uncharted-logo-light-gray-small.png"></a>' +
             '</div>' +
         '</span>',
     minBrightness : 0.01,

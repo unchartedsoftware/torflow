@@ -30,6 +30,8 @@ var CountryLayer = require('./layers/countrylayer');
 var Lerp = require('./util/lerp');
 var Config = require('./config');
 
+var MarkerTooltip = require('./util/markertooltip');
+
 var Template = require('./templates/main');
 var AboutTemplate = require('./templates/about');
 
@@ -118,7 +120,8 @@ App.prototype = _.extend(App.prototype, {
 
                 return {
                     bandwidth: bandwidth,
-                    latLng: cluster._latlng
+                    latLng: cluster._latlng,
+                    pos: self._latLngToNormalizedCoord(cluster.latLng)
                 };
             });
 
@@ -128,7 +131,8 @@ App.prototype = _.extend(App.prototype, {
                 if (!aggregatesIncluded[relay.circle.id]) {
                     nodes.push({
                         bandwidth: relay.circle.bandwidth,
-                        latLng: relay.latLng
+                        latLng: relay.latLng,
+                        pos: self._latLngToNormalizedCoord(relay.latLng)
                     });
                 }
             });
@@ -198,6 +202,11 @@ App.prototype = _.extend(App.prototype, {
         this._particleLayer.setSpeed( newSpeed );
     },
 
+    _onPathSlide : function() {
+        var offset = this._pathSlider.slider('getValue');
+        this._particleLayer.setPathOffset( offset );
+    },
+
     _onOpacitySlide : function() {
         var newOpacity = this._opacitySlider.slider('getValue');
         this._countryLayer.setOpacity(newOpacity);
@@ -230,26 +239,17 @@ App.prototype = _.extend(App.prototype, {
             this._element.find('#scale-bandwidth-input')
                 .prop('disabled',true)
                 .prop('checked',true);
-
-            this._element.find('#step-input')
-                .prop('disabled',true)
-                .prop('checked',false);
         } else {
             this._element.find('#scale-bandwidth-input').prop('disabled',false);
-            this._element.find('#step-input').prop('disabled',false);
         }
         this._update();
-    },
-
-    _onToggleStep : function() {
-
     },
 
     _onToggleScale : function() {
         this._update();
     },
 
-    _onToggleLabels : function(e) {
+    _onToggleLabels : function() {
         if (this._showingLabels) {
             this._map.removeLayer(this._labelLayer);
             this._showingLabels = false;
@@ -360,15 +360,7 @@ App.prototype = _.extend(App.prototype, {
                 usedRadius = Config.node_radius.min;
             }
             marker.data = node;
-            marker.bindPopup(title, {
-                offset : new L.Point(0,-usedRadius/2)
-            });
-            marker.on('mouseover',function() {
-                marker.openPopup();
-            });
-            marker.on('mouseout',function() {
-                marker.closePopup();
-            });
+            MarkerTooltip( marker, title );
             self._markersLayer.addLayer(marker);
         });
 
@@ -389,22 +381,23 @@ App.prototype = _.extend(App.prototype, {
 
     _getCurrentTotalRelays : function() {
         var totalRelays = 0;
-        this._currentNodes.objects.forEach(function(d,i) {
-            totalRelays+= d.circle.relays.length;
+        this._currentNodes.objects.forEach(function(node) {
+            totalRelays+= node.circle.relays.length;
         });
         return totalRelays;
     },
 
-    _fetch : function(isoDateStr, onNodesReady) {
+    _fetch : function(isoDateStr) {
         var self = this;
         var idToLatLng = {};
 
         function handleNodes(nodes) {
             /* Add a LatLng object to each item in the dataset */
-            nodes.objects.forEach(function(d,i) {
-                d.latLng = new L.LatLng(d.circle.coordinates[0],
-                    d.circle.coordinates[1]);
-                idToLatLng[d.circle.id] = d.latLng;
+            nodes.objects.forEach(function(node) {
+                node.latLng = new L.LatLng(
+                    node.circle.coordinates[0],
+                    node.circle.coordinates[1]);
+                idToLatLng[node.circle.id] = node.latLng;
             });
 
             // Initialize zoom -> clusters map
@@ -446,9 +439,7 @@ App.prototype = _.extend(App.prototype, {
         }))));
         this._element.find('.hidden-filter-btn').change(this._onHiddenFilterChange.bind(this));
         this._element.find('#show-flow-input').change(this._onToggleFlow.bind(this));
-        //this._element.find('#cluster-input').change(this._onToggleClusters.bind(this));
         this._element.find('#label-input').change(this._onToggleLabels.bind(this));
-        this._element.find('#step-input').change(this._onToggleStep.bind(this));
         this._element.find('#scale-bandwidth-input').change(this._onToggleScale.bind(this));
 
         this._element.find('#summary-button').click( function() {
@@ -463,26 +454,21 @@ App.prototype = _.extend(App.prototype, {
         this._showingLabels = this._element.find('#label-input').prop('checked');
 
         this._dateLabel = this._element.find('#date-label');
-        this._dateSlider = this._element.find('#date-slider').slider({
-            tooltip:'hide'
-        });
+        this._dateSlider = this._element.find('#date-slider').slider({ tooltip: 'hide' });
 
         this._dateSlider.on('slideStop', this._update.bind(this));
         this._dateSlider.on('slide',this._onDateSlide.bind(this));
 
-        this._brightnessSlider = this._element.find('#brightness-slider').slider({
-            tooltip:'brightness'
-        });
+        this._brightnessSlider = this._element.find('#brightness-slider').slider({ tooltip: 'hide' });
         this._brightnessSlider.on('slide',this._onBrightnessSlide.bind(this));
 
-        this._speedSlider = this._element.find('#speed-slider').slider({
-            tooltip:'hide'
-        });
+        this._speedSlider = this._element.find('#speed-slider').slider({ tooltip: 'hide' });
         this._speedSlider.on('slideStop',this._onSpeedSlide.bind(this));
 
-        this._opacitySlider = this._element.find('#opacity-slider').slider({
-            tooltip:'hide'
-        });
+        this._pathSlider = this._element.find('#path-slider').slider({ tooltip: 'hide' });
+        this._pathSlider.on('slideStop',this._onPathSlide.bind(this));
+
+        this._opacitySlider = this._element.find('#opacity-slider').slider({ tooltip: 'hide' });
         this._opacitySlider.on('slide',this._onOpacitySlide.bind(this));
 
         // Initialize the map object
@@ -532,6 +518,7 @@ App.prototype = _.extend(App.prototype, {
 
         this._onBrightnessSlide();
         this._onSpeedSlide();
+        this._onPathSlide();
 
         this._update();
     },
