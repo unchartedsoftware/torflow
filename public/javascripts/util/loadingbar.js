@@ -43,7 +43,8 @@ LoadingBar.prototype.update = function( percent ) {
     if ( this._percent < percent ) {
         this._percent = percent;
         this._$loader.css({
-            width: this._percent * 100 + '%'
+            width: this._percent * 100 + '%',
+            opacity: 1.0 - ( this._percent/2 )
         });
         if ( this._percent === 1 ) {
             var that  = this;

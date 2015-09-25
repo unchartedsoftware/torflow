@@ -53,50 +53,8 @@ var _getProbabilisticPair = function( nodes ) {
     };
 };
 
-var _subtract = function( a, b ) {
-    return {
-        x: a.x - b.x,
-        y: a.y - b.y
-    };
-};
-
-var _cross = function( a, b ) {
-    return {
-        x: ( a.y * b.z ) - ( b.y * a.z ),
-        y: (-a.x * b.z ) + ( b.x * a.z ),
-        z: ( a.x * b.x ) - ( b.x * a.y )
-    };
-};
-
-var _length2 = function( v ) {
-    return Math.sqrt( v.x * v.x + v.y * v.y );
-};
-
-var _length3 = function( v ) {
-    return Math.sqrt( v.x * v.x + v.y * v.y + v.z * v.z );
-};
-
-var _mult = function( v, s ) {
-    return {
-        x: v.x * s,
-        y: v.y * s,
-        z: v.z * s
-    };
-};
-
-var _normalize = function( v ) {
-    var mag = _length3( v );
-    if ( mag !== 0 ) {
-        return {
-            x: v.x / mag,
-            y: v.y / mag,
-            z: v.z / mag
-        };
-    }
-};
-
 var _generateParticles = function(particleConfig,nodes,count) {
-    var LOADING_STEP = count / 100;
+    var PROGRESS_STEP = count / 1000;
     var buffer = new Float32Array( count * 8 );
 
     for ( var i=0; i<count; i++ ) {
@@ -115,7 +73,7 @@ var _generateParticles = function(particleConfig,nodes,count) {
         buffer[ i*8+6 ] = Math.random();
         buffer[ i*8+7 ] = Math.random();
 
-        if ( (i+1) % LOADING_STEP === 0 ) {
+        if ( (i+1) % PROGRESS_STEP === 0 ) {
             this.postMessage({
                 type: 'progress',
                 progress: i / (particleConfig.count-1)

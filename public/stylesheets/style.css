@@ -163,6 +163,10 @@ a {
     cursor: pointer;
 }
 
+.icon:hover {
+    color: rgb(40, 96, 144);
+}
+
 #brightness-slider,
 #opacity-slider,
 #speed-slider,
