@@ -48,6 +48,7 @@ header {
 h1 {
     color: rgb(20, 155, 223);
     font-size: 36px;
+    font-weight: bold;
     margin: 0;
     padding: 0;
 }
@@ -189,4 +190,19 @@ a {
     margin: 16px 10px;
     padding: 0;
     text-align: center;
+}
+
+.loader-container {
+    position: absolute;
+    left: 0;
+    right: 0;
+    display: inline-block;
+    z-index: 5000;
+}
+
+.loader-bar {
+    position: relative;
+    background-color: red;
+    height: 5px;
+    width: 0%;
 }
