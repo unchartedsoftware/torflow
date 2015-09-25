@@ -91,7 +91,13 @@ var DotLayer = WebGLOverlay.extend({
         // start the webworker
         worker.postMessage({
             type: 'start',
-            config: Config,
+            particleConfig: {
+                speed: Config.particle_base_speed_ms,
+                variance: Config.particle_speed_variance_ms,
+                max_offset: Config.particle_max_offset,
+                offset: Config.particle_offset,
+                count: Config.particle_count
+            },
             nodes: nodes,
             count: this._particleCount || Config.particle_count
         });
@@ -119,6 +125,10 @@ var DotLayer = WebGLOverlay.extend({
         }
     },
 
+    setSpeed: function( speed ) {
+        this._speed = speed;
+    },
+
     draw: function() {
         var gl = this._gl;
         gl.clearColor( 0, 0, 0, 0 );
@@ -129,6 +139,12 @@ var DotLayer = WebGLOverlay.extend({
         this._shader.push();
         this._shader.setUniform( 'uProjectionMatrix', this._camera.projectionMatrix() );
         this._shader.setUniform( 'uTime', Date.now() - this._timestamp );
+        this._shader.setUniform( 'uSpeedFactor', this._speed !== undefined ? this._speed : 1.0 );
+        var ps = Config.particle_size;
+        if ( Config.particle_zoom_scale ) {
+            ps = Config.particle_zoom_scale( this._map.getZoom(), Config.particle_size );
+        }
+        this._shader.setUniform( 'uPointSize', ps );
         this._vertexBuffer.bind();
         gl.drawArrays( gl.POINTS, 0, this._particleCount || Config.particle_count );
         this._vertexBuffer.unbind();

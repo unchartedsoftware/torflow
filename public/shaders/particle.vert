@@ -3,6 +3,8 @@ attribute highp vec4 aOffset;
 
 uniform highp mat4 uProjectionMatrix;
 uniform highp float uTime;
+uniform highp float uPointSize;
+uniform highp float uSpeedFactor;
 
 #define PI 3.1415926
 #define PI_2 (PI*2.0)
@@ -17,11 +19,16 @@ void main() {
     highp vec2 startPos = aPositions.xy;
     highp vec2 stopPos = aPositions.zw;
     highp vec2 offset = aOffset.xy;
-    highp float speed = aOffset.z;
-    highp float timeOffset = speed * aOffset.w;
+    highp float speed = aOffset.z / uSpeedFactor;
+
+    highp vec2 diff = stopPos - startPos;
+    highp float dist = length( diff );
+    highp float nspeed = speed * dist;
+    highp float timeOffset = nspeed * aOffset.w;
+
     highp float noise = rand( timeOffset, offset.x );
     // calc t and interpolate the position
-    highp float t = mod( uTime + timeOffset, speed ) / speed;
+    highp float t = mod( uTime + timeOffset, nspeed ) / nspeed;
     highp vec2 position = startPos + ( stopPos - startPos ) * t;
     // calc positional offset
     highp vec2 fixedOffset = sin( t * PI ) * offset;
@@ -30,7 +37,7 @@ void main() {
     highp float phase = 0.0; //noise * PI_2;
     highp vec2 sinOffset = sin( t * PI_2 * period + phase ) * offset;
     // set point size
-    gl_PointSize = 1.0;
+    gl_PointSize = uPointSize;
     // set position
     gl_Position = uProjectionMatrix * vec4( position + fixedOffset + sinOffset, 0.0, 1.0 );
 }

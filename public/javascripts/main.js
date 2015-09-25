@@ -99,7 +99,7 @@ App.prototype = _.extend(App.prototype, {
                 return {
                     bandwidth: _.reduce(node.circle.relays, function(memo, relay){ return memo + relay.bandwidth; },0) / totalBandwidth,
                     latLng: node.latLng,
-                    px: self._latLngToNormalizedCoord(node.latLng)
+                    pos: self._latLngToNormalizedCoord(node.latLng)
                 };
             });
         } else {
@@ -191,6 +191,11 @@ App.prototype = _.extend(App.prototype, {
         var newBrightness = this._brightnessSlider.slider('getValue');
         var containerEl = this._baseTileLayer.getContainer();
         $(containerEl).css('-webkit-filter','brightness(' + newBrightness + ')');
+    },
+
+    _onSpeedSlide : function() {
+        var newSpeed = this._speedSlider.slider('getValue');
+        this._particleLayer.setSpeed( newSpeed );
     },
 
     _onOpacitySlide : function() {
@@ -466,9 +471,14 @@ App.prototype = _.extend(App.prototype, {
         this._dateSlider.on('slide',this._onDateSlide.bind(this));
 
         this._brightnessSlider = this._element.find('#brightness-slider').slider({
-            tooltip:'hide'
+            tooltip:'brightness'
         });
         this._brightnessSlider.on('slide',this._onBrightnessSlide.bind(this));
+
+        this._speedSlider = this._element.find('#speed-slider').slider({
+            tooltip:'hide'
+        });
+        this._speedSlider.on('slideStop',this._onSpeedSlide.bind(this));
 
         this._opacitySlider = this._element.find('#opacity-slider').slider({
             tooltip:'hide'
@@ -479,9 +489,10 @@ App.prototype = _.extend(App.prototype, {
         this._map = L.map('map', {
             inertia: false,
             zoomControl: false,
+            minZoom: 3,
             maxZoom: Config.maxZoom || 18
         });
-        this._map.setView([30, 0], 3);
+        this._map.setView([30, 0], 4);
 
         // Initialize zoom controls
         this._zoomControls = new L.Control.Zoom({ position: 'topright' });
@@ -499,7 +510,6 @@ App.prototype = _.extend(App.prototype, {
                 maxZoom: Config.maxZoom || 18,
                 noWrap: true
             }).addTo(this._map);
-        this._onBrightnessSlide();
 
         // Initialize the label layer
         this._labelLayer = L.tileLayer(
@@ -518,6 +528,9 @@ App.prototype = _.extend(App.prototype, {
         // Initialize particle layer
         this._particleLayer = new DotLayer();
         this._particleLayer.addTo(this._map);
+
+        this._onBrightnessSlide();
+        this._onSpeedSlide();
 
         this._update();
     },

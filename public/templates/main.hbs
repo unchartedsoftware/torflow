@@ -27,6 +27,12 @@
             <input id="opacity-slider" class='slider' data-slider-id='opacity-slider' type="text" data-slider-min="{{minOpacity}}" data-slider-max="{{maxOpacity}}" data-slider-step="0.01" data-slider-value="{{defaultOpacity}}"/>
             <span class="padded-left">+</span>
         </div>
+        <div class="map-control-element">
+            <Label class="padded-right">Speed</Label>
+            <span class="padded-right">-</span>
+            <input id="speed-slider" class='slider' data-slider-id='speed-slider' type="text" data-slider-min="{{particle_speed_min_factor}}" data-slider-max="{{particle_speed_max_factor}}" data-slider-step="0.01" data-slider-value="1.0"/>
+            <span class="padded-left">+</span>
+        </div>
 
         <div class="map-control-element">
             <input id="show-flow-input" type="checkbox" checked>

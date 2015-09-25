@@ -95,18 +95,18 @@ var _normalize = function( v ) {
     }
 };
 
-var _generateParticles = function(config,nodes,count) {
+var _generateParticles = function(particleConfig,nodes,count) {
     var LOADING_STEP = count / 100;
     var buffer = new Float32Array( count * 8 );
 
     for ( var i=0; i<count; i++ ) {
         var pair = _getProbabilisticPair(nodes);
-        var start = pair.source.px,
-            end = pair.dest.px;
+        var start = pair.source.pos,
+            end = pair.dest.pos;
         var difference = _subtract( end, start ),
             dist = _length2( difference ),
-            speed = config.particle_base_speed_ms + config.particle_speed_variance_ms * Math.random(),
-            offset = Math.min( config.particle_max_channel_width, dist * config.particle_offset ),
+            speed = particleConfig.speed + particleConfig.variance * Math.random(),
+            offset = Math.min( particleConfig.max_offset, dist * particleConfig.offset ),
             perp = _normalize(
                     _cross({
                         x: difference.x,
@@ -131,7 +131,7 @@ var _generateParticles = function(config,nodes,count) {
         if ( (i+1) % LOADING_STEP === 0 ) {
             this.postMessage({
                 type: 'progress',
-                progress: i / (config.particle_count-1)
+                progress: i / (particleConfig.count-1)
             });
         }
     }
@@ -146,6 +146,6 @@ var _generateParticles = function(config,nodes,count) {
 
 this.addEventListener( 'message', function( e ) {
     if ( e.data.type === 'start' ) {
-        _generateParticles( e.data.config, e.data.nodes, e.data.count );
+        _generateParticles( e.data.particleConfig, e.data.nodes, e.data.count );
     }
 });

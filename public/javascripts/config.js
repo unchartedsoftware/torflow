@@ -32,9 +32,15 @@ var config = {
     },
     particle_count : 1000000,
     particle_offset : 0.05,
-    particle_max_channel_width: 20,
-    particle_base_speed_ms : 1000,
-    particle_speed_variance_ms : 4000,
+    particle_max_offset: 20,
+    particle_base_speed_ms : 20000, // ms for particle to circle the earth
+    particle_speed_variance_ms : 40000,
+    particle_speed_min_factor : 0.01,
+    particle_speed_max_factor : 4.0,
+    particle_zoom_scale: function( zoom, config_particle_size ) {
+        return Math.max( 1, config_particle_size * ( zoom - 3 ) );
+    },
+    particle_size: 1,
     title : 'TorFlow',
     summary :
         '<h2>Data Flow in the Tor Network</h2>' +
