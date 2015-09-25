@@ -25,7 +25,7 @@
 * SOFTWARE.
 */
 
-L.CanvasOverlay = L.Class.extend({
+L.WebGLOverlay = L.Class.extend({
 
     initialize: function (options) {
         L.setOptions(this, options);
@@ -177,4 +177,4 @@ L.CanvasOverlay = L.Class.extend({
 
 });
 
-module.exports = L.CanvasOverlay;
+module.exports = L.WebGLOverlay;

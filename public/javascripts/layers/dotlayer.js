@@ -26,10 +26,11 @@
 */
 
 var Config = require('../config.js');
-var CanvasOverlay = require('./canvasoverlay');
-var ParticleSystem = require('../particles/particlesystem');
+var WebGLOverlay = require('./webgloverlay');
+var LoadingBar = require('../util/loadingbar');
+//var ParticleSystem = require('../particles/particlesystem');
 
-var DotLayer = CanvasOverlay.extend({
+var DotLayer = WebGLOverlay.extend({
 
     initShaders: function( done ) {
         this._shader = new esper.Shader({
@@ -42,75 +43,58 @@ var DotLayer = CanvasOverlay.extend({
     },
 
     initBuffers: function( done ) {
-        /**
-         * x: startX
-         * y: startY
-         * z: endX
-         * w: endY
-         */
-        this._positions = _.fill( new Array( Config.particle_count ), [ 0,0,0,0 ] );
-        /**
-         * x: offsetX
-         * y: offsetY
-         * y: speed
-         * w: noise
-         */
-        this._offsets = _.fill( new Array( Config.particle_count ), [ 0,0,0,0 ] );
+        // create filler array
+        var filler = _.fill( new Array( Config.particle_count ), [ 0,0,0,0 ] );
         // create vertex buffer, this will be updated periodically
         this._vertexBuffer = new esper.VertexBuffer(
-            new esper.VertexPackage([ this._positions, this._offsets ])
+            new esper.VertexPackage([
+                /**
+                 * x: offsetX
+                 * y: offsetY
+                 * y: speed
+                 * w: noise
+                 */
+                filler,
+                /**
+                 * x: offsetX
+                 * y: offsetY
+                 * y: speed
+                 * w: noise
+                 */
+                filler ])
         );
         // execute callback
         done();
     },
 
     updateNodes: function(nodes) {
-        if ( !this._system ) {
-            this._system = new ParticleSystem();
+        // prepare loading bar
+        if ( this._loadingBar ) {
+            this._loadingBar.cancel();
         }
-        this._system.updateNodes(nodes);
-        this._updateBuffers();
-    },
-
-    _updateBuffers : function() {
-        var self = this,
-            pairs = this._system.getProbabilisticPairs(this._particleCount);
-        pairs.forEach( function( pair, index ) {
-
-            var src = self._map.project( pair.source.latLng ),
-                dst = self._map.project( pair.dest.latLng ),
-                dim = Math.pow( 2, self._map.getZoom() ) * 256,
-                start = {
-                    x: src.x / dim,
-                    y: ( dim - src.y ) / dim
-                },
-                end = {
-                    x: dst.x / dim,
-                    y: ( dim - dst.y ) / dim
-                };
-
-            self._positions[ index ] = [
-                start.x,
-                start.y,
-                end.x,
-                end.y ];
-
-            var difference = new esper.Vec2( end ).sub( start ),
-                dist = difference.length(),
-                speed = Config.particle_base_speed_ms + Config.particle_speed_variance_ms * Math.random(),
-                offset = Math.min( Config.particle_max_channel_width, dist * Config.particle_offset ),
-                perp = new esper.Vec3( difference.x, difference.y, 0.0 ).cross([ 0, 0, 1.0 ]).normalize(),
-                perpOffset = perp.mult( -offset/2 + Math.random() * offset );
-
-            self._offsets[ index ] = [
-                perpOffset.x,
-                perpOffset.y,
-                speed,
-                Math.random() ];
+        this._loadingBar = new LoadingBar();
+        var self = this;
+        // create web worker to generate particles
+        var worker = new Worker('javascripts/particles/particlesystem.js');
+        worker.addEventListener('message', function( e ) {
+            switch ( e.data.type ) {
+                case 'progress':
+                    self._loadingBar.update( e.data.progress );
+                    break;
+                case 'complete':
+                    self._vertexBuffer.bufferData( new Float32Array( e.data.buffer ) );
+                    self._timestamp = Date.now();
+                    worker.terminate();
+                    break;
+            }
         });
-        var pack = new esper.VertexPackage([ this._positions, this._offsets ]);
-        this._vertexBuffer.bufferData( pack.buffer() );
-        this._timestamp = Date.now();
+        // start the webworker
+        worker.postMessage({
+            type: 'start',
+            config: Config,
+            nodes: nodes,
+            count: this._particleCount || Config.particle_count
+        });
     },
 
     _updateParticleCounts: function() {

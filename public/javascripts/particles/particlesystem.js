@@ -25,65 +25,127 @@
 * SOFTWARE.
 */
 
-var Config = require('../config');
-
-var ParticleSystem = function() {
-    this._nodes = [];
-    this._pairs = [];
+var _getProbabilisticNodeIndex = function( nodes ) {
+    var rnd = Math.random();
+    var i = 0;
+    while (i < nodes.length && rnd > nodes[i].bandwidth) {
+        rnd -= nodes[i].bandwidth;
+        i++;
+    }
+    return Math.min(i,nodes.length-1);
 };
 
-ParticleSystem.prototype = _.extend(ParticleSystem.prototype,{
-
-    _getProbabilisticNodeIndex : function( nodes ) {
-        var rnd = Math.random();
-        var i = 0;
-        while (i < this._nodes.length && rnd > this._nodes[i].bandwidth) {
-            rnd -= this._nodes[i].bandwidth;
-            i++;
+var _getProbabilisticPair = function( nodes ) {
+    var MAX_TRIES = 500;
+    var tries = 0;
+    var source = _getProbabilisticNodeIndex( nodes );
+    var dest = _getProbabilisticNodeIndex( nodes );
+    while (source === dest) {
+        dest = _getProbabilisticNodeIndex( nodes );
+        tries++;
+        if (tries === MAX_TRIES) {
+            throw 'Cannot find destination. Something is wrong with the probaility bandwidths on your nodes!';
         }
-        return Math.min(i,this._nodes.length-1);
-    },
+    }
+    return {
+        source : nodes[source],
+        dest : nodes[dest]
+    };
+};
 
-    _getProbabilisticPair: function() {
-        var MAX_TRIES = 500;
-        var tries = 0;
-        // TODO: return a source/dest pair from nodes based on bandwidth probability
-        var source = this._getProbabilisticNodeIndex();
-        var dest = this._getProbabilisticNodeIndex();
-        while (source === dest) {
-            dest = this._getProbabilisticNodeIndex();
-            tries++;
-            if (tries === MAX_TRIES) {
-                throw 'Cannot find destination. Something is wrong with the probaility bandwidths on your nodes!';
-            }
-        }
+var _subtract = function( a, b ) {
+    return {
+        x: a.x - b.x,
+        y: a.y - b.y
+    };
+};
+
+var _cross = function( a, b ) {
+    return {
+        x: ( a.y * b.z ) - ( b.y * a.z ),
+        y: (-a.x * b.z ) + ( b.x * a.z ),
+        z: ( a.x * b.x ) - ( b.x * a.y )
+    };
+};
+
+var _length2 = function( v ) {
+    return Math.sqrt( v.x * v.x + v.y * v.y );
+};
+
+var _length3 = function( v ) {
+    return Math.sqrt( v.x * v.x + v.y * v.y + v.z * v.z );
+};
+
+var _mult = function( v, s ) {
+    return {
+        x: v.x * s,
+        y: v.y * s,
+        z: v.z * s
+    };
+};
+
+var _normalize = function( v ) {
+    var mag = _length3( v );
+    if ( mag !== 0 ) {
         return {
-            source : this._nodes[source],
-            dest : this._nodes[dest]
+            x: v.x / mag,
+            y: v.y / mag,
+            z: v.z / mag
         };
-    },
+    }
+};
 
-    getProbabilisticPairs: function(count) {
-        if ( !this._dirty ) {
-            return this._pairs;
-        }
-        this._pairs = [];
-        var i;
-        count = count || Config.particle_count;
-        for ( i=0; i<count; i++ ) {
-            this._pairs.push( this._getProbabilisticPair() );
-        }
-        this._dirty = false;
-        return this._pairs;
-    },
+var _generateParticles = function(config,nodes,count) {
+    var LOADING_STEP = count / 100;
+    var buffer = new Float32Array( count * 8 );
 
-    updateNodes: function(nodes) {
-        if (this._nodes !== nodes) {
-            this._nodes = nodes;
-            this._dirty = true;
+    for ( var i=0; i<count; i++ ) {
+        var pair = _getProbabilisticPair(nodes);
+        var start = pair.source.px,
+            end = pair.dest.px;
+        var difference = _subtract( end, start ),
+            dist = _length2( difference ),
+            speed = config.particle_base_speed_ms + config.particle_speed_variance_ms * Math.random(),
+            offset = Math.min( config.particle_max_channel_width, dist * config.particle_offset ),
+            perp = _normalize(
+                    _cross({
+                        x: difference.x,
+                        y: difference.y,
+                        z: 0.0
+                    }, {
+                        x: 0,
+                        y: 0,
+                        z: 1
+                    }) ),
+            perpOffset = _mult( perp, -offset/2 + Math.random() * offset );
+
+        buffer[ i*8 ] = start.x;
+        buffer[ i*8+1 ] = start.y;
+        buffer[ i*8+2 ] = end.x;
+        buffer[ i*8+3 ] = end.y;
+        buffer[ i*8+4 ] = perpOffset.x;
+        buffer[ i*8+5 ] = perpOffset.y;
+        buffer[ i*8+6 ] = speed;
+        buffer[ i*8+7 ] = Math.random();
+
+        if ( (i+1) % LOADING_STEP === 0 ) {
+            this.postMessage({
+                type: 'progress',
+                progress: i / (config.particle_count-1)
+            });
         }
     }
 
-});
+    var result = {
+        type: 'complete',
+        buffer: buffer.buffer
+    };
 
-module.exports = ParticleSystem;
+    this.postMessage( result, [ result.buffer ] );
+};
+
+this.addEventListener( 'message', function( e ) {
+    if ( e.data.type === 'start' ) {
+        _generateParticles( e.data.config, e.data.nodes, e.data.count );
+    }
+});

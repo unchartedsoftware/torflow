@@ -81,15 +81,25 @@ App.prototype = _.extend(App.prototype, {
         this._particleLayer.updateNodes(nodes);
     },
 
+    _latLngToNormalizedCoord : function(latLng) {
+        var px = this._map.project( latLng ),
+            dim = Math.pow( 2, this._map.getZoom() ) * 256;
+        return {
+            x: px.x / dim,
+            y: ( dim - px.y ) / dim
+        };
+    },
+
     _onMapClustered : function() {
         var totalBandwidth = this._getCurrentTotalBandwidth();
         var nodes;
-
+        var self = this;
         if (this._useClusters() === false) {
             nodes = this._currentNodes.objects.map(function (node) {
                 return {
                     bandwidth: _.reduce(node.circle.relays, function(memo, relay){ return memo + relay.bandwidth; },0) / totalBandwidth,
-                    latLng: node.latLng
+                    latLng: node.latLng,
+                    px: self._latLngToNormalizedCoord(node.latLng)
                 };
             });
         } else {
