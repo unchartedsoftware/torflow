@@ -37,10 +37,12 @@ L.WebGLOverlay = L.Class.extend({
 
     initShaders: function( done ) {
         console.error('\'initShaders\' function for CanvasOverlay class must be implemented');
+        done();
     },
 
     initBuffers: function( done ) {
         console.error('\'initBuffers\' function for CanvasOverlay class must be implemented');
+        done();
     },
 
     _initGL : function() {
@@ -82,13 +84,11 @@ L.WebGLOverlay = L.Class.extend({
         if (!this._canvas) {
             this._initCanvas();
         }
-        map._panes.overlayPane.appendChild(this._canvas);
+        map._panes.tilePane.appendChild(this._canvas);
         this._initGL();
         map.on('move', this._reset, this);
         map.on('resize',  this._resize, this);
-        //map.on('zoomstart', this.hide, this);
         map.on('zoomend', this._reset, this);
-        //map.on('zoomend', this.show, this);
         if (map.options.zoomAnimation && L.Browser.any3d) {
             map.on('zoomanim', this._animateZoom, this);
         }
@@ -96,12 +96,10 @@ L.WebGLOverlay = L.Class.extend({
     },
 
     onRemove: function (map) {
-        map.getPanes().overlayPane.removeChild(this._canvas);
+        map.getPanes().tilePane.removeChild(this._canvas);
         map.off('move', this._reset, this);
         map.off('resize', this._resize, this);
-        //map.off('zoomstart', this.hide, this);
         map.off('zoomend', this._reset, this);
-        //map.off('zoomend', this.show, this);
         if (map.options.zoomAnimation) {
             map.off('zoomanim', this._animateZoom, this);
         }
