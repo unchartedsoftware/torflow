@@ -128,8 +128,23 @@ var DotLayer = WebGLOverlay.extend({
         this._speed = speed;
     },
 
+    getSpeed: function() {
+        return this._speed !== undefined ? this._speed : 1.0;
+    },
+
     setPathOffset: function( offset ) {
         this._pathOffset = offset;
+    },
+
+    getPathOffset: function() {
+        return this._pathOffset !== undefined ? this._pathOffset : 1.0;
+    },
+
+    getParticleSize: function() {
+        if ( Config.particle_zoom_scale ) {
+            return Config.particle_zoom_scale( this._map.getZoom(), Config.particle_size );
+        }
+        return Config.particle_size;
     },
 
     draw: function() {
@@ -142,12 +157,9 @@ var DotLayer = WebGLOverlay.extend({
         this._shader.push();
         this._shader.setUniform( 'uProjectionMatrix', this._camera.projectionMatrix() );
         this._shader.setUniform( 'uTime', Date.now() - this._timestamp );
-        this._shader.setUniform( 'uSpeedFactor', this._speed !== undefined ? this._speed : 1.0 );
-        var ps = Config.particle_size;
-        if ( Config.particle_zoom_scale ) {
-            ps = Config.particle_zoom_scale( this._map.getZoom(), Config.particle_size );
-        }
-        this._shader.setUniform( 'uPointSize', ps );
+        this._shader.setUniform( 'uSpeedFactor', this.getSpeed() );
+        this._shader.setUniform( 'uOffsetFactor', this.getPathOffset() );
+        this._shader.setUniform( 'uPointSize', this.getParticleSize() );
         this._vertexBuffer.bind();
         gl.drawArrays( gl.POINTS, 0, this._particleCount || Config.particle_count );
         this._vertexBuffer.unbind();

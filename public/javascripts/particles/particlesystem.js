@@ -101,31 +101,18 @@ var _generateParticles = function(particleConfig,nodes,count) {
 
     for ( var i=0; i<count; i++ ) {
         var pair = _getProbabilisticPair(nodes);
-        var start = pair.source.pos,
-            end = pair.dest.pos;
-        var difference = _subtract( end, start ),
-            dist = _length2( difference ),
-            speed = particleConfig.speed + particleConfig.variance * Math.random(),
-            offset = dist * particleConfig.offset,
-            perp = _normalize(
-                    _cross({
-                        x: difference.x,
-                        y: difference.y,
-                        z: 0.0
-                    }, {
-                        x: 0,
-                        y: 0,
-                        z: 1
-                    }) ),
-            perpOffset = _mult( perp, -offset/2 + Math.random() * offset );
+        var start = pair.source.pos;
+        var end = pair.dest.pos;
+        var speed = particleConfig.speed + particleConfig.variance * Math.random();
+        var offset = particleConfig.offset;
 
         buffer[ i*8 ] = start.x;
         buffer[ i*8+1 ] = start.y;
         buffer[ i*8+2 ] = end.x;
         buffer[ i*8+3 ] = end.y;
-        buffer[ i*8+4 ] = perpOffset.x;
-        buffer[ i*8+5 ] = perpOffset.y;
-        buffer[ i*8+6 ] = speed;
+        buffer[ i*8+4 ] = offset;
+        buffer[ i*8+5 ] = speed;
+        buffer[ i*8+6 ] = Math.random();
         buffer[ i*8+7 ] = Math.random();
 
         if ( (i+1) % LOADING_STEP === 0 ) {

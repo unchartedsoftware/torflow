@@ -11,11 +11,8 @@ var openConnection = function(onSuccess,onError) {
 	pool.getConnection(function(err,connection) {
 		if (err) {
 			console.trace(err.message);
-			closeConnection(connection);
 			if ( onError ) {
 				onError(err);
-			} else {
-				onSuccess(err);
 			}
 		} else {
 			connection.query('SET NAMES \'utf8mb4\';', function() {
