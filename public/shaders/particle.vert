@@ -30,7 +30,7 @@ void main() {
     highp float phase = 0.0; //noise * PI_2;
     highp vec2 sinOffset = sin( t * PI_2 * period + phase ) * offset;
     // set point size
-    gl_PointSize = 2.0;
+    gl_PointSize = 1.0;
     // set position
     gl_Position = uProjectionMatrix * vec4( position + fixedOffset + sinOffset, 0.0, 1.0 );
 }

@@ -202,7 +202,7 @@ a {
 
 .loader-bar {
     position: relative;
-    background-color: red;
+    background-color: rgb(20, 155, 223);
     height: 5px;
     width: 0%;
 }

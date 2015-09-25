@@ -30,7 +30,7 @@ var config = {
         min : 3,
         max : 40
     },
-    particle_count : 200000,
+    particle_count : 1000000,
     particle_offset : 0.05,
     particle_max_channel_width: 20,
     particle_base_speed_ms : 1000,
