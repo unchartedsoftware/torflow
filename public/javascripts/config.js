@@ -30,7 +30,7 @@ var config = {
         min : 3,
         max : 40
     },
-    particle_count : 500000,
+    particle_count : 2000000,
     particle_offset : 0.01,
     particle_min_offset: 0.0001,
     particle_max_offset: 2.0,
@@ -62,7 +62,9 @@ var config = {
             '<a href="https://creativecommons.org/licenses/by/3.0/">CC BY 3.0</a>' +
             '|' +
             '<div class="uncharted-logo">' +
-                '<a href="http://uncharted.software" target="_blank"><img src="/img/uncharted-logo-light-gray-small.png"></a>' +
+                '<a href="http://uncharted.software" target="_blank">' +
+                    '<img style="width:200px;" src="/img/uncharted-logo-white.png">' +
+                '</a>' +
             '</div>' +
         '</span>',
     minBrightness : 0.01,

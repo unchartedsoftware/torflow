@@ -84,6 +84,7 @@ a {
     position: absolute;
     right: 0;
     bottom: 14px;
+    opacity: 0.8;
 }
 
 .attribution {
