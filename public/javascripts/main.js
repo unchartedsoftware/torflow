@@ -29,22 +29,14 @@ var DotLayer = require('./layers/dotlayer');
 var CountryLayer = require('./layers/countrylayer');
 var Lerp = require('./util/lerp');
 var Config = require('./config');
-
+var MarkerTooltip = require('./util/markertooltip');
 var Template = require('./templates/main');
-var AboutTemplate = require('./templates/about');
-
-var DEFAULT_ICON = L.divIcon({
-    className: 'relay-cluster',
-    iconSize:L.point(Config.node_radius.min, Config.node_radius.min)
-});
 
 /**
  * Creates the TorFlow front-end app
  * @constructor
  */
-var App = function() {
-
-};
+var App = function() {};
 
 App.prototype = _.extend(App.prototype, {
 
@@ -77,71 +69,38 @@ App.prototype = _.extend(App.prototype, {
         });
     },
 
-    _updateSimulation : function(nodes) {
+    _latLngToNormalizedCoord : function(latLng) {
+        var px = this._map.project( latLng ),
+            dim = Math.pow( 2, this._map.getZoom() ) * 256;
+        return {
+            x: px.x / dim,
+            y: ( dim - px.y ) / dim
+        };
+    },
+
+    _sumRelaysBandwidth : function( relays ) {
+        return _.reduce(relays, function(memo, relay) {
+            return memo + relay.bandwidth;
+        }, 0);
+    },
+
+    _getNormalizedBandwidth : function( relays ) {
+        return this._sumRelaysBandwidth(relays) / this._getCurrentTotalBandwidth();
+    },
+
+    _createParticles : function() {
+        var self = this;
+        var nodes = this._currentNodes.objects.map(function (node) {
+            return {
+                bandwidth: self._getNormalizedBandwidth(node.circle.relays),
+                latLng: node.latLng,
+                pos: self._latLngToNormalizedCoord(node.latLng)
+            };
+        });
         this._particleLayer.updateNodes(nodes);
     },
 
-    _onMapClustered : function() {
-        var totalBandwidth = this._getCurrentTotalBandwidth();
-        var nodes;
-
-        if (this._useClusters() === false) {
-            nodes = this._currentNodes.objects.map(function (node) {
-                return {
-                    bandwidth: _.reduce(node.circle.relays, function(memo, relay){ return memo + relay.bandwidth; },0) / totalBandwidth,
-                    latLng: node.latLng
-                };
-            });
-        } else {
-
-            var clusterset = this._clusters[this._map.getZoom()];
-
-            var aggregatesIncluded = {};
-            nodes = clusterset.map(function (cluster) {
-                var bandwidth = 0;
-                cluster.getAllChildMarkers().forEach(function (child) {
-                    child.data.circle.relays.forEach(function (relay) {
-                        bandwidth += relay.bandwidth;
-                    });
-                    aggregatesIncluded[child.data.circle.id] = true;
-                });
-
-                return {
-                    bandwidth: bandwidth,
-                    latLng: cluster._latlng
-                };
-            });
-
-            // Add any singleton relays that aren't in a marker cluster
-            var allVisisbleRelays = this._getVisibleRelays();
-            allVisisbleRelays.forEach(function (relay) {
-                if (!aggregatesIncluded[relay.circle.id]) {
-                    nodes.push({
-                        bandwidth: relay.circle.bandwidth,
-                        latLng: relay.latLng
-                    });
-                }
-            });
-
-            nodes.forEach(function (node) {
-                node.bandwidth /= totalBandwidth;
-            });
-
-            var checkedSum = 0;
-            nodes.forEach(function(n) {
-                checkedSum += n.bandwidth;
-            });
-
-            nodes = nodes.sort(function(n1,n2) { return n2.bandwidth - n1.bandwidth; });
-        }
-        this._updateSimulation(nodes);
-    },
-
-    _useClusters : function() {
-        return false; //this._element.find('#cluster-input').prop('checked');
-    },
-
-    _scaleBandwidth : function() {
+    _scaleByBandwidth : function() {
         return this._element.find('#scale-bandwidth-input').prop('checked');
     },
 
@@ -158,10 +117,7 @@ App.prototype = _.extend(App.prototype, {
             .hours(0)
             .minutes(0)
             .seconds(0);
-
-        var mStr = m.format();
-
-        return mStr;
+        return m.format();
     },
 
     _update : function() {
@@ -181,6 +137,16 @@ App.prototype = _.extend(App.prototype, {
         var newBrightness = this._brightnessSlider.slider('getValue');
         var containerEl = this._baseTileLayer.getContainer();
         $(containerEl).css('-webkit-filter','brightness(' + newBrightness + ')');
+    },
+
+    _onSpeedSlide : function() {
+        var newSpeed = this._speedSlider.slider('getValue');
+        this._particleLayer.setSpeed( newSpeed );
+    },
+
+    _onPathSlide : function() {
+        var offset = this._pathSlider.slider('getValue');
+        this._particleLayer.setPathOffset( offset );
     },
 
     _onOpacitySlide : function() {
@@ -210,31 +176,11 @@ App.prototype = _.extend(App.prototype, {
         }
     },
 
-    _onToggleClusters : function() {
-        if (this._useClusters()) {
-            this._element.find('#scale-bandwidth-input')
-                .prop('disabled',true)
-                .prop('checked',true);
-
-            this._element.find('#step-input')
-                .prop('disabled',true)
-                .prop('checked',false);
-        } else {
-            this._element.find('#scale-bandwidth-input').prop('disabled',false);
-            this._element.find('#step-input').prop('disabled',false);
-        }
-        this._update();
-    },
-
-    _onToggleStep : function() {
-
-    },
-
     _onToggleScale : function() {
         this._update();
     },
 
-    _onToggleLabels : function(e) {
+    _onToggleLabels : function() {
         if (this._showingLabels) {
             this._map.removeLayer(this._labelLayer);
             this._showingLabels = false;
@@ -249,31 +195,8 @@ App.prototype = _.extend(App.prototype, {
 
         this._markersLayer = L.markerClusterGroup({
             removeOutsideVisibleBounds : false,
-            disableClusteringAtZoom: this._useClusters() ? undefined : 1,
+            disableClusteringAtZoom: true,
             zoomToBoundsOnClick : false,
-            tooltip : function(cluster) {
-                var markers = cluster.getAllChildMarkers();
-                var clusterRelayCount = 0;
-                var clusterBandwidth = 0;
-                markers.forEach(function(markerCluster) {
-                    clusterRelayCount += markerCluster.data.circle.relays.length;
-                    var groupBandwidth = 0;
-                    markerCluster.data.circle.relays.forEach(function(relay) {
-                        groupBandwidth += relay.bandwidth;
-                    });
-                    clusterBandwidth += groupBandwidth;
-                });
-                var bandwidthPercent = Math.round((clusterBandwidth / self._getCurrentTotalBandwidth()) * 100);
-                var relayCountPercent = Math.round((clusterRelayCount / self._getCurrentTotalRelays()) * 100);
-
-                var bandwidthPercentString = bandwidthPercent === 0 ? '<1%' : bandwidthPercent + '%';
-                var relayCountPercentString = relayCountPercent === 0 ? '<1%' : relayCountPercent + '%';
-
-                return '<p>Relays in Group: ' + clusterRelayCount + '(' + relayCountPercentString + ')</p>' + '<p>Bandwidth: ' + bandwidthPercentString + '</p>';
-            },
-            tooltipOffset : function(cluster,icon) {
-                return new L.Point(0,-icon.options.iconSize.x/2);
-            },
             iconCreateFunction: function (cluster) {
                 var markers = cluster.getAllChildMarkers();
 
@@ -298,12 +221,10 @@ App.prototype = _.extend(App.prototype, {
                     });
                     weightAvgLat /= clusterBandwidth;
                     weightedAvgLng /= clusterBandwidth;
-
                     cluster.setLatLng(new L.LatLng(weightAvgLat, weightedAvgLng));
                 }
 
                 self._clusters[self._map.getZoom()].push(cluster);
-
 
                 var radius = Config.node_radius.min + (Config.node_radius.max-Config.node_radius.min)*clusterBandwidth;
 
@@ -316,24 +237,21 @@ App.prototype = _.extend(App.prototype, {
             }
         });
 
-        //this._markersLayer.on('animationend', this._onMapClustered.bind(this));
-
         var maxBW = -Number.MAX_VALUE;
         var minBW = Number.MAX_VALUE;
         this._currentNodes.objects.forEach(function(node) {
-            var nodeBW = _.reduce(node.circle.relays, function(memo, relay){ return memo + relay.bandwidth; },0);
+            var nodeBW = self._sumRelaysBandwidth(node.circle.relays);
             maxBW = Math.max(maxBW,nodeBW);
             minBW = Math.min(minBW,nodeBW);
         });
 
         this._currentNodes.objects.forEach(function(node) {
-            var title = node.circle.relays.length === 1 ? node.circle.relays[0].name : node.circle.relays.length + ' relays at location';
+            var relays = node.circle.relays;
+            var title = relays.length === 1 ? relays[0].name : relays.length + ' relays at location';
             var marker;
-            var usedRadius;
-            if (self._scaleBandwidth()) {
-                var nodeBW = _.reduce(node.circle.relays, function(memo, relay){ return memo + relay.bandwidth; },0);
+            if (self._scaleByBandwidth()) {
+                var nodeBW = self._sumRelaysBandwidth(relays);
                 var pointRadius = Lerp(Config.node_radius.min,Config.node_radius.max,nodeBW / (maxBW-minBW));
-                usedRadius = pointRadius;
                 marker = L.marker(node.latLng, {
                     icon : L.divIcon({
                         className: 'relay-cluster',
@@ -341,25 +259,19 @@ App.prototype = _.extend(App.prototype, {
                     })
                 });
             } else {
-                marker = L.marker(node.latLng, {icon: DEFAULT_ICON});
-                usedRadius = Config.node_radius.min;
+                marker = L.marker(node.latLng, {
+                    icon: L.divIcon({
+                        className: 'relay-cluster',
+                        iconSize: L.point(Config.node_radius.min, Config.node_radius.min)
+                    })
+                });
             }
             marker.data = node;
-            marker.bindPopup(title, {
-                offset : new L.Point(0,-usedRadius/2)
-            });
-            marker.on('mouseover',function() {
-                marker.openPopup();
-            });
-            marker.on('mouseout',function() {
-                marker.closePopup();
-            });
+            MarkerTooltip( marker, title );
             self._markersLayer.addLayer(marker);
         });
 
         this._map.addLayer(this._markersLayer);
-
-        this._onMapClustered();
     },
 
     _getCurrentTotalBandwidth : function() {
@@ -374,37 +286,41 @@ App.prototype = _.extend(App.prototype, {
 
     _getCurrentTotalRelays : function() {
         var totalRelays = 0;
-        this._currentNodes.objects.forEach(function(d,i) {
-            totalRelays+= d.circle.relays.length;
+        this._currentNodes.objects.forEach(function(node) {
+            totalRelays+= node.circle.relays.length;
         });
         return totalRelays;
     },
 
-    _fetch : function(isoDateStr, onNodesReady) {
-        var self = this;
-        var idToLatLng = {};
+    _fetch : function(isoDateStr) {
 
         function handleNodes(nodes) {
-            /* Add a LatLng object to each item in the dataset */
-            nodes.objects.forEach(function(d,i) {
-                d.latLng = new L.LatLng(d.circle.coordinates[0],
-                    d.circle.coordinates[1]);
-                idToLatLng[d.circle.id] = d.latLng;
+            // Add a LatLng object to each item in the dataset
+            nodes.objects.forEach(function(node) {
+                node.latLng = new L.LatLng(
+                    node.circle.coordinates[0],
+                    node.circle.coordinates[1]);
             });
-
             // Initialize zoom -> clusters map
             var minZoom = self._map.getMinZoom();
             var maxZoom = self._map.getMaxZoom();
             for (var i = minZoom; i <= maxZoom; i++) {
                 self._clusters[i] = [];
             }
-
+            // Create markers
             self._createMarkers();
+            // Update particles
+            if ( oldNodes !== self._currentNodes ) {
+                self._createParticles();
+            }
         }
 
         function handleHistogram(histogram) {
             self._countryLayer.set(histogram);
         }
+
+        var oldNodes = this._currentNodes,
+            self = this;
 
         if (this._currentDate === isoDateStr) {
             handleNodes(this._currentNodes);
@@ -412,13 +328,13 @@ App.prototype = _.extend(App.prototype, {
         } else {
             d3.json('/nodes/' + encodeURI(isoDateStr), function (nodes) {
                 self._currentNodes = nodes;
-                self._currentDate = isoDateStr;
                 handleNodes(nodes);
             });
             d3.json('/country/' + encodeURI(isoDateStr),function(histogram) {
                 self._currentHistogram = histogram;
                 handleHistogram(histogram);
             });
+            self._currentDate = isoDateStr;
         }
     },
 
@@ -431,9 +347,7 @@ App.prototype = _.extend(App.prototype, {
         }))));
         this._element.find('.hidden-filter-btn').change(this._onHiddenFilterChange.bind(this));
         this._element.find('#show-flow-input').change(this._onToggleFlow.bind(this));
-        //this._element.find('#cluster-input').change(this._onToggleClusters.bind(this));
         this._element.find('#label-input').change(this._onToggleLabels.bind(this));
-        this._element.find('#step-input').change(this._onToggleStep.bind(this));
         this._element.find('#scale-bandwidth-input').change(this._onToggleScale.bind(this));
 
         this._element.find('#summary-button').click( function() {
@@ -448,30 +362,31 @@ App.prototype = _.extend(App.prototype, {
         this._showingLabels = this._element.find('#label-input').prop('checked');
 
         this._dateLabel = this._element.find('#date-label');
-        this._dateSlider = this._element.find('#date-slider').slider({
-            tooltip:'hide'
-        });
+        this._dateSlider = this._element.find('#date-slider').slider({ tooltip: 'hide' });
 
         this._dateSlider.on('slideStop', this._update.bind(this));
         this._dateSlider.on('slide',this._onDateSlide.bind(this));
 
-        this._brightnessSlider = this._element.find('#brightness-slider').slider({
-            tooltip:'hide'
-        });
+        this._brightnessSlider = this._element.find('#brightness-slider').slider({ tooltip: 'hide' });
         this._brightnessSlider.on('slide',this._onBrightnessSlide.bind(this));
 
-        this._opacitySlider = this._element.find('#opacity-slider').slider({
-            tooltip:'hide'
-        });
+        this._speedSlider = this._element.find('#speed-slider').slider({ tooltip: 'hide' });
+        this._speedSlider.on('slideStop',this._onSpeedSlide.bind(this));
+
+        this._pathSlider = this._element.find('#path-slider').slider({ tooltip: 'hide' });
+        this._pathSlider.on('slideStop',this._onPathSlide.bind(this));
+
+        this._opacitySlider = this._element.find('#opacity-slider').slider({ tooltip: 'hide' });
         this._opacitySlider.on('slide',this._onOpacitySlide.bind(this));
 
         // Initialize the map object
         this._map = L.map('map', {
             inertia: false,
             zoomControl: false,
+            minZoom: 3,
             maxZoom: Config.maxZoom || 18
         });
-        this._map.setView([30, 0], 3);
+        this._map.setView([40, -42], 4);
 
         // Initialize zoom controls
         this._zoomControls = new L.Control.Zoom({ position: 'topright' });
@@ -489,14 +404,14 @@ App.prototype = _.extend(App.prototype, {
                 maxZoom: Config.maxZoom || 18,
                 noWrap: true
             }).addTo(this._map);
-        this._onBrightnessSlide();
 
         // Initialize the label layer
         this._labelLayer = L.tileLayer(
             mapUrlBase + 'dark_only_labels/{z}/{x}/{y}.png',
             {
                 maxZoom: Config.maxZoom || 18,
-                noWrap: true
+                noWrap: true,
+                zIndex: 10
             });
         if (this._showingLabels) {
             this._labelLayer.addTo(this._map);
@@ -509,6 +424,10 @@ App.prototype = _.extend(App.prototype, {
         this._particleLayer = new DotLayer();
         this._particleLayer.addTo(this._map);
 
+        this._onBrightnessSlide();
+        this._onSpeedSlide();
+        this._onPathSlide();
+
         this._update();
     },
 
@@ -518,14 +437,8 @@ App.prototype = _.extend(App.prototype, {
     start: function () {
         // Fetch the dates available + relay count for each date
         $.get('/dates',this._init.bind(this));
-        // TODO: display wait dialog
-    },
-
-    about : function() {
-        $.get('data/changelog.json',function(changelog) {
-            $(document.body).append($(AboutTemplate(changelog)));
-        });
     }
+
 });
 
 exports.App = App;

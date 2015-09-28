@@ -26,30 +26,23 @@
 */
 
 var CountryLayer = function(map) {
-
     this._map = map;
     this._map._initPathRoot();
-
-    var getStyleFn = this._getFeatureStyle.bind(this);
     this._geoJSONLayer = L.geoJson(null,{
-        style : getStyleFn
+        style : this._getFeatureStyle.bind(this)
     }).addTo(this._map);
-
     this._histogram = null;
     this._totalClientCount = null;
     this._geoJSONMap = null;
-
-    this._colorScale =  d3.scale.linear()
-        .range(['yellow', 'red']) // or use hex values
+    this._colorScale = d3.scale.linear()
+        .range(['white', 'blue']) // or use hex values
         .domain([0,1]);
 };
 CountryLayer.prototype = _.extend(CountryLayer.prototype, {
 
     set : function(countryCodeToCount) {
         var self = this;
-
         this._histogram = countryCodeToCount;
-
         var CC = Object.keys(countryCodeToCount);
         var request = {
             url: '/geo',
@@ -112,8 +105,8 @@ CountryLayer.prototype = _.extend(CountryLayer.prototype, {
         var fillColor = this._colorScale(relativePercentage);
         return {
             color : fillColor,
-            weight : 1,
-            opacity : 1
+            weight : 0,
+            opacity : 0.3
         };
     },
 
@@ -121,7 +114,7 @@ CountryLayer.prototype = _.extend(CountryLayer.prototype, {
         this._geoJSONLayer.clearLayers();
     },
 
-    setOpacity : function(opacity) {
+    setOpacity : function() {
         // TODO:  how to handle this?
     }
 });

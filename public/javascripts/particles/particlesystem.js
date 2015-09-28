@@ -25,85 +25,72 @@
 * SOFTWARE.
 */
 
-var Particle = require('./particle');
-
-var ParticleSystem = function(count,GetParticle) {
-    this._count = count;
-    this._available = [];
-    this._active = {};
-    this._getParticleFn = GetParticle || function() { return new Particle(); };
-
-    this._init();
+var _getProbabilisticNodeIndex = function( nodes ) {
+    var rnd = Math.random();
+    var i = 0;
+    while (i < nodes.length && rnd > nodes[i].bandwidth) {
+        rnd -= nodes[i].bandwidth;
+        i++;
+    }
+    return Math.min(i,nodes.length-1);
 };
 
-ParticleSystem.prototype = _.extend(ParticleSystem.prototype, {
-    _init : function() {
-        for (var i = 0; i < this._count; i++) {
-            this._available.push(this._getParticleFn());
+var _getProbabilisticPair = function( nodes ) {
+    var MAX_TRIES = 500;
+    var tries = 0;
+    var source = _getProbabilisticNodeIndex( nodes );
+    var dest = _getProbabilisticNodeIndex( nodes );
+    while (source === dest) {
+        dest = _getProbabilisticNodeIndex( nodes );
+        tries++;
+        if (tries === MAX_TRIES) {
+            throw 'Cannot find destination. Something is wrong with the probaility bandwidths on your nodes!';
         }
-    },
-    _onParticleDied : function(particle) {
-        // Release it into the wild and notify listeners
-        particle.reset();
-        delete this._active[particle.id()];
-        if (Object.keys(this._active).length + this._available.length < this._count) {
-            this._available.push(particle);
-            this._onParticlesAvailable(this._available.length);
-        }
-    },
-    count : function(count) {
-        if (count!==undefined) {
-            if (count > this._count) {
-                for (var i = this._count; i < count; i++) {
-                    this._available.push(this._getParticleFn());
-                }
-                this._onParticlesAvailable(this._available.length);
+    }
+    return {
+        source : nodes[source],
+        dest : nodes[dest]
+    };
+};
 
-            }
-            this._count = count;
-        } else {
-            return this._count;
-        }
-    },
-    addParticle : function(source,destination,color) {
-        if (this._available.length) {
-            var particle = this._available.pop();
+var _generateParticles = function(particleConfig,nodes,count) {
+    var PROGRESS_STEP = count / 1000;
+    var buffer = new Float32Array( count * 8 );
 
-            if (!source || !destination) {
-                var ibreak = 0;
-                ibreak++;
-            }
+    for ( var i=0; i<count; i++ ) {
+        var pair = _getProbabilisticPair(nodes);
+        var start = pair.source.pos;
+        var end = pair.dest.pos;
+        var speed = particleConfig.speed + particleConfig.variance * Math.random();
+        var offset = particleConfig.offset;
 
-            particle
-                .source(source)
-                .destination(destination)
-                .tailColor(color || null)
-                .onDeath(this._onParticleDied.bind(this))
-                .start();
-            this._active[particle.id()] = particle;
+        buffer[ i*8 ] = start.x;
+        buffer[ i*8+1 ] = start.y;
+        buffer[ i*8+2 ] = end.x;
+        buffer[ i*8+3 ] = end.y;
+        buffer[ i*8+4 ] = offset;
+        buffer[ i*8+5 ] = speed;
+        buffer[ i*8+6 ] = Math.random();
+        buffer[ i*8+7 ] = Math.random();
+
+        if ( (i+1) % PROGRESS_STEP === 0 ) {
+            this.postMessage({
+                type: 'progress',
+                progress: i / (particleConfig.count-1)
+            });
         }
-        return this;
-    },
-    destroy : function() {
-        this._available.forEach(function(inactiveParticle) {
-            inactiveParticle.destroy();
-        });
-        var self = this;
-        Object.keys(this._active).forEach(function(particleId) {
-            var activeParticle = self._active[particleId];
-            activeParticle.destroy();
-        });
-    },
-    onParticlesAvailable : function(callback) {
-        this._onParticlesAvailable = callback;
-        return this;
-    },
-    positions : function() {
-        var self = this;
-        return Object.keys(this._active).map(function(particleId) {
-            return self._active[particleId].position();
-        });
+    }
+
+    var result = {
+        type: 'complete',
+        buffer: buffer.buffer
+    };
+
+    this.postMessage( result, [ result.buffer ] );
+};
+
+this.addEventListener( 'message', function( e ) {
+    if ( e.data.type === 'start' ) {
+        _generateParticles( e.data.particleConfig, e.data.nodes, e.data.count );
     }
 });
-
-module.exports = ParticleSystem;

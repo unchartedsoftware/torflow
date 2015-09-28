@@ -55,6 +55,7 @@ function doBuild(shouldMinify) {
         .bundle()
         .on( 'error', function( e ) {
             console.log( e );
+            this.emit('end');
         })
         .pipe( source( 'torflow.js' ) );
 
@@ -123,12 +124,12 @@ gulp.task('watch',function () {
     gulp.watch(config.templates + '**/*.hbs', ['templates']);
 });
 
-gulp.task('install',function(cb) {
-    runSequence('templates',['lint'],['build','build-extern-js','build-extern-css']);
+gulp.task('install',function(done) {
+    runSequence('templates',['lint'],['build','build-extern-js','build-extern-css'], done);
 });
-gulp.task('deploy',function(cb) {
-    runSequence('templates',['minifyCss','lint'],['minify','build-extern-js','build-extern-css']);
+gulp.task('deploy',function(done) {
+    runSequence('templates',['minifyCss','lint'],['minify','build-extern-js','build-extern-css'], done);
 });
-gulp.task('default', function(cb) {
-    runSequence('templates',['lint'],['build','build-extern-js','build-extern-css'],'watch');
+gulp.task('default', function(done) {
+    runSequence('templates',['lint'],['build','build-extern-js','build-extern-css'],'watch', done);
 });
