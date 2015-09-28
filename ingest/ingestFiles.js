@@ -3,7 +3,7 @@ var connectionPool = require('../db/connection');
 var ingestFile = require('./ingestFile');
 var process = require('../util/process_each');
 
-var _addDateIndex = function(dates,onSuccess,onError) {
+var _addDateIndex = function(onSuccess,onError) {
 	connectionPool.query(
 		'ALTER TABLE `relays` ADD INDEX `date` (`date`)',
 		onSuccess,
@@ -53,8 +53,9 @@ var ingestFiles = function(resolvedPath,onSuccess,onError) {
 					}, function() {
 						// when finished
 						connectionPool.close(conn);
+
                         // add date index
-                        _addDateIndex();
+                        _addDateIndex(onSuccess,onError);
 					});
 				}
 			});
