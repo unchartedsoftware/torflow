@@ -25,85 +25,127 @@
 * SOFTWARE.
 */
 
-var Particle = require('./particle');
-
-var ParticleSystem = function(count,GetParticle) {
-    this._count = count;
-    this._available = [];
-    this._active = {};
-    this._getParticleFn = GetParticle || function() { return new Particle(); };
-
-    this._init();
+var _getProbabilisticNodeIndex = function( nodes ) {
+    var rnd = Math.random();
+    var i = 0;
+    while (i < nodes.length && rnd > nodes[i].bandwidth) {
+        rnd -= nodes[i].bandwidth;
+        i++;
+    }
+    return Math.min(i,nodes.length-1);
 };
 
-ParticleSystem.prototype = _.extend(ParticleSystem.prototype, {
-    _init : function() {
-        for (var i = 0; i < this._count; i++) {
-            this._available.push(this._getParticleFn());
+var _getProbabilisticPair = function( nodes ) {
+    var MAX_TRIES = 500;
+    var tries = 0;
+    var source = _getProbabilisticNodeIndex( nodes );
+    var dest = _getProbabilisticNodeIndex( nodes );
+    while (source === dest) {
+        dest = _getProbabilisticNodeIndex( nodes );
+        tries++;
+        if (tries === MAX_TRIES) {
+            throw 'Cannot find destination. Something is wrong with the probaility bandwidths on your nodes!';
         }
-    },
-    _onParticleDied : function(particle) {
-        // Release it into the wild and notify listeners
-        particle.reset();
-        delete this._active[particle.id()];
-        if (Object.keys(this._active).length + this._available.length < this._count) {
-            this._available.push(particle);
-            this._onParticlesAvailable(this._available.length);
-        }
-    },
-    count : function(count) {
-        if (count!==undefined) {
-            if (count > this._count) {
-                for (var i = this._count; i < count; i++) {
-                    this._available.push(this._getParticleFn());
-                }
-                this._onParticlesAvailable(this._available.length);
+    }
+    return {
+        source : nodes[source],
+        dest : nodes[dest]
+    };
+};
 
-            }
-            this._count = count;
-        } else {
-            return this._count;
-        }
-    },
-    addParticle : function(source,destination,color) {
-        if (this._available.length) {
-            var particle = this._available.pop();
+var _subtract = function( a, b ) {
+    return {
+        x: a.x - b.x,
+        y: a.y - b.y
+    };
+};
 
-            if (!source || !destination) {
-                var ibreak = 0;
-                ibreak++;
-            }
+var _cross = function( a, b ) {
+    return {
+        x: ( a.y * b.z ) - ( b.y * a.z ),
+        y: (-a.x * b.z ) + ( b.x * a.z ),
+        z: ( a.x * b.x ) - ( b.x * a.y )
+    };
+};
 
-            particle
-                .source(source)
-                .destination(destination)
-                .tailColor(color || null)
-                .onDeath(this._onParticleDied.bind(this))
-                .start();
-            this._active[particle.id()] = particle;
+var _length2 = function( v ) {
+    return Math.sqrt( v.x * v.x + v.y * v.y );
+};
+
+var _length3 = function( v ) {
+    return Math.sqrt( v.x * v.x + v.y * v.y + v.z * v.z );
+};
+
+var _mult = function( v, s ) {
+    return {
+        x: v.x * s,
+        y: v.y * s,
+        z: v.z * s
+    };
+};
+
+var _normalize = function( v ) {
+    var mag = _length3( v );
+    if ( mag !== 0 ) {
+        return {
+            x: v.x / mag,
+            y: v.y / mag,
+            z: v.z / mag
+        };
+    }
+};
+
+var _generateParticles = function(config,nodes,count) {
+    var LOADING_STEP = count / 100;
+    var buffer = new Float32Array( count * 8 );
+
+    for ( var i=0; i<count; i++ ) {
+        var pair = _getProbabilisticPair(nodes);
+        var start = pair.source.px,
+            end = pair.dest.px;
+        var difference = _subtract( end, start ),
+            dist = _length2( difference ),
+            speed = config.particle_base_speed_ms + config.particle_speed_variance_ms * Math.random(),
+            offset = Math.min( config.particle_max_channel_width, dist * config.particle_offset ),
+            perp = _normalize(
+                    _cross({
+                        x: difference.x,
+                        y: difference.y,
+                        z: 0.0
+                    }, {
+                        x: 0,
+                        y: 0,
+                        z: 1
+                    }) ),
+            perpOffset = _mult( perp, -offset/2 + Math.random() * offset );
+
+        buffer[ i*8 ] = start.x;
+        buffer[ i*8+1 ] = start.y;
+        buffer[ i*8+2 ] = end.x;
+        buffer[ i*8+3 ] = end.y;
+        buffer[ i*8+4 ] = perpOffset.x;
+        buffer[ i*8+5 ] = perpOffset.y;
+        buffer[ i*8+6 ] = speed;
+        buffer[ i*8+7 ] = Math.random();
+
+        if ( (i+1) % LOADING_STEP === 0 ) {
+            this.postMessage({
+                type: 'progress',
+                progress: i / (config.particle_count-1)
+            });
         }
-        return this;
-    },
-    destroy : function() {
-        this._available.forEach(function(inactiveParticle) {
-            inactiveParticle.destroy();
-        });
-        var self = this;
-        Object.keys(this._active).forEach(function(particleId) {
-            var activeParticle = self._active[particleId];
-            activeParticle.destroy();
-        });
-    },
-    onParticlesAvailable : function(callback) {
-        this._onParticlesAvailable = callback;
-        return this;
-    },
-    positions : function() {
-        var self = this;
-        return Object.keys(this._active).map(function(particleId) {
-            return self._active[particleId].position();
-        });
+    }
+
+    var result = {
+        type: 'complete',
+        buffer: buffer.buffer
+    };
+
+    this.postMessage( result, [ result.buffer ] );
+};
+
+this.addEventListener( 'message', function( e ) {
+    if ( e.data.type === 'start' ) {
+        _generateParticles( e.data.config, e.data.nodes, e.data.count );
     }
 });
-
-module.exports = ParticleSystem;

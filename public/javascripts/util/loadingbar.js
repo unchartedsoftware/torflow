@@ -25,29 +25,48 @@
 * SOFTWARE.
 */
 
-var DotLayer = L.CanvasLayer.extend({
+function _createContainer() {
+    if ( $('.loader-container').length === 0 ) {
+        $( document.body ).append( $('<div class="loader-container"></div>') );
+    }
+}
 
-    _ctx : null,
-    _initialized : false,
+var LoadingBar = function() {
+    this._percent = 0;
+    this._loaderCount = 0;
+    this._$loader = $('<div class="loader-bar"></div>');
+    _createContainer();
+    $('.loader-container').append( this._$loader );
+};
 
-    add : function(latLng) {
-        if (!this._initialized) {
-            return;
-        }
-        var point = this._map.latLngToContainerPoint(latLng);
-        this._ctx.fillRect(point.x,point.y,1,1);
-    },
-
-    render: function() {
-        if (!this._initialized) {
-            var canvas = this.getCanvas();
-            this._ctx = canvas.getContext('2d');
-
-            this._ctx.fillStyle = 'rgba(0, 0, 255, 0.01)';
-            this._ctx.clearRect(0, 0, canvas.width, canvas.height);
-            this._initialized = true;
+LoadingBar.prototype.update = function( percent ) {
+    if ( this._percent < percent ) {
+        this._percent = percent;
+        this._$loader.css({
+            width: this._percent * 100 + '%'
+        });
+        if ( this._percent === 1 ) {
+            var that  = this;
+            this._$loader.animate({
+                opacity: 0
+            }, 400, function() {
+                that._$loader.remove();
+            });
         }
     }
-});
+};
 
-module.exports = DotLayer;
+LoadingBar.prototype.cancel = function() {
+    this._$loader.finish();
+    this._$loader.remove();
+};
+
+LoadingBar.prototype.finish = function() {
+    this._$loader.animate({
+        opacity: 0
+    }, 400, function() {
+        this._$loader.remove();
+    });
+};
+
+module.exports = LoadingBar;

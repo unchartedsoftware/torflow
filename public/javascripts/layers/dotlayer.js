@@ -25,100 +25,117 @@
 * SOFTWARE.
 */
 
-var Config = require('../config');
-var DotLayer = L.CanvasLayer.extend({
+var Config = require('../config.js');
+var WebGLOverlay = require('./webgloverlay');
+var LoadingBar = require('../util/loadingbar');
+//var ParticleSystem = require('../particles/particlesystem');
 
-    _ctx : null,
-    _initialized : false,
-    _hidden : false,
+var DotLayer = WebGLOverlay.extend({
 
-    add : function(pos) {
-        if (!this._initialized || this._hidden) {
-            return;
-        }
-        var point = this._map.latLngToContainerPoint(pos.latLng);
-        var tailDirectionX = 0, tailDirectionY = 0;
-        if (pos.source && pos.source.latLng) {
-            var sourcePoint = this._map.latLngToContainerPoint(pos.source.latLng);
-
-            tailDirectionX = sourcePoint.x - point.x;
-            tailDirectionY = sourcePoint.y - point.y;
-            var dirMagnitude = Math.sqrt(tailDirectionX * tailDirectionX + tailDirectionY * tailDirectionY);
-            tailDirectionX /= dirMagnitude;
-            tailDirectionY /= dirMagnitude;
-        }
-
-        // Draw 10 line segments
-        var head = {
-            x: point.x,
-            y: point.y
-        };
-
-        if (pos.fill) {
-            this.fill(pos.fill);
-        }
-
-        var tailSegmentLength = Config.dot.tailSegmentLength;
-        var tailSegments = Config.dot.tailSegments;
-        this._ctx.strokeWidth = Config.dot.thickness + 'px';
-        for (var i = 0; i < tailSegments; i++) {
-            this._ctx.strokeStyle = 'rgba(' +
-                                        this._fillR + ',' +
-                                        this._fillG + ',' +
-                                        this._fillB + ',' +
-                                        (1.0 - (i/tailSegments)) + ')';
-
-            this._ctx.beginPath();
-            this._ctx.moveTo(head.x,head.y);
-            this._ctx.lineTo(head.x + (tailDirectionX*tailSegmentLength), head.y + (tailDirectionY*tailSegmentLength));
-            this._ctx.stroke();
-            head.x += (tailDirectionX*tailSegmentLength);
-            head.y += (tailDirectionY*tailSegmentLength);
-        }
-
-        this._ctx.fillRect(point.x - Config.dot.thickness/2,point.y - Config.dot.thickness/2,Config.dot.thickness,Config.dot.thickness);
+    initShaders: function( done ) {
+        this._shader = new esper.Shader({
+            vert: '../../shaders/particle.vert',
+            frag: '../../shaders/particle.frag'
+        }, function() {
+            // execute callback
+            done();
+        });
     },
 
-    clear : function() {
-        var canvas = this.getCanvas();
-        this._ctx.clearRect(0, 0, canvas.width, canvas.height);
+    initBuffers: function( done ) {
+        // create filler array
+        var filler = _.fill( new Array( Config.particle_count ), [ 0,0,0,0 ] );
+        // create vertex buffer, this will be updated periodically
+        this._vertexBuffer = new esper.VertexBuffer(
+            new esper.VertexPackage([
+                /**
+                 * x: offsetX
+                 * y: offsetY
+                 * y: speed
+                 * w: noise
+                 */
+                filler,
+                /**
+                 * x: offsetX
+                 * y: offsetY
+                 * y: speed
+                 * w: noise
+                 */
+                filler ])
+        );
+        // execute callback
+        done();
     },
 
-    onResize : function() {
-        this._ctx.fillStyle = this._fillStyle;
-    },
-
-    render: function() {
-        if (!this._initialized) {
-            var canvas = this.getCanvas();
-            this._ctx = canvas.getContext('2d');
-
-            this.clear();
-
-            this._ctx.fillStyle = this._fillStyle || 'white';
-            this._initialized = true;
+    updateNodes: function(nodes) {
+        // prepare loading bar
+        if ( this._loadingBar ) {
+            this._loadingBar.cancel();
         }
+        this._loadingBar = new LoadingBar();
+        var self = this;
+        // create web worker to generate particles
+        var worker = new Worker('javascripts/particles/particlesystem.js');
+        worker.addEventListener('message', function( e ) {
+            switch ( e.data.type ) {
+                case 'progress':
+                    self._loadingBar.update( e.data.progress );
+                    break;
+                case 'complete':
+                    self._vertexBuffer.bufferData( new Float32Array( e.data.buffer ) );
+                    self._timestamp = Date.now();
+                    worker.terminate();
+                    break;
+            }
+        });
+        // start the webworker
+        worker.postMessage({
+            type: 'start',
+            config: Config,
+            nodes: nodes,
+            count: this._particleCount || Config.particle_count
+        });
+    },
+
+    _updateParticleCounts: function() {
+        var hiddenServicesCount = Math.floor(Config.hiddenServiceProbability * Config.particle_count);
+        var generalCount = Config.particle_count - hiddenServicesCount;
+        if (this._showTraffic === 'all') {
+            this._particleCount = Config.particle_count;
+        } else if (this._showTraffic === 'general') {
+            this._particleCount = generalCount;
+        } else {
+            this._particleCount = hiddenServicesCount;
+        }
+    },
+
+    showTraffic: function(state) {
+        if (state!==undefined) {
+            this._showTraffic = state;
+            this._updateParticleCounts();
+            return this;
+        } else {
+            return this._showTraffic;
+        }
+    },
+
+    draw: function() {
+        var gl = this._gl;
+        gl.clearColor( 0, 0, 0, 0 );
+        gl.clear( gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT );
+        gl.enable( gl.BLEND );
+        gl.blendFunc( gl.SRC_ALPHA, gl.ONE );
+        this._viewport.push();
+        this._shader.push();
+        this._shader.setUniform( 'uProjectionMatrix', this._camera.projectionMatrix() );
+        this._shader.setUniform( 'uTime', Date.now() - this._timestamp );
+        this._vertexBuffer.bind();
+        gl.drawArrays( gl.POINTS, 0, this._particleCount || Config.particle_count );
+        this._vertexBuffer.unbind();
+        this._shader.pop();
+        this._viewport.pop();
     }
-});
 
-DotLayer.prototype = _.extend(DotLayer.prototype,{
-    fillStyle : function(style) {
-        this._fillStyle = style;
-        this._ctx.fillStyle = this._fillStyle || 'white';
-        return this;
-    },
-    fill : function(clr) {
-        this._fillR = clr.r;
-        this._fillG = clr.g;
-        this._fillB = clr.b;
-    },
-    hide : function() {
-        this._hidden = true;
-        this.clear();
-    },
-    show : function() {
-        this._hidden = false;
-    }
 });
 
 module.exports = DotLayer;

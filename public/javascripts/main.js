@@ -27,7 +27,6 @@
 
 var DotLayer = require('./layers/dotlayer');
 var CountryLayer = require('./layers/countrylayer');
-var MapParticleSimulation = require('./particles/mapparticlesimulation');
 var Lerp = require('./util/lerp');
 var Config = require('./config');
 
@@ -50,7 +49,6 @@ var App = function() {
 App.prototype = _.extend(App.prototype, {
 
     _clusters : {},     // zoom level -> list of clusters
-    _particleSimulation : null,
     _particleLayer : null,
     _markersLayer : null,
     _countryLayer : null,
@@ -63,16 +61,7 @@ App.prototype = _.extend(App.prototype, {
     _showFlow : true,
     _showingLabels : null,
 
-
     _clear : function() {
-        if (this._particleSimulation) {
-            this._particleSimulation.stop();
-            this._particleSimulation.destroy();
-        }
-        if (this._particleLayer) {
-            this._map.removeLayer(this._particleLayer);
-            delete this._particleLayer;
-        }
         if (this._markersLayer) {
             this._map.removeLayer(this._markersLayer);
         }
@@ -88,47 +77,31 @@ App.prototype = _.extend(App.prototype, {
         });
     },
 
-    _startSimulation : function(nodes) {
-        var self = this;
-        if (this._particleLayer) {
-            this._map.removeLayer(this._particleLayer);
-            delete this._particleLayer;
-        }
-        if (this._particleSimulation) {
-            this._particleSimulation.stop();
-            this._particleSimulation.destroy();
-        }
+    _updateSimulation : function(nodes) {
+        this._particleLayer.updateNodes(nodes);
+    },
 
-        this._particleLayer = new DotLayer()
-            .fillStyle('rgba(255,255,255,0.8');
-        this._particleLayer.addTo(this._map);
-
-        this._particleSimulation = new MapParticleSimulation(nodes,Config.particle_count,this._map)
-            .onPositionsAvailable(function(positions) {
-                self._particleLayer.clear();
-                positions.forEach(function(pos) {
-                    self._particleLayer.add(pos);
-                });
-            });
-        this._onHiddenFilterChange();
-
-        if (this._showFlow) {
-            this._particleSimulation.start();
-        }
+    _latLngToNormalizedCoord : function(latLng) {
+        var px = this._map.project( latLng ),
+            dim = Math.pow( 2, this._map.getZoom() ) * 256;
+        return {
+            x: px.x / dim,
+            y: ( dim - px.y ) / dim
+        };
     },
 
     _onMapClustered : function() {
         var totalBandwidth = this._getCurrentTotalBandwidth();
         var nodes;
-
+        var self = this;
         if (this._useClusters() === false) {
             nodes = this._currentNodes.objects.map(function (node) {
                 return {
                     bandwidth: _.reduce(node.circle.relays, function(memo, relay){ return memo + relay.bandwidth; },0) / totalBandwidth,
-                    latLng: node.latLng
+                    latLng: node.latLng,
+                    px: self._latLngToNormalizedCoord(node.latLng)
                 };
             });
-            this._startSimulation(nodes);
         } else {
 
             var clusterset = this._clusters[this._map.getZoom()];
@@ -170,9 +143,8 @@ App.prototype = _.extend(App.prototype, {
             });
 
             nodes = nodes.sort(function(n1,n2) { return n2.bandwidth - n1.bandwidth; });
-
-            this._startSimulation(nodes);
         }
+        this._updateSimulation(nodes);
     },
 
     _useClusters : function() {
@@ -230,23 +202,21 @@ App.prototype = _.extend(App.prototype, {
         var checkedRadioBtn = this._element.find('#hidden-filter-btn-group').find('.active > input');
         var checkedState = checkedRadioBtn.attr('hidden-id');
         if (checkedState === 'all') {
-            this._particleSimulation.showTraffic('all');
+            this._particleLayer.showTraffic('all');
         } else if (checkedState === 'hidden') {
-            this._particleSimulation.showTraffic('hidden');
+            this._particleLayer.showTraffic('hidden');
         } else if (checkedState === 'general') {
-            this._particleSimulation.showTraffic('general');
+            this._particleLayer.showTraffic('general');
         }
     },
 
     _onToggleFlow : function() {
-        if (this._particleSimulation.isStarted()) {
-            this._showFlow = false;
-            this._particleSimulation.stop();
-            this._particleLayer.hide();
-        } else {
+        if (this._particleLayer.isHidden()) {
             this._showFlow = true;
-            this._particleSimulation.start();
             this._particleLayer.show();
+        } else {
+            this._showFlow = false;
+            this._particleLayer.hide();
         }
     },
 
@@ -402,8 +372,6 @@ App.prototype = _.extend(App.prototype, {
         this._onMapClustered();
     },
 
-
-
     _getCurrentTotalBandwidth : function() {
         var total = 0;
         this._currentNodes.objects.forEach(function(aggregate) {
@@ -434,7 +402,6 @@ App.prototype = _.extend(App.prototype, {
                 idToLatLng[d.circle.id] = d.latLng;
             });
 
-
             // Initialize zoom -> clusters map
             var minZoom = self._map.getMinZoom();
             var maxZoom = self._map.getMaxZoom();
@@ -443,11 +410,6 @@ App.prototype = _.extend(App.prototype, {
             }
 
             self._createMarkers();
-
-
-            self._particleLayer = new DotLayer()
-                .fillStyle(Config.dot.headFill);
-            self._particleLayer.addTo(self._map);
         }
 
         function handleHistogram(histogram) {
@@ -484,9 +446,7 @@ App.prototype = _.extend(App.prototype, {
         this._element.find('#step-input').change(this._onToggleStep.bind(this));
         this._element.find('#scale-bandwidth-input').change(this._onToggleScale.bind(this));
 
-
         this._showingLabels = this._element.find('#label-input').prop('checked');
-
 
         this._dateLabel = this._element.find('#date-label');
         this._dateSlider = this._element.find('#date-slider').slider({
@@ -495,7 +455,6 @@ App.prototype = _.extend(App.prototype, {
 
         this._dateSlider.on('slideStop', this._update.bind(this));
         this._dateSlider.on('slide',this._onDateSlide.bind(this));
-
 
         this._brightnessSlider = this._element.find('#brightness-slider').slider({
             tooltip:'hide'
@@ -507,36 +466,45 @@ App.prototype = _.extend(App.prototype, {
         });
         this._opacitySlider.on('slide',this._onOpacitySlide.bind(this));
 
-        this._map = L.map('map').setView([0, 0], 2);
+        // Initialize the map object
+        this._map = L.map('map', {
+            inertia: false
+        }).setView([0, 0], 2);
         this._map.options.maxZoom = Config.maxZoom || 18;
 
+        // Initialize the baselayer
         var mapUrlBase = 'http://{s}.basemaps.cartocdn.com/';
         if (Config.localMapServer) {
             mapUrlBase = 'http://' + window.location.host + '/map/';
         }
-
         this._baseTileLayer = L.tileLayer(
-            mapUrlBase + 'dark_nolabels/{z}/{x}/{y}.png', {
-                attribution: '<span class="attribution">Map tiles by <a href="http://cartodb.com/attributions#basemaps">CartoDB</a>, under <a href="https://creativecommons.org/licenses/by/3.0/">CC BY 3.0</a></span>' + '|' +
-                            '<a href="http://uncharted.software" target="_blank"><img src="/img/uncharted-logo-light-gray-small.png"</a>',
+            mapUrlBase + 'dark_nolabels/{z}/{x}/{y}.png',
+            {
+                attribution: Config.mapAttribution,
                 maxZoom: Config.maxZoom || 18,
+                noWrap: true
             }).addTo(this._map);
         this._onBrightnessSlide();
 
-        /* Initialize the SVG layer */
-        this._countryLayer = new CountryLayer(this._map);
-
+        // Initialize the label layer
         this._labelLayer = L.tileLayer(
-            mapUrlBase + 'dark_only_labels/{z}/{x}/{y}.png', {
+            mapUrlBase + 'dark_only_labels/{z}/{x}/{y}.png',
+            {
                 maxZoom: Config.maxZoom || 18,
+                noWrap: true
             });
-
         if (this._showingLabels) {
             this._labelLayer.addTo(this._map);
         }
 
-        this._update();
+        // Initialize the country layer
+        this._countryLayer = new CountryLayer(this._map);
 
+        // Initialize particle layer
+        this._particleLayer = new DotLayer();
+        this._particleLayer.addTo(this._map);
+
+        this._update();
     },
 
     /**
