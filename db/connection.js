@@ -22,6 +22,34 @@ var openConnection = function(onSuccess,onError) {
 	});
 };
 
+var query = function(sql,values,onSuccess,onError) {
+	if ( arguments.length === 3 ) {
+		onError = onSuccess;
+		onSuccess = values;
+		values = undefined;
+	}
+	openConnection(
+		function(connection) {
+			var args = [
+				sql
+			];
+			if ( values ) {
+				args.push( values );
+			}
+			args.push( function(err,res) {
+				if (err) {
+					closeConnection(connection);
+					onError(err);
+				} else {
+					closeConnection(connection);
+					onSuccess(res);
+				}
+			});
+			connection.query.apply( connection, args );
+		},
+		onError );
+};
+
 var complete = function(result,connection,onComplete) {
     closeConnection(connection);
     onComplete(result);
@@ -36,5 +64,6 @@ var error = function(err,connection,onError) {
 
 module.exports.open = openConnection;
 module.exports.close = closeConnection;
+module.exports.query = query;
 module.exports.complete = complete;
 module.exports.error = error;

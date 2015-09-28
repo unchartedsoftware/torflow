@@ -6,6 +6,7 @@ var _getTableSpecs = function() {
 	var tables = [];
 	var nonNull = true;
 	var autoIncrement = true;
+
 	var relays = {
 		name : 'relays',
 		columns : [
@@ -77,10 +78,7 @@ var initialize = function(onComplete,onError) {
 
 				db_utils.createTables(connection,specs,complete,error);
 			},
-			function(err,connection) {
-				connectionPool.close(connection);
-				onError(err);
-			});
+			onError );
 	}, onError);
 };
 

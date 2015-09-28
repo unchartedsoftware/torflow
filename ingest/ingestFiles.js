@@ -3,6 +3,22 @@ var connectionPool = require('../db/connection');
 var ingestFile = require('./ingestFile');
 var process = require('../util/process_each');
 
+var _addDateIndex = function(dates,onSuccess,onError) {
+	connectionPool.open(
+        function(conn) {
+			conn.query(
+				'ALTER TABLE `relays` ADD INDEX `date` (`date`)',
+				function(err, rows) {
+					if (err) {
+	                    connectionPool.error(err,conn,onError);
+	                } else {
+						connectionPool.complete(rows,conn,onSuccess);
+					}
+				});
+	        },
+	        onError );
+};
+
 /**
  * Ingest a list of csv files from the path specified
  * @param resolvedPath - the resolved file path of the directory containing the csv files to ingest
@@ -16,7 +32,7 @@ var ingestFiles = function(resolvedPath,onSuccess,onError) {
 			// Get a list of files in the containing directory.   Does not include sub dirs.
 			dir.files(resolvedPath, function (err, files) {
 				if (err) {
-					throw err;
+					onError(err);
 				} else {
 					// Ingest each file
 					process.each(files,function(csvPath, processNext) {
@@ -35,19 +51,24 @@ var ingestFiles = function(resolvedPath,onSuccess,onError) {
 							processNext();
 						};
 
-						var onFileError = function(err) {
-							connectionPool.error(err);
+						var onFileError = function(msg) {
+							console.trace(msg);
+							connectionPool.close(conn);
 							processNext();
 						};
 
 						ingestFile(conn, csvPath,onFileSuccess,onFileError);
-					}, connectionPool.complete);
+
+					}, function() {
+						// when finished
+						connectionPool.close(conn);
+                        // add date index
+                        _addDateIndex();
+					});
 				}
 			});
 		},
-		function(err) {
-			onError(err);
-		});
+		onError );
 };
 
 module.exports = ingestFiles;

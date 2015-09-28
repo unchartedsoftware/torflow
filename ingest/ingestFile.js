@@ -19,10 +19,11 @@ var ingestFile = function(conn, resolvedFilePath, onSuccess, onError) {
 	var success = function(relaySpecs,numSkipped,guardClients,countryCount,date) {
 
 		// Insert the relay data into the relays table
-		_insertRelayData(conn,relaySpecs,guardClients,countryCount,function() {
+		_insertRelayData(conn,relaySpecs,function() {
 
 			// Get a mapping from fingerprint -> relay id (in table) and append it to each element we have guard client data for
 			RelayDB.fingerprints(date,function(fingerprintToId) {
+
 				Object.keys(fingerprintToId).forEach(function(fingerprint) {
 					if (guardClients[fingerprint]) {
 						guardClients[fingerprint].id = fingerprintToId[fingerprint];
@@ -85,81 +86,68 @@ var _getSQLDateFromFilename = function(filename) {
 	var year = datePieces[1];
 	var month = datePieces[2];
 	var day = datePieces[3];
-	//var hour = parseInt(datePieces[4].charAt(0) === '0' ? datePieces[4].charAt(1) : datePieces[4]);
-	//var minute = parseInt(datePieces[5].charAt(0) === '0' ? datePieces[5].charAt(1) : datePieces[5]);
-	//var second = parseInt(datePieces[6].charAt(0) === '0' ? datePieces[6].charAt(1) : datePieces[6]);
 	return year + '/' + month + '/' + day + ' 00:00:00';
 };
 
 /**
- * Extracts an array of relay specs from a csv file
+ * Extracts an array of specs from a csv file
+ * @private
  * @param filename - name of the file to parse
  * @param onSuccess(relays) - success callback
  * @param onError - error callback
- * @private
  */
 var _extractFromCSV = function(filename,onSuccess,onError) {
 	console.log('Parsing csv file: ' + filename);
 	var relays = [];
 	var guardClients = {};
-
-	var dateString =_getSQLDateFromFilename(filename);
-
+	var dateString = _getSQLDateFromFilename(filename);
 	var numSkipped = 0;
-
 	var firstLine = true;
 	var rd = readline.createInterface({
 		input: fs.createReadStream(filename),
 		output: process.stdout,
 		terminal: false
 	});
-
 	var error = false;
 
 	rd.on('line', function(line) {
 		if (error) {
 			return;
 		}
-
 		// Verify file integrity
 		if (firstLine) {
 			firstLine = false;
 			var columns = line.replace(')','').split(',');
+			var msg;
 			if (columns.length !== relayParser.COLUMNS.length) {
 				error = true;
-				var msg = 'Relay file format not supported!';
+				msg = 'Relay file column format not supported! Line contains ' + columns.length + ' columns, table contains ' + relayParser.COLUMNS.length + '.';
 				onError(msg);
 				return;
 			}
 			for (var i = 0; i < columns.length; i++) {
 				if (columns[i] !== relayParser.COLUMNS[i]) {
 					error = true;
-					var msg = 'Relay file format not supported!\n' +
-							'Expected: ' + relayParser.COLUMNS + '\n' +
-							'Read:     ' + columns + '\n';
+					msg = 'Relay file format not supported!\n' +
+						'Expected: ' + relayParser.COLUMNS + '\n' +
+						'Read:     ' + columns + '\n';
 					onError(msg);
 					return;
 				}
 			}
 			return;
 		}
-
 		var relaySpec = relayParser.parseRelayLine(line,dateString);
 		var guardClientMap = relayParser.parseCountryCodeLine(line,dateString);
-
 		if (relaySpec === null) {
 			numSkipped++;
 		} else {
 			relays.push(relaySpec);
 			guardClients[guardClientMap.fingerprint] = guardClientMap;
 		}
-
-
-
 	});
 
 	rd.on('close',function() {
-
 		// Get a count for every country for this date
 		var countryCount = {};
 		Object.keys(guardClients).forEach(function(fingerprint) {
@@ -176,11 +164,9 @@ var _extractFromCSV = function(filename,onSuccess,onError) {
 				}
 			});
 		});
-
-
 		onSuccess(relays,numSkipped,guardClients,countryCount,dateString);
 	});
-}
+};
 
 /**
  * Inserts a list of relays into the db
@@ -190,7 +176,7 @@ var _extractFromCSV = function(filename,onSuccess,onError) {
  * @param onError - error callback
  * @private
  */
-var _insertRelayData = function(conn,relaySpecs,guardClients,countryCount,onSuccess,onError) {
+var _insertRelayData = function(conn,relaySpecs,onSuccess,onError) {
 	conn.query(
 		'INSERT INTO relays (' + relayParser.DB_ORDER + ') VALUES ?',
 		[relaySpecs],
@@ -203,8 +189,15 @@ var _insertRelayData = function(conn,relaySpecs,guardClients,countryCount,onSucc
 	});
 };
 
+/**
+ * Inserts a list of guard clients into the db
+ * @param conn - open db connection
+ * @param specs - array of spec arrays describing a list of guard clients
+ * @param onSuccess - success callback
+ * @param onError - error callback
+ * @private
+ */
 var _insertGuardClientData = function(conn,specs,onSuccess,onError) {
-
 	conn.query(
 		'INSERT INTO guard_clients (relay_id,cc,guardclientcount,date) VALUES ?',
 		[specs],
