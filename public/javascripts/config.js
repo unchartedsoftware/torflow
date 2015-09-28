@@ -27,16 +27,25 @@
 
 var config = {
     node_radius : {
-        min : 3,
+        min : 5,
         max : 40
     },
-    particle_count : 200000,
-    particle_offset : 0.05,
-    particle_max_channel_width: 20,
-    particle_base_speed_ms : 1000,
-    particle_speed_variance_ms : 4000,
-    title : 'Data Flow in the Tor Network',
-    summary : '<p>The Tor network is a group of volunteer-operated servers (relays) that allows people to improve their privacy and' +
+    particle_count : 500000,
+    particle_offset : 0.01,
+    particle_min_offset: 0.0001,
+    particle_max_offset: 2.0,
+    particle_base_speed_ms : 40000, // ms for particle to circle the earth
+    particle_speed_variance_ms : 40000,
+    particle_speed_min_factor : 0.01,
+    particle_speed_max_factor : 4.0,
+    particle_zoom_scale: function( zoom, config_particle_size ) {
+        return Math.max( 1, config_particle_size * ( zoom - 3 ) / 2 );
+    },
+    particle_size: 1,
+    title : 'TorFlow',
+    summary :
+        '<h2>Data Flow in the Tor Network</h2>' +
+        '<p>The Tor network is a group of volunteer-operated servers (relays) that allows people to improve their privacy and' +
         ' security on the Internet. Tor\'s users employ this network by connecting through a series of virtual tunnels' +
         ' rather than making a direct connection, thus allowing both organizations and individuals to share information ' +
         'over public networks without compromising their privacy.<a href="https://www.torproject.org/about/overview.html.en"><sup>[1]</sup></a></p>' +
@@ -51,11 +60,16 @@ var config = {
             '<a href="http://cartodb.com/attributions#basemaps">CartoDB</a>,' +
             ' under ' +
             '<a href="https://creativecommons.org/licenses/by/3.0/">CC BY 3.0</a>' +
-        '</span>' + '|' +
-        '<a href="http://uncharted.software" target="_blank"><img src="/img/uncharted-logo-light-gray-small.png"</a>',
+            '|' +
+            '<div class="uncharted-logo">' +
+                '<a href="http://uncharted.software" target="_blank">' +
+                    '<img style="width:200px;" src="/img/uncharted-logo-white.png">' +
+                '</a>' +
+            '</div>' +
+        '</span>',
     minBrightness : 0.01,
     maxBrightness : 3.0,
-    defaultBrightness : 1.6,
+    defaultBrightness : 1.0,
     minOpacity : 0,
     maxOpacity : 1,
     defaultOpacity : 0.45

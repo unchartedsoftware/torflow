@@ -25,49 +25,38 @@
 * SOFTWARE.
 */
 
-function _createContainer() {
-    if ( $('.loader-container').length === 0 ) {
-        $( document.body ).append( $('<div class="loader-container"></div>') );
+var _$label;
+
+var tooltip = function( elem, label ) {
+    if ( typeof label === 'function' ) {
+        label = label();
     }
-}
-
-var LoadingBar = function() {
-    this._percent = 0;
-    this._loaderCount = 0;
-    this._$loader = $('<div class="loader-bar"></div>');
-    _createContainer();
-    $('.loader-container').append( this._$loader );
-};
-
-LoadingBar.prototype.update = function( percent ) {
-    if ( this._percent < percent ) {
-        this._percent = percent;
-        this._$loader.css({
-            width: this._percent * 100 + '%',
-            opacity: 1.0 - ( this._percent/2 )
-        });
-        if ( this._percent === 1 ) {
-            var that  = this;
-            this._$loader.animate({
-                opacity: 0
-            }, 400, function() {
-                that._$loader.remove();
-            });
+    // on mouse over create label
+    elem.on( 'mouseover', function( leafletEvent ) {
+        var event = leafletEvent.originalEvent,
+            offset = $(document.body).offset(),
+            relativeX = event.pageX - offset.left,
+            relativeY = event.pageY - offset.top;
+        if ( _$label ) {
+            _$label.remove();
         }
-    }
-};
-
-LoadingBar.prototype.cancel = function() {
-    this._$loader.finish();
-    this._$loader.remove();
-};
-
-LoadingBar.prototype.finish = function() {
-    this._$loader.animate({
-        opacity: 0
-    }, 400, function() {
-        this._$loader.remove();
+        _$label = $(
+            '<div class="marker-tooltip">'+
+                '<a class="marker-tooltip-text">' + label + '</a>' +
+            '</div>' );
+        $( document.body ).append( _$label );
+        _$label.css({
+            'left': -_$label.outerWidth()/2 + relativeX + 'px',
+            'top': -_$label.outerHeight()*1.5 + relativeY + 'px'
+        });
+    });
+    // on mouse out destroy label
+    elem.on( 'mouseout', function() {
+        if ( _$label ) {
+            _$label.remove();
+            _$label = null;
+        }
     });
 };
 
-module.exports = LoadingBar;
+module.exports = tooltip;

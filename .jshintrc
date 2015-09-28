@@ -12,7 +12,7 @@
 	"noempty":true,
 	"nonew":true,
 	"undef":true,
-	"unused":"vars",
+	"unused": true,
 	"smarttabs":false,
 	"sub":true,
 	"laxbreak":true,
@@ -35,6 +35,7 @@
 	  	"moment":true,
 	  	"process":true,
 	  	"esper": true,
+		"swal": true,
 		"__dirname":true
 	}
 }

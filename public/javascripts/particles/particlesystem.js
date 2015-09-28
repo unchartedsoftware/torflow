@@ -53,85 +53,30 @@ var _getProbabilisticPair = function( nodes ) {
     };
 };
 
-var _subtract = function( a, b ) {
-    return {
-        x: a.x - b.x,
-        y: a.y - b.y
-    };
-};
-
-var _cross = function( a, b ) {
-    return {
-        x: ( a.y * b.z ) - ( b.y * a.z ),
-        y: (-a.x * b.z ) + ( b.x * a.z ),
-        z: ( a.x * b.x ) - ( b.x * a.y )
-    };
-};
-
-var _length2 = function( v ) {
-    return Math.sqrt( v.x * v.x + v.y * v.y );
-};
-
-var _length3 = function( v ) {
-    return Math.sqrt( v.x * v.x + v.y * v.y + v.z * v.z );
-};
-
-var _mult = function( v, s ) {
-    return {
-        x: v.x * s,
-        y: v.y * s,
-        z: v.z * s
-    };
-};
-
-var _normalize = function( v ) {
-    var mag = _length3( v );
-    if ( mag !== 0 ) {
-        return {
-            x: v.x / mag,
-            y: v.y / mag,
-            z: v.z / mag
-        };
-    }
-};
-
-var _generateParticles = function(config,nodes,count) {
-    var LOADING_STEP = count / 100;
+var _generateParticles = function(particleConfig,nodes,count) {
+    var PROGRESS_STEP = count / 1000;
     var buffer = new Float32Array( count * 8 );
 
     for ( var i=0; i<count; i++ ) {
         var pair = _getProbabilisticPair(nodes);
-        var start = pair.source.px,
-            end = pair.dest.px;
-        var difference = _subtract( end, start ),
-            dist = _length2( difference ),
-            speed = config.particle_base_speed_ms + config.particle_speed_variance_ms * Math.random(),
-            offset = Math.min( config.particle_max_channel_width, dist * config.particle_offset ),
-            perp = _normalize(
-                    _cross({
-                        x: difference.x,
-                        y: difference.y,
-                        z: 0.0
-                    }, {
-                        x: 0,
-                        y: 0,
-                        z: 1
-                    }) ),
-            perpOffset = _mult( perp, -offset/2 + Math.random() * offset );
+        var start = pair.source.pos;
+        var end = pair.dest.pos;
+        var speed = particleConfig.speed + particleConfig.variance * Math.random();
+        var offset = particleConfig.offset;
 
         buffer[ i*8 ] = start.x;
         buffer[ i*8+1 ] = start.y;
         buffer[ i*8+2 ] = end.x;
         buffer[ i*8+3 ] = end.y;
-        buffer[ i*8+4 ] = perpOffset.x;
-        buffer[ i*8+5 ] = perpOffset.y;
-        buffer[ i*8+6 ] = speed;
+        buffer[ i*8+4 ] = offset;
+        buffer[ i*8+5 ] = speed;
+        buffer[ i*8+6 ] = Math.random();
         buffer[ i*8+7 ] = Math.random();
 
-        if ( (i+1) % LOADING_STEP === 0 ) {
+        if ( (i+1) % PROGRESS_STEP === 0 ) {
             this.postMessage({
                 type: 'progress',
-                progress: i / (config.particle_count-1)
+                progress: i / (particleConfig.count-1)
             });
         }
     }
@@ -146,6 +91,6 @@ var _generateParticles = function(config,nodes,count) {
 
 this.addEventListener( 'message', function( e ) {
     if ( e.data.type === 'start' ) {
-        _generateParticles( e.data.config, e.data.nodes, e.data.count );
+        _generateParticles( e.data.particleConfig, e.data.nodes, e.data.count );
     }
 });

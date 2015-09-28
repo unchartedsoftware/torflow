@@ -28,7 +28,6 @@
 var Config = require('../config.js');
 var WebGLOverlay = require('./webgloverlay');
 var LoadingBar = require('../util/loadingbar');
-//var ParticleSystem = require('../particles/particlesystem');
 
 var DotLayer = WebGLOverlay.extend({
 
@@ -74,6 +73,8 @@ var DotLayer = WebGLOverlay.extend({
         }
         this._loadingBar = new LoadingBar();
         var self = this;
+        // flag as not ready to draw
+        this._isReady = false;
         // create web worker to generate particles
         var worker = new Worker('javascripts/particles/particlesystem.js');
         worker.addEventListener('message', function( e ) {
@@ -84,14 +85,21 @@ var DotLayer = WebGLOverlay.extend({
                 case 'complete':
                     self._vertexBuffer.bufferData( new Float32Array( e.data.buffer ) );
                     self._timestamp = Date.now();
+                    self._isReady = true; // flag as ready to draw
                     worker.terminate();
                     break;
             }
         });
+        var offsetFactor = this._pathOffset !== undefined ? this._pathOffset : 1;
         // start the webworker
         worker.postMessage({
             type: 'start',
-            config: Config,
+            particleConfig: {
+                speed: Config.particle_base_speed_ms,
+                variance: Config.particle_speed_variance_ms,
+                offset: Config.particle_offset * offsetFactor,
+                count: Config.particle_count
+            },
             nodes: nodes,
             count: this._particleCount || Config.particle_count
         });
@@ -119,21 +127,51 @@ var DotLayer = WebGLOverlay.extend({
         }
     },
 
+    setSpeed: function( speed ) {
+        this._speed = speed;
+    },
+
+    getSpeed: function() {
+        return this._speed !== undefined ? this._speed : 1.0;
+    },
+
+    setPathOffset: function( offset ) {
+        this._pathOffset = offset;
+    },
+
+    getPathOffset: function() {
+        return this._pathOffset !== undefined ? this._pathOffset : 1.0;
+    },
+
+    getParticleSize: function() {
+        if ( Config.particle_zoom_scale ) {
+            return Config.particle_zoom_scale( this._map.getZoom(), Config.particle_size );
+        }
+        return Config.particle_size;
+    },
+
+    clear: function() {
+        var gl = this._gl;
+        gl.clear( gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT );
+    },
+
     draw: function() {
         var gl = this._gl;
-        gl.clearColor( 0, 0, 0, 0 );
-        gl.clear( gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT );
-        gl.enable( gl.BLEND );
-        gl.blendFunc( gl.SRC_ALPHA, gl.ONE );
-        this._viewport.push();
-        this._shader.push();
-        this._shader.setUniform( 'uProjectionMatrix', this._camera.projectionMatrix() );
-        this._shader.setUniform( 'uTime', Date.now() - this._timestamp );
-        this._vertexBuffer.bind();
-        gl.drawArrays( gl.POINTS, 0, this._particleCount || Config.particle_count );
-        this._vertexBuffer.unbind();
-        this._shader.pop();
-        this._viewport.pop();
+        this.clear();
+        if ( this._isReady ) {
+            this._viewport.push();
+            this._shader.push();
+            this._shader.setUniform( 'uProjectionMatrix', this._camera.projectionMatrix() );
+            this._shader.setUniform( 'uTime', Date.now() - this._timestamp );
+            this._shader.setUniform( 'uSpeedFactor', this.getSpeed() );
+            this._shader.setUniform( 'uOffsetFactor', this.getPathOffset() );
+            this._shader.setUniform( 'uPointSize', this.getParticleSize() );
+            this._vertexBuffer.bind();
+            gl.drawArrays( gl.POINTS, 0, this._particleCount || Config.particle_count );
+            this._vertexBuffer.unbind();
+            this._shader.pop();
+            this._viewport.pop();
+        }
     }
 
 });
