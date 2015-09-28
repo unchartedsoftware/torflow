@@ -16,9 +16,7 @@ var getRelays = function(date,onComplete,onError) {
                 }
             });
         },
-        function(err) {
-            onError(err);
-        });
+        onError );
 };
 
 var getFingerprints = function(date,onComplete,onError) {
@@ -36,15 +34,14 @@ var getFingerprints = function(date,onComplete,onError) {
                 }
             });
         },
-        function(err) {
-            onError(err);
-        });
+        onError );
 };
 
 var getDates = function(onSuccess,onError) {
     connectionPool.open(
         function(conn) {
-            conn.query('SELECT distinct date FROM ' + config.db.database + '.relays order by date asc', function(err,rows) {
+            conn.query('SELECT * FROM ' + config.db.database + '.dates order by date asc', function(err,rows) {
+            //conn.query('SELECT distinct date FROM ' + config.db.database + '.relays order by date asc', function(err,rows) {
                 if (err) {
                     connectionPool.error(err,conn,onError);
                 } else {
@@ -55,9 +52,7 @@ var getDates = function(onSuccess,onError) {
                 }
             });
         },
-        function(err) {
-            onError(err);
-        });
+        onError );
 };
 
 module.exports.get = getRelays;

@@ -17,8 +17,12 @@ var onSuccess = function() {
 	process.exit(0);
 };
 
+var onError = function(err) {
+	console.trace(err.message);
+	console.log('IMPORT FAILED');
+	process.exit(0);
+};
+
 db_init.initialize(function() {
-	ingestFiles(filePath,onSuccess);
-}, function(err) {
-	console.log(err);
-});
+	ingestFiles(filePath,onSuccess,onError);
+}, onError);

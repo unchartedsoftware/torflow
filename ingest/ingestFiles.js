@@ -1,7 +1,45 @@
 var dir = require('node-dir');
+var moment = require('moment');
 var connectionPool = require('../db/connection');
 var ingestFile = require('./ingestFile');
 var process = require('../util/process_each');
+var config = require('../config');
+
+var _getDates = function(onSuccess,onError) {
+    connectionPool.open(
+        function(conn) {
+            conn.query('SELECT distinct date FROM ' + config.db.database + '.relays order by date asc',
+			function(err,rows) {
+                if (err) {
+                    connectionPool.error(err,conn,onError);
+                } else {
+                    var dates = rows.map(function(row) {
+                        return [ moment(row.date).format('YYYY/MM/DD HH:mm:ss') ];
+                    });
+					console.log('Extracted ' + dates.length + ' unique dates');
+                    connectionPool.complete(dates,conn,onSuccess);
+                }
+            });
+        },
+        onError );
+};
+
+var _insertDates = function(dates,onSuccess,onError) {
+	connectionPool.open(
+        function(conn) {
+			conn.query(
+				'INSERT INTO dates (date) VALUES ?',
+				[dates],
+				function(err, rows) {
+					if (err) {
+	                    connectionPool.error(err,conn,onError);
+	                } else {
+						connectionPool.complete(rows,conn,onSuccess);
+					}
+				});
+	        },
+	        onError );
+};
 
 /**
  * Ingest a list of csv files from the path specified
@@ -16,7 +54,7 @@ var ingestFiles = function(resolvedPath,onSuccess,onError) {
 			// Get a list of files in the containing directory.   Does not include sub dirs.
 			dir.files(resolvedPath, function (err, files) {
 				if (err) {
-					throw err;
+					onError(err);
 				} else {
 					// Ingest each file
 					process.each(files,function(csvPath, processNext) {
@@ -46,14 +84,19 @@ var ingestFiles = function(resolvedPath,onSuccess,onError) {
 					}, function() {
 						// when finished
 						connectionPool.close(conn);
-						onSuccess();
+						// extract dates to their own table
+						_getDates(
+							function( dates ) {
+								_insertDates( dates, function() {
+									console.log('Dates ingestion complete');
+									onSuccess();
+								}, onError );
+							}, onError );
 					});
 				}
 			});
 		},
-		function(err) {
-			onError(err);
-		});
+		onError );
 };
 
 module.exports = ingestFiles;

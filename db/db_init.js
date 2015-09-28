@@ -48,9 +48,19 @@ var _getTableSpecs = function() {
 		primaryKey : 'id'
 	};
 
+	var dates = {
+		name : 'dates',
+		columns : [
+			db_utils.createColumnString('id','int(11)',nonNull, autoIncrement),
+			db_utils.createColumnString('date','datetime',nonNull)
+		],
+		primaryKey : 'id'
+	};
+
 	tables.push(relays);
 	tables.push(countrybydate);
 	tables.push(guardclients);
+	tables.push(dates);
 
 	return tables;
 };
@@ -78,10 +88,7 @@ var initialize = function(onComplete,onError) {
 
 				db_utils.createTables(connection,specs,complete,error);
 			},
-			function(err,connection) {
-				connectionPool.close(connection);
-				onError(err);
-			});
+			onError );
 	}, onError);
 };
 
