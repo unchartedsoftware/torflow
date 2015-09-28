@@ -28,22 +28,24 @@ var query = function(sql,values,onSuccess,onError) {
 		onSuccess = values;
 		values = undefined;
 	}
-	var args = [
-		sql
-	];
-	if ( values ) {
-		args.push( values );
-	}
-	args.push( function(err,res) {
-		if (err) {
-			onError(err);
-		} else {
-			onSuccess(res);
-		}
-	});
 	openConnection(
-		function(conn) {
-			conn.query.apply( conn, args );
+		function(connection) {
+			var args = [
+				sql
+			];
+			if ( values ) {
+				args.push( values );
+			}
+			args.push( function(err,res) {
+				if (err) {
+					closeConnection(connection);
+					onError(err);
+				} else {
+					closeConnection(connection);
+					onSuccess(res);
+				}
+			});
+			connection.query.apply( connection, args );
 		},
 		onError );
 };

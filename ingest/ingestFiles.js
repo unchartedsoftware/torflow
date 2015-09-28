@@ -1,35 +1,13 @@
 var dir = require('node-dir');
-var moment = require('moment');
 var connectionPool = require('../db/connection');
 var ingestFile = require('./ingestFile');
 var process = require('../util/process_each');
-var config = require('../config');
 
-var _getDates = function(onSuccess,onError) {
-    connectionPool.open(
-        function(conn) {
-            conn.query('SELECT distinct date FROM ' + config.db.database + '.relays order by date asc',
-			function(err,rows) {
-                if (err) {
-                    connectionPool.error(err,conn,onError);
-                } else {
-                    var dates = rows.map(function(row) {
-                        return [ moment(row.date).format('YYYY/MM/DD HH:mm:ss') ];
-                    });
-					console.log('Extracted ' + dates.length + ' unique dates');
-                    connectionPool.complete(dates,conn,onSuccess);
-                }
-            });
-        },
-        onError );
-};
-
-var _insertDates = function(dates,onSuccess,onError) {
+var _addDateIndex = function(dates,onSuccess,onError) {
 	connectionPool.open(
         function(conn) {
 			conn.query(
-				'INSERT INTO dates (date) VALUES ?',
-				[dates],
+				'ALTER TABLE `relays` ADD INDEX `date` (`date`)',
 				function(err, rows) {
 					if (err) {
 	                    connectionPool.error(err,conn,onError);
@@ -84,14 +62,8 @@ var ingestFiles = function(resolvedPath,onSuccess,onError) {
 					}, function() {
 						// when finished
 						connectionPool.close(conn);
-						// extract dates to their own table
-						_getDates(
-							function( dates ) {
-								_insertDates( dates, function() {
-									console.log('Dates ingestion complete');
-									onSuccess();
-								}, onError );
-							}, onError );
+                        // add date index
+                        _addDateIndex();
 					});
 				}
 			});
