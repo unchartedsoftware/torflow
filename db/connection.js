@@ -39,10 +39,14 @@ var query = function(sql,values,onSuccess,onError) {
 			args.push( function(err,res) {
 				if (err) {
 					closeConnection(connection);
-					onError(err);
+					if (onError) {
+						onError(err);
+					}
 				} else {
 					closeConnection(connection);
-					onSuccess(res);
+					if (onSuccess) {
+						onSuccess(res);
+					}
 				}
 			});
 			connection.query.apply( connection, args );
