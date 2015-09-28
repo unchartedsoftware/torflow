@@ -11,10 +11,6 @@ uniform highp float uOffsetFactor;
 #define PI_2 (PI*2.0)
 #define MAX_PERIOD 10.0
 
-float rand( float a, float b ) {
-    return fract( sin( dot( vec2( a, b ), vec2( 12.9898,78.233 ) ) ) * 43758.5453 );
-}
-
 void main() {
     // extract components
     highp vec2 startPos = aPositions.xy;
