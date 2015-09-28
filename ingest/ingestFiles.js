@@ -4,19 +4,10 @@ var ingestFile = require('./ingestFile');
 var process = require('../util/process_each');
 
 var _addDateIndex = function(dates,onSuccess,onError) {
-	connectionPool.open(
-        function(conn) {
-			conn.query(
-				'ALTER TABLE `relays` ADD INDEX `date` (`date`)',
-				function(err, rows) {
-					if (err) {
-	                    connectionPool.error(err,conn,onError);
-	                } else {
-						connectionPool.complete(rows,conn,onSuccess);
-					}
-				});
-	        },
-	        onError );
+	connectionPool.query(
+		'ALTER TABLE `relays` ADD INDEX `date` (`date`)',
+		onSuccess,
+		onError );
 };
 
 /**
