@@ -25,14 +25,14 @@
 * SOFTWARE.
 */
 var express = require('express');
-var RelayDB = require('../db/relay');
+var DatesDB = require('../db/dates');
 var router = express.Router();
 
 /**
  * GET /dates
  */
 router.get('/', function(req, res, next) {
-    RelayDB.getDates(function(dates) {
+    DatesDB.getDates(function(dates) {
         res.send(dates);
     }, function(error) {
         res.status(500).send('Dates data could not be retrieved.');

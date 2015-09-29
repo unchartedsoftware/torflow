@@ -2,6 +2,7 @@ var dir = require('node-dir');
 var connectionPool = require('../db/connection');
 var ingestFile = require('./ingestFile');
 var process = require('../util/process_each');
+var datesDB = require('../db/dates');
 
 var _addDateIndex = function(onSuccess,onError) {
 	connectionPool.query(
@@ -54,8 +55,13 @@ var ingestFiles = function(resolvedPath,onSuccess,onError) {
 						// when finished
 						connectionPool.close(conn);
 
-                        // add date index
-                        _addDateIndex(onSuccess,onError);
+						// Update the dates table and add a date index to the relays table
+						datesDB.updateDates(function() {
+							_addDateIndex(onSuccess,onError);
+						},onError);
+
+
+
 					});
 				}
 			});

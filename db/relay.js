@@ -29,7 +29,7 @@ var getFingerprints = function(date,onSuccess,onError) {
         onError );
 };
 
-var getDates = function(onSuccess,onError) {
+var _getDates = function(onSuccess,onError) {
     connectionPool.query(
         'SELECT distinct date FROM ' + config.db.database + '.relays order by date asc',
         function(rows) {
@@ -43,4 +43,4 @@ var getDates = function(onSuccess,onError) {
 
 module.exports.get = getRelays;
 module.exports.fingerprints = getFingerprints;
-module.exports.getDates = getDates;
+module.exports._getDates = _getDates;

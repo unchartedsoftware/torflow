@@ -25,17 +25,6 @@ var _getTableSpecs = function() {
 		primaryKey : 'id'
 	};
 
-	var countrybydate = {
-		name : 'country_by_date',
-		columns : [
-			db_utils.createColumnString('id','int(11)',nonNull, autoIncrement),
-			db_utils.createColumnString('cc','varchar(2)',nonNull),
-			db_utils.createColumnString('guardclientcount','int(11)',nonNull),
-			db_utils.createColumnString('date','datetime',nonNull)
-		],
-		primaryKey : 'id'
-	};
-
 	var guardclients = {
 		name : 'guard_clients',
 		columns : [
@@ -48,9 +37,16 @@ var _getTableSpecs = function() {
 		primaryKey : 'id'
 	};
 
+	var dates = {
+		name : 'dates',
+		columns : [
+			db_utils.createColumnString('date','datetime',nonNull)
+		]
+	};
+
 	tables.push(relays);
-	tables.push(countrybydate);
 	tables.push(guardclients);
+	tables.push(dates);
 
 	return tables;
 };
