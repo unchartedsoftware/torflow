@@ -40,7 +40,7 @@ var _getTableSpecs = function() {
 	var dates = {
 		name : 'dates',
 		columns : [
-			db_utils.createColumnString('id','datetime',nonNull)
+			db_utils.createColumnString('date','datetime',nonNull)
 		]
 	};
 

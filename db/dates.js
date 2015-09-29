@@ -13,30 +13,16 @@ var getDates = function(onSuccess,onError) {
         onError );
 };
 
-var _insertDateChunk = function(dates,onSuccess,onError) {
-    connectionPool.query(
-        'INSERT INTO ' + config.db.database + '.dates (date) VALUES ?',
-        [dates],
-        function (err, rows) {
-            if (err) {
-                onError(err);
-            } else {
-                onSuccess();
-            }
-        });
-}
 
 var updateDates = function(onSuccess,onError) {
     relays._getDates(function(dates) {
         connectionPool.query(
             'TRUNCATE ' + config.db.database + '.dates',
             function() {
-                var chunks = lodash.chunk(dates, 2000);
-                Process.each(chunks, function (chunk, processNext) {
-                    _insertDateChunk(chunk, function () {
-                        processNext();
-                    }, onError);
-                },onSuccess);
+                var dateSpecs = dates.map(function(date) {
+                    return [date];
+                });
+                connectionPool.query('INSERT INTO ' + config.db.database + '.dates (date) VALUES ?',[dateSpecs],onSuccess,onError);
             },
         onError );
     },onError)
