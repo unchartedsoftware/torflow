@@ -6,7 +6,7 @@ var datesDB = require('../db/dates');
 
 var _addDateIndex = function(onSuccess,onError) {
 	connectionPool.query(
-		'ALTER TABLE `relays` ADD INDEX `date` (`date`)',
+		'ALTER TABLE `relays` ADD INDEX `date` (`date`); ALTER TABLE `guard_clients` ADD INDEX `date` (`date`)',
 		onSuccess,
 		onError );
 };
