@@ -30,11 +30,9 @@ In your browser:
 
 ## Ingest Data
 
-Ingest relays into ElasticSearch via Logstash.  There is a set of sample data in the $PROJECT_ROOT/data/relays_small folder.  To import this from logstash:
+Ingest data into MySQL via the bin/ingest node script.  There is a set of sample data in the $PROJECT_ROOT/data/sample folder.  To import this into your database (from the root project directory):
 
-	logstash -f $PROJECT_ROOT$/data/es_import_small.conf
-
-NOTE: You must manually edit the configuration file!  It only supports absolute file paths, so the ones checked into source control will be wrong for your local machine
+	node bin/ingest data/sample
 
 ## Building the Docker container
 
