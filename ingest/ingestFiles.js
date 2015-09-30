@@ -4,9 +4,9 @@ var ingestFile = require('./ingestFile');
 var process = require('../util/process_each');
 var datesDB = require('../db/dates');
 
-var _addDateIndex = function(onSuccess,onError) {
+var _addDateIndex = function(tableName, onSuccess,onError) {
 	connectionPool.query(
-		'ALTER TABLE `relays` ADD INDEX `date` (`date`); ALTER TABLE `guard_clients` ADD INDEX `date` (`date`)',
+		'ALTER TABLE `' + tableName + '` ADD INDEX `date` (`date`)',
 		onSuccess,
 		onError );
 };
@@ -55,9 +55,11 @@ var ingestFiles = function(resolvedPath,onSuccess,onError) {
 						// when finished
 						connectionPool.close(conn);
 
-						// Update the dates table and add a date index to the relays table
+						// Update the dates table and add a date index to the relays and guard clients tables
 						datesDB.updateDates(function() {
-							_addDateIndex(onSuccess,onError);
+							_addDateIndex('relays',function() {
+								_addDateIndex('guard_clients',onSuccess)
+							},onError);
 						},onError);
 
 
