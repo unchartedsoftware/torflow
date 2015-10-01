@@ -1,0 +1,32 @@
+#!/usr/bin/env node
+var worldJSON = require('../data/world.geo.json');
+var path = require('path');
+var fs = require('fs');
+var _ = require('underscore');
+
+var writeCountry = function(iso,countryFeature) {
+	var filename = iso + '.geo.json';
+	var filepath = './data/countries_high/' + filename;
+	var resolvedPath = path.resolve(filepath);
+	var json = {
+		type : 'FeatureCollection',
+		features : [_.extend(countryFeature,{
+			id : iso
+		})]
+	};
+
+	fs.writeFile(resolvedPath,JSON.stringify(json), function(err) {
+		if(err) {
+			return console.log(err);
+		}
+
+		console.log(filename + " was sucessfully written");
+	});
+};
+
+worldJSON.features.forEach(function(countryFeature) {
+	var countryISO_A3 = countryFeature.properties.ISO_A3;
+	writeCountry(countryISO_A3,countryFeature);
+});
+
+

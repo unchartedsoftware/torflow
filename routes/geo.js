@@ -37,7 +37,7 @@ var getGeoJSON = function(cc) {
     if (JSONFileCache[cc]) {
         json = JSONFileCache[cc];
     } else {
-        var relativeFilePath = __dirname + '/../data/countries/' + cc.toUpperCase() + '.geo.json';
+        var relativeFilePath = __dirname + '/../data/countries_high/' + cc.toUpperCase() + '.geo.json';
         var absoluteFilePath = path.resolve(relativeFilePath);
         try {
             json = JSON.parse(fs.readFileSync(absoluteFilePath, 'utf8'));

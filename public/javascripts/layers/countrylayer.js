@@ -100,7 +100,7 @@ CountryLayer.prototype = _.extend(CountryLayer.prototype, {
     },
 
     _getFeatureStyle : function(feature) {
-        var cc = this._threeLetterToTwoLetter(feature.id);
+        var cc = this._threeLetterToTwoLetter(feature.id || feature.properties.ISO_A3);
         var relativePercentage = this._histogram[cc] / this._maxClientCount;
         var fillColor = this._colorScale(relativePercentage);
         return {
