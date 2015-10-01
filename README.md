@@ -40,7 +40,7 @@ Ingest data into MySQL via the bin/ingest node script.  There is a set of sample
 
 	node bin/ingest data/sample
 
-## Building the Docker container
+## Building the Docker containers
 
 Prepare the build directory:
 
@@ -56,21 +56,26 @@ You may need to start docker:
 
 	sudo systemctl start docker
 
-Build the container:
+### Application server container
+
+Build the app container:
 
     sudo docker build -t="docker.uncharted.software/torflow" .
 
-Run the container:
+Run the app container:
 
     sudo docker run -ti --rm --name torflow -v /logs/:/var/log/supervisor/ -p 3000:3000 docker.uncharted.software/torflow
 
 If your container config.js points at a MySQL server that can't be resolved, you can add a hosts entry at run-time using the Docker parameter `--add-host`.
 
-To push the image to the repository:
+### Ingest container
 
-	sudo docker login docker.uncharted.software
-	sudo docker push docker.uncharted.software/torflow
+Build the ingest container:
 
-To run on another machine:
+    sudo docker build -t="docker.uncharted.software/torflow-ingest" .
 
-	sudo docker pull docker.uncharted.software/torflow
+Run the ingest container:
+
+    sudo docker run -ti --rm --name torflow-ingest -v /torflow/data/sample/:/torflow/data docker.uncharted.software/torflow-ingest
+
+This assumes you are importing the sample data in the /torflow/data/sample folder. If your container config.js points at a MySQL server that can't be resolved, you can add a hosts entry at run-time using the Docker parameter `--add-host`.
