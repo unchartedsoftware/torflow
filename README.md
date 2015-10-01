@@ -20,6 +20,12 @@ Build:
 
 ## Running
 
+Create a config file:
+
+	cp config.template.js config.js
+
+Edit config.js to point to your MySQL database.
+
 Run the server:
 
 	npm start
@@ -38,7 +44,6 @@ Ingest data into MySQL via the bin/ingest node script.  There is a set of sample
 
 Prepare the build directory:
 
-	cd .
 	gulp build
 
 Start the VM:
@@ -57,23 +62,9 @@ Build the container:
 
 Run the container:
 
-    sudo docker run -ti --rm --name torflow -p 3000:3000 -p 9200:9200 -p 9300:9300 -v /vagrant/esdata:/usr/share/elasticsearch-1.7.0/data -v /vagrant/eslogs:/var/log/supervisor docker.uncharted.software/torflow
+    sudo docker run -ti --rm --name torflow -v /logs/:/var/log/supervisor/ -p 3000:3000 docker.uncharted.software/torflow
 
-Ingest the data:
-
-	cd ~
-	wget https://download.elastic.co/logstash/logstash/logstash-1.5.2.tar.gz ; tar xzf logstash-1.5.2.tar.gz
-
-This installs logstash in your vagrant home directory.  We will use logstash to ingest the data.  Copy the processed Tor csv files into the mounted vagrant data directory temporarily under the path:
-
-	/vagrant/data/processed
-
-(We don't check these files into source control as they are several GB of data).  Invoke logstash to start the import process:
-
-	cd logstash-1.5.2/bin/
-	./logstash -f /vagrant/data/es_import_docker.conf
-
-The data will be stored in `esdata` and the logs are in `eslogs`.  If you have prebuilt esdata directories, you can skip the above step and copy them into your /vagrant/ directory as is.
+If your container config.js points at a MySQL server that can't be resolved, you can add a hosts entry at run-time using the Docker parameter `--add-host`.
 
 To push the image to the repository:
 

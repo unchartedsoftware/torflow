@@ -64,3 +64,5 @@ config.js
 **/extern.css
 .vagrant/
 map/
+build/public/extern/
+build/
