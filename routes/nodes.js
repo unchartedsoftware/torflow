@@ -35,7 +35,7 @@ var DBUtil = require('../db/db_utils');
 /**
  * GET /nodes/:nodeid
  */
-router.get('/:nodeid', function(req, res, next) {
+router.get('/:nodeid', function(req, res) {
     var momentDate = moment(req.params.nodeid);
     var day = momentDate.date();    // date == day of month, day == day of week.
     var month = momentDate.month() + 1; // indexed from 0?
@@ -68,7 +68,7 @@ router.get('/:nodeid', function(req, res, next) {
         var aggregatedBandwidth = aggregatedRelayData.map(function(a) { return a.bandwidth; });
         var aggregatedBandwidthExtends = MathUtil.minmax(aggregatedBandwidth);
         var payload = {
-            objects : aggregatedRelayData.map(function(aggregate,i) {
+            objects : aggregatedRelayData.map(function(aggregate) {
                 return {
                     circle : {
                         coordinates : [aggregate.lat,aggregate.lng],
@@ -84,7 +84,7 @@ router.get('/:nodeid', function(req, res, next) {
             return o1.circle.bandwidth - o2.circle.bandwidth;
         });
         res.send(payload);
-    }, function(error) {
+    }, function() {
         res.status(500).send('Node data could not be retrieved.');
     });
 });

@@ -27,12 +27,12 @@
 
 var _$label;
 
-var tooltip = function( elem, label ) {
+var tooltip = function( marker, label ) {
     if ( typeof label === 'function' ) {
         label = label();
     }
     // on mouse over create label
-    elem.on( 'mouseover', function( leafletEvent ) {
+    marker.on( 'mouseover', function( leafletEvent ) {
         var event = leafletEvent.originalEvent,
             offset = $(document.body).offset(),
             relativeX = event.pageX - offset.left,
@@ -51,7 +51,7 @@ var tooltip = function( elem, label ) {
         });
     });
     // on mouse out destroy label
-    elem.on( 'mouseout', function() {
+    marker.on( 'mouseout', function() {
         if ( _$label ) {
             _$label.remove();
             _$label = null;
