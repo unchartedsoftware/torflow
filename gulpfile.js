@@ -30,6 +30,8 @@ var jshint = require('gulp-jshint');
 
 gulp.task('copy', function() {
     // app
+    gulp.src('package.json')
+        .pipe(gulp.dest('./deploy/app/'));
     gulp.src(['app.js', 'config.js', 'package.json'])
         .pipe(gulp.dest('./deploy/app/build/'));
     gulp.src('bin/**')
@@ -48,9 +50,9 @@ gulp.task('copy', function() {
         .pipe(gulp.dest('./deploy/app/build/db/'));
 
     // ingest
-    gulp.src(['config.js', 'package.json'])
-        .pipe(gulp.dest('./deploy/ingest/build/'));
     gulp.src('package.json')
+        .pipe(gulp.dest('./deploy/ingest/'));
+    gulp.src(['config.js', 'package.json'])
         .pipe(gulp.dest('./deploy/ingest/build/'));
     gulp.src('bin/ingest')
         .pipe(gulp.dest('./deploy/ingest/build/bin/'));
@@ -60,6 +62,30 @@ gulp.task('copy', function() {
         .pipe(gulp.dest('./deploy/ingest/build/db/'));
     gulp.src('util/**')
         .pipe(gulp.dest('./deploy/ingest/build/util/'));
+
+    // demo
+    gulp.src('package.json')
+        .pipe(gulp.dest('./deploy/demo/'));
+    gulp.src(['app.js', 'config.js', 'package.json'])
+        .pipe(gulp.dest('./deploy/demo/build/'));
+    gulp.src('bin/**')
+        .pipe(gulp.dest('./deploy/demo/build/bin/'));
+    gulp.src('data/**')
+        .pipe(gulp.dest('./deploy/demo/build/data/'));
+    gulp.src('public/**')
+        .pipe(gulp.dest('./deploy/demo/build/public/'));
+    gulp.src('routes/**')
+        .pipe(gulp.dest('./deploy/demo/build/routes/'));
+    gulp.src('util/**')
+        .pipe(gulp.dest('./deploy/demo/build/util/'));
+    gulp.src('views/**')
+        .pipe(gulp.dest('./deploy/demo/build/views/'));
+    gulp.src('db/**')
+        .pipe(gulp.dest('./deploy/demo/build/db/'));
+    gulp.src('ingest/**')
+        .pipe(gulp.dest('./deploy/demo/build/ingest/'));
+    gulp.src('db/**')
+        .pipe(gulp.dest('./deploy/demo/build/db/'));
 });
 
 gulp.task('lint',function() {

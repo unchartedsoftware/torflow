@@ -17,7 +17,7 @@ RUN cd /opt; wget --no-cookies --no-check-certificate --header "Cookie: gpw_e24=
 ADD supervisord.conf /etc/supervisor/conf.d/supervisord.conf
 
 # bundle the app source
-COPY . /torflow
+COPY build /torflow
 
 # Install app dependencies
 RUN cd /torflow; npm install

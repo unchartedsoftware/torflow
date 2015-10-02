@@ -79,3 +79,22 @@ Run the ingest container:
     sudo docker run -ti --rm --name torflow-ingest -v /torflow/data/sample/:/torflow/data docker.uncharted.software/torflow-ingest
 
 This assumes you are importing the sample data in the /torflow/data/sample folder. If your container config.js points at a MySQL server that can't be resolved, you can add a hosts entry at run-time using the Docker parameter `--add-host`.
+
+### Demo container
+
+Build the demo container:
+
+    sudo docker build -t="docker.uncharted.software/torflow-demo" .
+
+Run the demo container:
+
+    sudo docker run -ti --rm --name torflow -v /logs/:/var/log/supervisor/ -p 3000:3000 docker.uncharted.software/torflow-demo
+
+This assumes you are importing the sample data in the /torflow/data/sample folder. If your container config.js points at a MySQL server that can't be resolved, you can add a hosts entry at run-time using the Docker parameter `--add-host`.
+
+### Known issues with Docker
+
+The Docker containers run in UTC, but the app currently assumes you are running in EDT.  To workaround this, force the time zone of the Docker container to EDT. For example, add this to the docker run command:
+
+	-v /usr/share/zoneinfo/Canada/Eastern:/etc/localtime
+
