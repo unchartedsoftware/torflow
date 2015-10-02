@@ -32,7 +32,7 @@ var path = require('path');
 /**
  * GET /map/:map/:zoom/:x/:y
  */
-router.get('/:map/:zoom/:x/:y', function(req, res, next) {
+router.get('/:map/:zoom/:x/:y', function(req, res) {
 	var filePath = __dirname + '/../map/' + req.params.map + '/' + req.params.zoom + '/' + req.params.x + '/' + req.params.y;
 	res.sendFile(path.resolve(filePath));
 });

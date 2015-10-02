@@ -34,15 +34,16 @@ var moment = require('moment');
 /**
  * GET /country/:countryid
  */
-router.get('/:countryid', function(req, res, next) {
-    var momentDate = moment(req.params.countryid);
+router.get('/:dateid', function(req, res) {
+    var momentDate = moment(req.params.dateid);
     var day = momentDate.date();    // date == day of month, day == day of week.
     var month = momentDate.month() + 1; // indexed from 0?
     var year = momentDate.year();
     var sqlDate = DBUtil.getMySQLDate(year,month,day);
     countryDB.getCountryHistogram(sqlDate,function(histogram) {
+        delete histogram['??']; // remove this entry
         res.send(histogram);
-    }, function(err) {
+    }, function() {
         res.status(500).send('Country data could not be retrieved.');
     });
 });

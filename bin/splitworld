@@ -1,0 +1,38 @@
+#!/usr/bin/env node
+var worldHighJSON = require('../data/world.high.geo.json');
+var worldMedJSON = require('../data/world.medium.geo.json');
+var path = require('path');
+var fs = require('fs');
+var _ = require('underscore');
+
+var writeCountry = function(iso,countryFeature,subDir) {
+	var filename = iso + '.geo.json';
+	var filepath = './data/' + subDir + '/' + filename;
+	var resolvedPath = path.resolve(filepath);
+	var json = {
+		type : 'FeatureCollection',
+		features : [_.extend(countryFeature,{
+			id : iso
+		})]
+	};
+
+	fs.writeFile(resolvedPath,JSON.stringify(json), function(err) {
+		if(err) {
+			return console.log(err);
+		}
+
+		console.log(filename + " was sucessfully written");
+	});
+};
+
+worldHighJSON.features.forEach(function(countryFeature) {
+	var countryISO_A3 = countryFeature.properties.ISO_A3;
+	writeCountry(countryISO_A3,countryFeature,'countries_high');
+});
+
+worldMedJSON.features.forEach(function(countryFeature) {
+	var countryISO_A3 = countryFeature.properties.iso_a3;
+	writeCountry(countryISO_A3,countryFeature,'countries_medium');
+});
+
+

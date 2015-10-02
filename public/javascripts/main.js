@@ -55,7 +55,7 @@ App.prototype = _.extend(App.prototype, {
 
     _clear : function() {
         if (this._markersLayer) {
-            this._map.removeLayer(this._markersLayer);
+            this._markersLayer.clearLayers();
         }
         if (this._countryLayer) {
             this._countryLayer.clear();
@@ -86,6 +86,21 @@ App.prototype = _.extend(App.prototype, {
 
     _getNormalizedBandwidth : function( relays ) {
         return this._sumRelaysBandwidth(relays) / this._getCurrentTotalBandwidth();
+    },
+
+    _getMinMaxBandwidth : function() {
+        var max = -Number.MAX_VALUE;
+        var min = Number.MAX_VALUE;
+        var self = this;
+        this._currentNodes.objects.forEach(function(node) {
+            var nodeBW = self._sumRelaysBandwidth(node.circle.relays);
+            max = Math.max(max,nodeBW);
+            min = Math.min(min,nodeBW);
+        });
+        return {
+            min: min,
+            max: max
+        };
     },
 
     _createParticles : function() {
@@ -192,66 +207,14 @@ App.prototype = _.extend(App.prototype, {
 
     _createMarkers : function() {
         var self = this;
-
-        this._markersLayer = L.markerClusterGroup({
-            removeOutsideVisibleBounds : false,
-            disableClusteringAtZoom: true,
-            zoomToBoundsOnClick : false,
-            iconCreateFunction: function (cluster) {
-                var markers = cluster.getAllChildMarkers();
-
-                var dataElements = markers.map(function(marker) {
-                    return marker.data.circle;
-                });
-
-                // Adjust position of marker latLng to be at the center of bandwidth as opposed to geometric center
-                var clusterBandwidth = 0;
-                dataElements.forEach(function(data) {
-                    clusterBandwidth += data.bandwidth;
-                });
-
-                // If the aggregate bandwidth is not zero, fudge the position of the marker to be center of bandwidth instead of
-                // weighted geographic center
-                if (clusterBandwidth !== 0) {
-                    var weightAvgLat = 0;
-                    var weightedAvgLng = 0;
-                    markers.forEach(function (marker, i) {
-                        weightAvgLat += marker.getLatLng().lat * dataElements[i].bandwidth;
-                        weightedAvgLng += marker.getLatLng().lng * dataElements[i].bandwidth;
-                    });
-                    weightAvgLat /= clusterBandwidth;
-                    weightedAvgLng /= clusterBandwidth;
-                    cluster.setLatLng(new L.LatLng(weightAvgLat, weightedAvgLng));
-                }
-
-                self._clusters[self._map.getZoom()].push(cluster);
-
-                var radius = Config.node_radius.min + (Config.node_radius.max-Config.node_radius.min)*clusterBandwidth;
-
-                var icon = L.divIcon({
-                    className: 'relay-cluster',
-                    iconSize: L.point(radius, radius)
-                });
-                cluster.icon = icon;
-                return icon;
-            }
-        });
-
-        var maxBW = -Number.MAX_VALUE;
-        var minBW = Number.MAX_VALUE;
-        this._currentNodes.objects.forEach(function(node) {
-            var nodeBW = self._sumRelaysBandwidth(node.circle.relays);
-            maxBW = Math.max(maxBW,nodeBW);
-            minBW = Math.min(minBW,nodeBW);
-        });
-
-        this._currentNodes.objects.forEach(function(node) {
+        var minMax = this._getMinMaxBandwidth();
+        var markers = this._currentNodes.objects.map(function(node) {
             var relays = node.circle.relays;
             var title = relays.length === 1 ? relays[0].name : relays.length + ' relays at location';
             var marker;
             if (self._scaleByBandwidth()) {
                 var nodeBW = self._sumRelaysBandwidth(relays);
-                var pointRadius = Lerp(Config.node_radius.min,Config.node_radius.max,nodeBW / (maxBW-minBW));
+                var pointRadius = Lerp(Config.node_radius.min,Config.node_radius.max,nodeBW / (minMax.max-minMax.min));
                 marker = L.marker(node.latLng, {
                     icon : L.divIcon({
                         className: 'relay-cluster',
@@ -268,10 +231,15 @@ App.prototype = _.extend(App.prototype, {
             }
             marker.data = node;
             MarkerTooltip( marker, title );
+            return marker;
+        });
+
+        markers.forEach(function(marker) {
             self._markersLayer.addLayer(marker);
         });
 
-        this._map.addLayer(this._markersLayer);
+        //this._markersLayer = L.layerGroup(markers);
+        //this._map.addLayer(this._markersLayer);
     },
 
     _getCurrentTotalBandwidth : function() {
@@ -338,13 +306,15 @@ App.prototype = _.extend(App.prototype, {
         }
     },
 
-    _init : function(dates) {
-        this._dates = dates;
-        var totalDays = dates.length;
-        this._element = $(document.body).append($(Template(_.extend(Config,{
+    _initUI : function() {
+        var totalDays = this._dates.length;
+        var extendedConfig = _.extend(Config,{
             maxIndex : totalDays-1,
             defaultDate : this._getFriendlyDate(totalDays-1)
-        }))));
+        });
+
+        this._element = $(document.body).append(Template(extendedConfig));
+        
         this._element.find('.hidden-filter-btn').change(this._onHiddenFilterChange.bind(this));
         this._element.find('#show-flow-input').change(this._onToggleFlow.bind(this));
         this._element.find('#label-input').change(this._onToggleLabels.bind(this));
@@ -374,11 +344,13 @@ App.prototype = _.extend(App.prototype, {
         this._speedSlider.on('slideStop',this._onSpeedSlide.bind(this));
 
         this._pathSlider = this._element.find('#path-slider').slider({ tooltip: 'hide' });
-        this._pathSlider.on('slideStop',this._onPathSlide.bind(this));
+        this._pathSlider.on('slide',this._onPathSlide.bind(this));
 
         this._opacitySlider = this._element.find('#opacity-slider').slider({ tooltip: 'hide' });
         this._opacitySlider.on('slide',this._onOpacitySlide.bind(this));
+    },
 
+    _initMap : function() {
         // Initialize the map object
         this._map = L.map('map', {
             inertia: false,
@@ -387,11 +359,12 @@ App.prototype = _.extend(App.prototype, {
             maxZoom: Config.maxZoom || 18
         });
         this._map.setView([40, -42], 4);
-
         // Initialize zoom controls
         this._zoomControls = new L.Control.Zoom({ position: 'topright' });
         this._zoomControls.addTo(this._map);
+    },
 
+    _initLayers : function() {
         // Initialize the baselayer
         var mapUrlBase = 'http://{s}.basemaps.cartocdn.com/';
         if (Config.localMapServer) {
@@ -403,8 +376,16 @@ App.prototype = _.extend(App.prototype, {
                 attribution: Config.mapAttribution,
                 maxZoom: Config.maxZoom || 18,
                 noWrap: true
-            }).addTo(this._map);
-
+            });
+        this._baseTileLayer.addTo(this._map);
+        // Initialize the country layer
+        this._countryLayer = new CountryLayer(this._map);
+        // Initialize markers layer
+        this._markersLayer = L.layerGroup();
+        this._markersLayer.addTo(this._map);
+        // Initialize particle layer
+        this._particleLayer = new DotLayer();
+        this._particleLayer.addTo(this._map);
         // Initialize the label layer
         this._labelLayer = L.tileLayer(
             mapUrlBase + 'dark_only_labels/{z}/{x}/{y}.png',
@@ -416,18 +397,19 @@ App.prototype = _.extend(App.prototype, {
         if (this._showingLabels) {
             this._labelLayer.addTo(this._map);
         }
+    },
 
-        // Initialize the country layer
-        this._countryLayer = new CountryLayer(this._map);
-
-        // Initialize particle layer
-        this._particleLayer = new DotLayer();
-        this._particleLayer.addTo(this._map);
-
+    _init : function(dates) {
+        this._dates = dates;
+        // init app
+        this._initUI();
+        this._initMap();
+        this._initLayers();
+        // set initial state
         this._onBrightnessSlide();
         this._onSpeedSlide();
         this._onPathSlide();
-
+        // begin
         this._update();
     },
 

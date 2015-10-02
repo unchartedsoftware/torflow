@@ -31,10 +31,10 @@ var router = express.Router();
 /**
  * GET /dates
  */
-router.get('/', function(req, res, next) {
+router.get('/', function(req, res) {
     DatesDB.getDates(function(dates) {
         res.send(dates);
-    }, function(error) {
+    }, function() {
         res.status(500).send('Dates data could not be retrieved.');
     });
 });
