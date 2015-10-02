@@ -32,7 +32,6 @@ var CountryLayer = function(map) {
         style : this._getFeatureStyle.bind(this)
     }).addTo(this._map);
     this._histogram = null;
-    this._totalClientCount = null;
     this._geoJSONMap = null;
     this._colorScale = d3.scale.linear()
         .range(['white', 'blue']) // or use hex values
@@ -43,48 +42,42 @@ CountryLayer.prototype = _.extend(CountryLayer.prototype, {
     set : function(countryCodeToCount) {
         var self = this;
         this._histogram = countryCodeToCount;
-        var CC = Object.keys(countryCodeToCount);
-        var request = {
-            url: '/geo',
-            type: 'POST',
-            contentType: 'application/json; charset=utf-8',
-            async: true,
-            data: JSON.stringify({
-                cc:CC
-            })
-        };
 
-        $.ajax(request)
-            .done(function( geoJSONMap ) {
-                self._geoJSONMap = geoJSONMap;
-                self._render();
-            })
-            .fail(function(err) {
-                console.log(err);
-            });
+        // update max client count
+        this._maxClientCount = 0;
+        _.forEach(this._histogram, function(count) {
+            self._maxClientCount = Math.max(count,self._maxClientCount);
+        });
+
+        // clear and re-request country info
+        this._geoJSONMap = {};
+        _.forEach(this._histogram, function(count,countryCode) {
+            if ( count === 0 ) {
+                return;
+            }
+            var request = {
+                url: '/geo/' + countryCode,
+                type: 'GET',
+                contentType: 'application/json; charset=utf-8',
+                async: true
+            };
+            $.ajax(request)
+                .done(function(geoJSON) {
+                    self._geoJSONMap[countryCode] = geoJSON;
+                    self._render(countryCode);
+                })
+                .fail(function(err) {
+                    console.log(err);
+                });
+        });
+
     },
 
-    _render : function() {
-        var self = this;
-
-        // Total up all the clients we can render
-        this._totalClientCount = 0;
-        this._maxClientCount = 0;
-        Object.keys(this._geoJSONMap).forEach(function(cc) {
-            var countryFeatures = self._geoJSONMap[cc];
-            if (countryFeatures) {
-                self._totalClientCount += self._histogram[cc];
-                self._maxClientCount = Math.max(self._histogram[cc],self._maxClientCount);
-            }
-        });
-
-        // And add each one to the map
-        Object.keys(this._geoJSONMap).forEach(function(cc) {
-            var countryFeatures = self._geoJSONMap[cc];
-            if (countryFeatures) {
-                self._geoJSONLayer.addData(countryFeatures);
-            }
-        });
+    _render : function(countryCode) {
+        var geoJSON = this._geoJSONMap[countryCode];
+        if (geoJSON) {
+            this._geoJSONLayer.addData(geoJSON);
+        }
     },
 
     _threeLetterToTwoLetter : function(cc_threeLetter) {

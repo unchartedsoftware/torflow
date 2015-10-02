@@ -374,7 +374,7 @@ App.prototype = _.extend(App.prototype, {
         this._speedSlider.on('slideStop',this._onSpeedSlide.bind(this));
 
         this._pathSlider = this._element.find('#path-slider').slider({ tooltip: 'hide' });
-        this._pathSlider.on('slideStop',this._onPathSlide.bind(this));
+        this._pathSlider.on('slide',this._onPathSlide.bind(this));
 
         this._opacitySlider = this._element.find('#opacity-slider').slider({ tooltip: 'hide' });
         this._opacitySlider.on('slide',this._onOpacitySlide.bind(this));

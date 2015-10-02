@@ -31,7 +31,7 @@ var router = express.Router();
 /**
  * GET /about/
  */
-router.get('/', function(req, res, next) {
+router.get('/', function(req, res) {
   res.render('about', { title: 'Changelog' });
 });
 

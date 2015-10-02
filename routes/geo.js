@@ -54,18 +54,14 @@ var getGeoJSON = function(cc) {
 /**
  * GET /geo/
  */
-router.post('/', function(req, res, next) {
-    var countryCodes = req.body.cc;
-    var result = {};
-    if (countryCodes && countryCodes.length) {
-        countryCodes.forEach(function (cc) {
-            var threeLetterCC = ccLookup.twoToThree[cc.toUpperCase()];
-            if (threeLetterCC) {
-                result[cc] = getGeoJSON(threeLetterCC);
-            }
-        });
+router.get('/:countrycode', function(req, res) {
+    var twoLetterCC = req.params.countrycode.toUpperCase(),
+        threeLetterCC = ccLookup.twoToThree[twoLetterCC];
+    if (threeLetterCC) {
+        res.send(getGeoJSON(threeLetterCC));
+    } else {
+        res.send(null);
     }
-    res.send(result);
 });
 
 module.exports = router;
