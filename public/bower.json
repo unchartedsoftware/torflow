@@ -10,7 +10,6 @@
     "jquery": "2.1.4",
     "leaflet": "0.7.5",
     "leaflet-canvas-layer": "https://github.com/CartoDB/Leaflet.CanvasLayer.git#gh-pages",
-    "leaflet.markercluster": "~0.4.0",
     "lodash": "~3.10.1",
     "moment": "~2.10.6",
     "seiyria-bootstrap-slider": "4.10.4",
