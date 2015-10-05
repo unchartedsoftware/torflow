@@ -32,7 +32,7 @@ var CountryLayer = function(map) {
         style : this._getFeatureStyle.bind(this)
     }).addTo(this._map);
     this._histogram = null;
-    this._geoJSONMap = null;
+    this._geoJSONMap = {};
     this._colorScale = d3.scale.linear()
         .range(['white', 'blue']) // or use hex values
         .domain([0,1]);
@@ -49,26 +49,30 @@ CountryLayer.prototype = _.extend(CountryLayer.prototype, {
             self._maxClientCount = Math.max(count,self._maxClientCount);
         });
 
-        // clear and re-request country info
-        this._geoJSONMap = {};
+        // request country info
         _.forEach(this._histogram, function(count,countryCode) {
             if ( count === 0 ) {
                 return;
             }
-            var request = {
-                url: '/geo/' + countryCode,
-                type: 'GET',
-                contentType: 'application/json; charset=utf-8',
-                async: true
-            };
-            $.ajax(request)
-                .done(function(geoJSON) {
-                    self._geoJSONMap[countryCode] = geoJSON;
-                    self._render(countryCode);
-                })
-                .fail(function(err) {
-                    console.log(err);
-                });
+
+            if (self._geoJSONMap[countryCode]) {
+                self._render(countryCode);
+            } else {
+                var request = {
+                    url: '/geo/' + countryCode,
+                    type: 'GET',
+                    contentType: 'application/json; charset=utf-8',
+                    async: true
+                };
+                $.ajax(request)
+                    .done(function (geoJSON) {
+                        self._geoJSONMap[countryCode] = geoJSON;
+                        self._render(countryCode);
+                    })
+                    .fail(function (err) {
+                        console.log(err);
+                    });
+            }
         });
 
     },
