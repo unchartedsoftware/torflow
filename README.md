@@ -40,7 +40,9 @@ Ingest data into MySQL via the bin/ingest node script.  There is a set of sample
 
 	node bin/ingest data/sample
 
-## Building the Docker containers
+# Building the Docker containers
+
+## Prepare the build directory
 
 Prepare the build directory:
 
@@ -58,8 +60,11 @@ You may need to start docker:
 
 ### Application server container
 
+The "torflow" app container will run the application, and connect to an external MySQL database.  The "config.js" configuration file build into the container will specify the connection parameters.
+
 Build the app container:
 
+    cd /deploy/app
     sudo docker build -t="docker.uncharted.software/torflow" .
 
 Run the app container:
@@ -70,8 +75,11 @@ If your container config.js points at a MySQL server that can't be resolved, you
 
 ### Ingest container
 
+The "torflow-ingest" container will run the ingest program described above, ingesting whatever data is mounted at the command-line below.  It will use the "config.js" configuration file built into the container.
+
 Build the ingest container:
 
+    cd /deploy/ingest
     sudo docker build -t="docker.uncharted.software/torflow-ingest" .
 
 Run the ingest container:
@@ -82,15 +90,20 @@ This assumes you are importing the sample data in the /torflow/data/sample folde
 
 ### Demo container
 
+The demo container is pre-configured to run against the demo MySQL database, and will automatically ingest the the sample data from the /torflow/data/sample folder.  The "config.js" for the demo app, and the "mysql.properties" for the MySQL server, are already configured to match each other. If you change one, you need to update the other.
+
+Run the MySQL container:
+
+    sudo docker run -ti --rm --name torflow-mysql -p 3306:3306 --env-file mysql.properties mysql:5.7
+
 Build the demo container:
 
+    cd /deploy/demo
     sudo docker build -t="docker.uncharted.software/torflow-demo" .
 
 Run the demo container:
 
-    sudo docker run -ti --rm --name torflow -v /logs/:/var/log/supervisor/ -p 3000:3000 docker.uncharted.software/torflow-demo
-
-This assumes you are importing the sample data in the /torflow/data/sample folder. If your container config.js points at a MySQL server that can't be resolved, you can add a hosts entry at run-time using the Docker parameter `--add-host`.
+    sudo docker run -ti --rm --name torflow --link torflow-mysql:MYSQL -v /logs/:/var/log/supervisor/ -p 3000:3000 docker.uncharted.software/torflow-demo
 
 ### Known issues with Docker
 

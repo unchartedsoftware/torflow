@@ -66,3 +66,4 @@ config.js
 map/
 build/public/extern/
 build/
+data/tmp/
