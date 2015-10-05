@@ -71,3 +71,4 @@ module.exports.close = closeConnection;
 module.exports.query = query;
 module.exports.complete = complete;
 module.exports.error = error;
+module.exports.escape = pool.escape;

@@ -1,8 +1,6 @@
 var connectionPool = require('./connection');
 var config = require('../config');
 var relays = require('./relay');
-var Process = require('../util/process_each');
-var lodash = require('lodash');
 
 var getDates = function(onSuccess,onError) {
     connectionPool.query(
@@ -12,7 +10,6 @@ var getDates = function(onSuccess,onError) {
         },
         onError );
 };
-
 
 var updateDates = function(onSuccess,onError) {
     relays._getDates(function(dates) {
@@ -24,8 +21,8 @@ var updateDates = function(onSuccess,onError) {
                 });
                 connectionPool.query('INSERT INTO ' + config.db.database + '.dates (date) VALUES ?',[dateSpecs],onSuccess,onError);
             },
-        onError );
-    },onError)
+        onError);
+    },onError);
 };
 
 var getDates = function(onSuccess,onError) {
@@ -39,7 +36,6 @@ var getDates = function(onSuccess,onError) {
         },
         onError );
 };
-
 
 module.exports.updateDates = updateDates;
 module.exports.getDates = getDates;
