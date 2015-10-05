@@ -44,15 +44,13 @@ Ingest data into MySQL via the bin/ingest node script.  There is a set of sample
 
 ## Prepare the build directory
 
-Prepare the build directory:
-
-	gulp build
-
 Start the VM:
 
     vagrant up
     vagrant ssh
     cd /vagrant
+    
+    gulp build
 
 You may need to start docker:
 

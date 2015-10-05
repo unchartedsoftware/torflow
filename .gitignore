@@ -67,3 +67,6 @@ map/
 build/public/extern/
 build/
 data/tmp/
+deploy/app/package.json
+deploy/demo/package.json
+deploy/ingest/package.json
