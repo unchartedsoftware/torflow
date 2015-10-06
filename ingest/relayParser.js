@@ -41,8 +41,24 @@ var parseCountryCodeLine = function(csvLine,dateStr) {
 	};
 };
 
+var verify = function(line) {
+	var columns = line.replace(')','').split(',');
+	if (columns.length !== COLUMNS.length) {
+		return 'Relay file column format not supported! Line contains ' + columns.length + ' columns, table contains ' + COLUMNS.length + '.';
+	}
+	for (var i = 0; i < columns.length; i++) {
+		if (columns[i] !== COLUMNS[i]) {
+			return 'Relay file format not supported!\n' +
+				'Expected: ' + COLUMNS + '\n' +
+				'Read:     ' + columns + '\n';
+		}
+	}
+	return false;
+};
+
 module.exports.VERSION = VERSION;
 module.exports.COLUMNS = COLUMNS;
 module.exports.DB_ORDER = DB_ORDER;
 module.exports.parseRelayLine = parseRelayLine;
 module.exports.parseCountryCodeLine = parseCountryCodeLine;
+module.exports.verify = verify;
