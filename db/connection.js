@@ -66,9 +66,13 @@ var error = function(err,connection,onError) {
     }
 };
 
+var escape = function() {
+	return pool.escape.apply(pool,arguments);
+};
+
 module.exports.open = openConnection;
 module.exports.close = closeConnection;
 module.exports.query = query;
 module.exports.complete = complete;
 module.exports.error = error;
-module.exports.escape = pool.escape;
+module.exports.escape = escape;

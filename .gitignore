@@ -64,3 +64,4 @@ config.js
 **/extern.css
 .vagrant/
 map/
+data/relays/*

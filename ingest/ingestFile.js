@@ -1,11 +1,10 @@
 var fs = require('fs');
 var readline = require('readline');
+var _ = require('lodash');
+var async = require('async');
 var relayParser = require('./relayParser');
 var RelayDB = require('../db/relay');
-var connectionPool = require('./connection');
-var lodash = require('lodash');
-var async = require('async');
-var BATCH_INSERT_SIZE = 2000;
+var connectionPool = require('../db/connection');
 
 var getGuardClientSpecs = function(guardClients,fingerprintToId,date) {
 	var guardClientSpecs = [];
@@ -38,52 +37,25 @@ var getGuardClientSpecs = function(guardClients,fingerprintToId,date) {
  * @param onError - error callback
  */
 var ingestFile = function(resolvedFilePath, onSuccess, onError) {
-
-	var success = function(relaySpecs,numSkipped,guardClients,date) {
-
-		// Insert the relay data into the relays table
-		_insertRelayData(relaySpecs,function() {
-
-			// Get a mapping from fingerprint -> relay id (in table) and append it to each element we have guard client data for
-			RelayDB.fingerprints(date,function(fingerprintToId) {
-
-				var guardClientSpecs = getGuardClientSpecs(guardClients,fingerprintToId,date);
-
-				if (guardClientSpecs.length > 0) {
-					var chunks = lodash.chunk(guardClientSpecs, BATCH_INSERT_SIZE);
-					var jobs = chunks.map(function(chunk) {
-						return function(done) {
-							_insertGuardClientData(
-								chunk,
-								function() {
-									done(null,null);
-								}, function(err) {
-									done(err);
-								});
-						};
-					});
-					async.series(jobs,function(err) {
-						if (err) {
-							onError(err);
-						} else {
-							onSuccess(relaySpecs.length,numSkipped);
-						}
-					});
-				} else {
-					onSuccess(relaySpecs.length,numSkipped);
-				}
+	_extractFromCSV(
+		resolvedFilePath,
+		function(relaySpecs,numSkipped,guardClients,date) {
+			// Insert the relay data into the relays table
+			_insertRelayData(relaySpecs,function() {
+				// Get a mapping from fingerprint -> relay id (in table) and append it to each element we have guard client data for
+				RelayDB.fingerprints(date,function(fingerprintToId) {
+					var guardClientSpecs = getGuardClientSpecs(guardClients,fingerprintToId,date);
+					// For each relay data, push to the list of guard client rows in the database
+					_insertGuardClientData(guardClientSpecs, function() {
+						onSuccess(relaySpecs.length,numSkipped);
+					},
+					onError);
+				},
+				onError);
 			},
 			onError);
-
 		},
 		onError);
-	};
-
-	var error = function(msg) {
-		onError(msg);
-	};
-
-	_extractFromCSV(resolvedFilePath,success,error);
 };
 
 /**
@@ -133,8 +105,9 @@ var _extractFromCSV = function(filename,onSuccess,onError) {
 			error = relayParser.verify(line);
 			if (error) {
 				onError(error);
-				return;
 			}
+			// always ignore first line
+			return;
 		}
 		var relaySpec = relayParser.parseRelayLine(line,dateString);
 		var guardClientMap = relayParser.parseCountryCodeLine(line,dateString);
@@ -174,11 +147,31 @@ var _insertRelayData = function(relaySpecs,onSuccess,onError) {
  * @private
  */
 var _insertGuardClientData = function(guardSpecs,onSuccess,onError) {
-	connectionPool.query(
-		'INSERT INTO guard_clients (relay_id,cc,guardclientcount,date) VALUES ?',
-		[guardSpecs],
-		onSuccess,
-		onError);
+	if ( guardSpecs.length === 0 ) {
+		return onSuccess();
+	}
+	var BATCH_INSERT_SIZE = 2000;
+	var chunks = _.chunk(guardSpecs, BATCH_INSERT_SIZE);
+	var jobs = chunks.map(function(chunk) {
+		return function(done) {
+			connectionPool.query(
+				'INSERT INTO guard_clients (relay_id,cc,guardclientcount,date) VALUES ?',
+				[chunk],
+				function() {
+					done(null,null);
+				},
+				function(err) {
+					done(err);
+				});
+		};
+	});
+	async.series(jobs,function(err) {
+		if (err) {
+			onError(err);
+		} else {
+			onSuccess();
+		}
+	});
 };
 
 module.exports = ingestFile;
