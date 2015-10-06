@@ -314,7 +314,7 @@ App.prototype = _.extend(App.prototype, {
         });
 
         this._element = $(document.body).append(Template(extendedConfig));
-        
+
         this._element.find('.hidden-filter-btn').change(this._onHiddenFilterChange.bind(this));
         this._element.find('#show-flow-input').change(this._onToggleFlow.bind(this));
         this._element.find('#label-input').change(this._onToggleLabels.bind(this));

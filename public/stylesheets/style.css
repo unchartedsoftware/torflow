@@ -80,6 +80,14 @@ a {
     padding: 0;
 }
 
+.leaflet-tile-pane {
+    z-index: auto !important;
+}
+
+.leaflet-objects-pane {
+    z-index: auto !important;
+}
+
 .uncharted-logo {
     position: absolute;
     right: 0;
@@ -113,8 +121,8 @@ a {
 .relay-cluster {
     border-radius: 50%;
     background-color: rgba(255,255,255,0.3);
-    border: 1px solid #fff;
-    box-sixing: border-box;
+    border: 1px solid #000;
+    box-sizing: border-box;
 }
 
 .relay-cluster-label {

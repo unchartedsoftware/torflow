@@ -13,7 +13,8 @@
     "lodash": "~3.10.1",
     "moment": "~2.10.6",
     "seiyria-bootstrap-slider": "4.10.4",
-    "sweetalert": "~1.1.0"
+    "sweetalert": "~1.1.0",
+    "async": "~1.4.2"
   },
   "overrides": {
     "bootstrap": {
