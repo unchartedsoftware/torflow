@@ -27,10 +27,10 @@
 
 var DotLayer = require('./layers/dotlayer');
 var CountryLayer = require('./layers/countrylayer');
-var Lerp = require('./util/lerp');
+var MarkerLayer = require('./layers/markerlayer');
 var Config = require('./config');
-var MarkerTooltip = require('./util/markertooltip');
 var Template = require('./templates/main');
+var nodeUtil = require('./util/nodeUtil');
 
 /**
  * Creates the TorFlow front-end app
@@ -40,9 +40,8 @@ var App = function() {};
 
 App.prototype = _.extend(App.prototype, {
 
-    _clusters : {},     // zoom level -> list of clusters
     _particleLayer : null,
-    _markersLayer : null,
+    _markerLayer : null,
     _countryLayer : null,
     _map : null,
     _element : null,
@@ -54,19 +53,12 @@ App.prototype = _.extend(App.prototype, {
     _showingLabels : null,
 
     _clear : function() {
-        if (this._markersLayer) {
-            this._markersLayer.clearLayers();
+        if (this._markerLayer) {
+            this._markerLayer.clear();
         }
         if (this._countryLayer) {
             this._countryLayer.clear();
         }
-    },
-
-    _getVisibleRelays : function() {
-        var bounds = this._map.getBounds();
-        return this._currentNodes.objects.filter(function(aggregate) {
-            return bounds.contains(aggregate.latLng);
-        });
     },
 
     _latLngToNormalizedCoord : function(latLng) {
@@ -78,36 +70,11 @@ App.prototype = _.extend(App.prototype, {
         };
     },
 
-    _sumRelaysBandwidth : function( relays ) {
-        return _.reduce(relays, function(memo, relay) {
-            return memo + relay.bandwidth;
-        }, 0);
-    },
-
-    _getNormalizedBandwidth : function( relays ) {
-        return this._sumRelaysBandwidth(relays) / this._getCurrentTotalBandwidth();
-    },
-
-    _getMinMaxBandwidth : function() {
-        var max = -Number.MAX_VALUE;
-        var min = Number.MAX_VALUE;
-        var self = this;
-        this._currentNodes.objects.forEach(function(node) {
-            var nodeBW = self._sumRelaysBandwidth(node.circle.relays);
-            max = Math.max(max,nodeBW);
-            min = Math.min(min,nodeBW);
-        });
-        return {
-            min: min,
-            max: max
-        };
-    },
-
     _createParticles : function() {
         var self = this;
         var nodes = this._currentNodes.objects.map(function (node) {
             return {
-                bandwidth: self._getNormalizedBandwidth(node.circle.relays),
+                bandwidth: nodeUtil.getNormalizedBandwidth(node.circle.relays,self._currentNodes),
                 latLng: node.latLng,
                 pos: self._latLngToNormalizedCoord(node.latLng)
             };
@@ -205,61 +172,6 @@ App.prototype = _.extend(App.prototype, {
         }
     },
 
-    _createMarkers : function() {
-        var self = this;
-        var minMax = this._getMinMaxBandwidth();
-        var markers = this._currentNodes.objects.map(function(node) {
-            var relays = node.circle.relays;
-            var title = relays.length === 1 ? relays[0].name : relays.length + ' relays at location';
-            var marker;
-            if (self._scaleByBandwidth()) {
-                var nodeBW = self._sumRelaysBandwidth(relays);
-                var pointRadius = Lerp(Config.node_radius.min,Config.node_radius.max,nodeBW / (minMax.max-minMax.min));
-                marker = L.marker(node.latLng, {
-                    icon : L.divIcon({
-                        className: 'relay-cluster',
-                        iconSize:L.point(pointRadius, pointRadius)
-                    })
-                });
-            } else {
-                marker = L.marker(node.latLng, {
-                    icon: L.divIcon({
-                        className: 'relay-cluster',
-                        iconSize: L.point(Config.node_radius.min, Config.node_radius.min)
-                    })
-                });
-            }
-            marker.data = node;
-            MarkerTooltip( marker, title );
-            return marker;
-        });
-
-        markers.forEach(function(marker) {
-            self._markersLayer.addLayer(marker);
-        });
-
-        //this._markersLayer = L.layerGroup(markers);
-        //this._map.addLayer(this._markersLayer);
-    },
-
-    _getCurrentTotalBandwidth : function() {
-        var total = 0;
-        this._currentNodes.objects.forEach(function(aggregate) {
-            aggregate.circle.relays.forEach(function(relay) {
-                total+=relay.bandwidth;
-            });
-        });
-        return total;
-    },
-
-    _getCurrentTotalRelays : function() {
-        var totalRelays = 0;
-        this._currentNodes.objects.forEach(function(node) {
-            totalRelays+= node.circle.relays.length;
-        });
-        return totalRelays;
-    },
-
     _fetch : function(isoDateStr) {
 
         function handleNodes(nodes) {
@@ -267,17 +179,11 @@ App.prototype = _.extend(App.prototype, {
             nodes.objects.forEach(function(node) {
                 node.latLng = new L.LatLng(
                     node.circle.coordinates[0],
-                    node.circle.coordinates[1]);
+                    node.circle.coordinates[1] );
             });
-            // Initialize zoom -> clusters map
-            var minZoom = self._map.getMinZoom();
-            var maxZoom = self._map.getMaxZoom();
-            for (var i = minZoom; i <= maxZoom; i++) {
-                self._clusters[i] = [];
-            }
             // Create markers
-            self._createMarkers();
-            // Update particles
+            self._markerLayer.set(nodes,self._scaleByBandwidth());
+            // Update particles, if they are different
             if ( oldNodes !== self._currentNodes ) {
                 self._createParticles();
             }
@@ -379,10 +285,11 @@ App.prototype = _.extend(App.prototype, {
             });
         this._baseTileLayer.addTo(this._map);
         // Initialize the country layer
-        this._countryLayer = new CountryLayer(this._map);
+        this._countryLayer = new CountryLayer();
+        this._countryLayer.addTo(this._map);
         // Initialize markers layer
-        this._markersLayer = L.layerGroup();
-        this._markersLayer.addTo(this._map);
+        this._markerLayer = new MarkerLayer();
+        this._markerLayer.addTo(this._map);
         // Initialize particle layer
         this._particleLayer = new DotLayer();
         this._particleLayer.addTo(this._map);

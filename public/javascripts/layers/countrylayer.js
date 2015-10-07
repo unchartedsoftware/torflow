@@ -25,19 +25,24 @@
 * SOFTWARE.
 */
 
-var CountryLayer = function(map) {
-    this._map = map;
-    this._map._initPathRoot();
+var CountryLayer = function() {
     this._geoJSONLayer = L.geoJson(null,{
         style : this._getFeatureStyle.bind(this)
-    }).addTo(this._map);
+    });
     this._histogram = null;
     this._geoJSONMap = {};
     this._colorScale = d3.scale.linear()
         .range(['white', 'blue']) // or use hex values
         .domain([0,1]);
 };
+
 CountryLayer.prototype = _.extend(CountryLayer.prototype, {
+
+    addTo: function(map) {
+        this._map = map;
+        this._geoJSONLayer.addTo(map);
+        return this;
+    },
 
     set : function(histogram) {
         var self = this;
@@ -49,12 +54,9 @@ CountryLayer.prototype = _.extend(CountryLayer.prototype, {
         var currentTimestamp = Date.now();
         this._requestTimestamp = currentTimestamp;
         // update max client count
-        this._maxClientCount = 0;
-        _.forEach(this._histogram, function(count) {
-            self._maxClientCount = Math.max(count,self._maxClientCount);
-        });
+        this._maxClientCount = _.max( this._histogram );
         // build requests array
-        var requests = [];=
+        var requests = [];
         _.forEach(this._histogram, function(count,countryCode) {
             if ( count === 0 ) {
                 return;

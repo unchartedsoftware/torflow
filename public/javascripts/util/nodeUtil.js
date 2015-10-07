@@ -25,40 +25,41 @@
 * SOFTWARE.
 */
 
-var _$label;
-
 module.exports = {
 
-    addHandlers: function( marker, label ) {
-        if ( typeof label === 'function' ) {
-            label = label();
-        }
-        // on mouse over create label
-        marker.on( 'mouseover', function( leafletEvent ) {
-            var event = leafletEvent.originalEvent,
-                offset = $(document.body).offset(),
-                relativeX = event.pageX - offset.left,
-                relativeY = event.pageY - offset.top;
-            if ( _$label ) {
-                _$label.remove();
-            }
-            _$label = $(
-                '<div class="marker-tooltip">'+
-                    '<a class="marker-tooltip-text">' + label + '</a>' +
-                '</div>' );
-            $( document.body ).append( _$label );
-            _$label.css({
-                'left': -_$label.outerWidth()/2 + relativeX + 'px',
-                'top': -_$label.outerHeight()*1.5 + relativeY + 'px'
+    getCurrentTotalBandwidth : function(nodes) {
+        var totalBandwidth = 0;
+        nodes.objects.forEach(function(aggregate) {
+            aggregate.circle.relays.forEach(function(relay) {
+                totalBandwidth+=relay.bandwidth;
             });
         });
-        // on mouse out destroy label
-        marker.on( 'mouseout', function() {
-            if ( _$label ) {
-                _$label.remove();
-                _$label = null;
-            }
+        return totalBandwidth;
+    },
+
+    sumRelaysBandwidth : function(relays) {
+        return _.reduce(relays, function(memo, relay) {
+                return memo + relay.bandwidth;
+            }, 0);
+    },
+
+    getNormalizedBandwidth : function(relays,nodes) {
+        return this.sumRelaysBandwidth(relays) / this.getCurrentTotalBandwidth(nodes);
+    },
+
+    getMinMaxBandwidth : function(nodes) {
+        var max = -Number.MAX_VALUE;
+        var min = Number.MAX_VALUE;
+        var self = this;
+        nodes.objects.forEach(function(node) {
+            var nodeBW = self.sumRelaysBandwidth(node.circle.relays);
+            max = Math.max(max,nodeBW);
+            min = Math.min(min,nodeBW);
         });
-    }
+        return {
+            min: min,
+            max: max
+        };
+    },
 
 };
