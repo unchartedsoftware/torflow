@@ -9,12 +9,8 @@ var getCountryHistogram = function(date,onSuccess,onError) {
             var histogram = {};
             rows.forEach(function(row) {
                 var cc = row.cc;
-                var existing = histogram[cc];
-                if (!existing) {
-                    existing = 0;
-                }
-                existing += row.guardclientcount;
-                histogram[cc] = existing;
+                histogram[cc] = ( histogram[cc] !== undefined ) ? histogram[cc] : 0;
+                histogram[cc] += row.guardclientcount;
             });
             onSuccess(histogram);
         },

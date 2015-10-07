@@ -28,8 +28,8 @@
 var _getProbabilisticNodeIndex = function( nodes ) {
     var rnd = Math.random();
     var i = 0;
-    while (i < nodes.length && rnd > nodes[i].bandwidth) {
-        rnd -= nodes[i].bandwidth;
+    while (i < nodes.length && rnd > nodes[i].normalizedBandwidth) {
+        rnd -= nodes[i].normalizedBandwidth;
         i++;
     }
     return Math.min(i,nodes.length-1);
@@ -59,8 +59,8 @@ var _generateParticles = function(particleConfig,nodes,count) {
 
     for ( var i=0; i<count; i++ ) {
         var pair = _getProbabilisticPair(nodes);
-        var start = pair.source.pos;
-        var end = pair.dest.pos;
+        var start = pair.source.position;
+        var end = pair.dest.position;
         var speed = particleConfig.speed + particleConfig.variance * Math.random();
         var offset = particleConfig.offset;
 

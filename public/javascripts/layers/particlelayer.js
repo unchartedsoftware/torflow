@@ -29,7 +29,7 @@ var Config = require('../config.js');
 var WebGLOverlay = require('./webgloverlay');
 var LoadingBar = require('../util/loadingbar');
 
-var DotLayer = WebGLOverlay.extend({
+var ParticleLayer = WebGLOverlay.extend({
 
     initShaders: function( done ) {
         this._shader = new esper.Shader({
@@ -176,4 +176,4 @@ var DotLayer = WebGLOverlay.extend({
 
 });
 
-module.exports = DotLayer;
+module.exports = ParticleLayer;

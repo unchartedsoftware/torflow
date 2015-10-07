@@ -39,7 +39,7 @@ var config = {
     particle_speed_min_factor : 0.01,
     particle_speed_max_factor : 4.0,
     particle_zoom_scale: function( zoom, config_particle_size ) {
-        return Math.max( 1, config_particle_size * ( zoom - 3 ) / 2 );
+        return Math.max( 1, Math.max( config_particle_size, config_particle_size * ( zoom - 3 ) / 2 ) );
     },
     particle_size: 1,
     title : 'TorFlow',

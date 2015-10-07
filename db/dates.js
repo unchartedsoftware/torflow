@@ -12,7 +12,7 @@ var getDates = function(onSuccess,onError) {
 };
 
 var updateDates = function(onSuccess,onError) {
-    relays._getDates(function(dates) {
+    relays.getDates(function(dates) {
         connectionPool.query(
             'TRUNCATE ' + config.db.database + '.dates',
             function() {

@@ -25,12 +25,11 @@
 * SOFTWARE.
 */
 
-var DotLayer = require('./layers/dotlayer');
+var ParticleLayer = require('./layers/particlelayer');
 var CountryLayer = require('./layers/countrylayer');
 var MarkerLayer = require('./layers/markerlayer');
 var Config = require('./config');
 var Template = require('./templates/main');
-var nodeUtil = require('./util/nodeUtil');
 
 /**
  * Creates the TorFlow front-end app
@@ -46,19 +45,15 @@ App.prototype = _.extend(App.prototype, {
     _map : null,
     _element : null,
     _dateLabel : null,
-    _currentNodes : null,
+    _nodeData : null,
     _currentDate : null,
     _currentHistogram : null,
     _showFlow : true,
     _showingLabels : null,
 
     _clear : function() {
-        if (this._markerLayer) {
-            this._markerLayer.clear();
-        }
-        if (this._countryLayer) {
-            this._countryLayer.clear();
-        }
+        this._markerLayer.clear();
+        this._countryLayer.clear();
     },
 
     _latLngToNormalizedCoord : function(latLng) {
@@ -68,18 +63,6 @@ App.prototype = _.extend(App.prototype, {
             x: px.x / dim,
             y: ( dim - px.y ) / dim
         };
-    },
-
-    _createParticles : function() {
-        var self = this;
-        var nodes = this._currentNodes.objects.map(function (node) {
-            return {
-                bandwidth: nodeUtil.getNormalizedBandwidth(node.circle.relays,self._currentNodes),
-                latLng: node.latLng,
-                pos: self._latLngToNormalizedCoord(node.latLng)
-            };
-        });
-        this._particleLayer.updateNodes(nodes);
     },
 
     _scaleByBandwidth : function() {
@@ -174,18 +157,12 @@ App.prototype = _.extend(App.prototype, {
 
     _fetch : function(isoDateStr) {
 
-        function handleNodes(nodes) {
-            // Add a LatLng object to each item in the dataset
-            nodes.objects.forEach(function(node) {
-                node.latLng = new L.LatLng(
-                    node.circle.coordinates[0],
-                    node.circle.coordinates[1] );
-            });
+        function handleNodes(data) {
             // Create markers
-            self._markerLayer.set(nodes,self._scaleByBandwidth());
+            self._markerLayer.set(data,self._scaleByBandwidth());
             // Update particles, if they are different
-            if ( oldNodes !== self._currentNodes ) {
-                self._createParticles();
+            if ( oldNodes !== self._nodeData ) {
+                self._particleLayer.updateNodes(data.nodes);
             }
         }
 
@@ -193,16 +170,18 @@ App.prototype = _.extend(App.prototype, {
             self._countryLayer.set(histogram);
         }
 
-        var oldNodes = this._currentNodes,
+        var oldNodes = this._nodeData,
             self = this;
 
         if (this._currentDate === isoDateStr) {
-            handleNodes(this._currentNodes);
+            // selected current date, simply refresh layers
+            handleNodes(this._nodeData);
             handleHistogram(this._currentHistogram);
         } else {
-            d3.json('/nodes/' + encodeURI(isoDateStr), function (nodes) {
-                self._currentNodes = nodes;
-                handleNodes(nodes);
+            // new date, request new information
+            d3.json('/nodes/' + encodeURI(isoDateStr), function (data) {
+                self._nodeData = data;
+                handleNodes(data);
             });
             d3.json('/country/' + encodeURI(isoDateStr),function(histogram) {
                 self._currentHistogram = histogram;
@@ -291,7 +270,7 @@ App.prototype = _.extend(App.prototype, {
         this._markerLayer = new MarkerLayer();
         this._markerLayer.addTo(this._map);
         // Initialize particle layer
-        this._particleLayer = new DotLayer();
+        this._particleLayer = new ParticleLayer();
         this._particleLayer.addTo(this._map);
         // Initialize the label layer
         this._labelLayer = L.tileLayer(
@@ -320,9 +299,6 @@ App.prototype = _.extend(App.prototype, {
         this._update();
     },
 
-    /**
-     * Application startup.
-     */
     start: function () {
         // Fetch the dates available + relay count for each date
         $.get('/dates',this._init.bind(this));

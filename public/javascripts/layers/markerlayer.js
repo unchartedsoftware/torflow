@@ -25,7 +25,6 @@
 * SOFTWARE.
 */
 
-var nodeUtil = require('../util/nodeUtil');
 var lerp = require('../util/lerp');
 var config = require('../config');
 var markertooltip = require('../util/markertooltip');
@@ -43,44 +42,44 @@ MarkerLayer.prototype = _.extend(MarkerLayer.prototype, {
         return this;
     },
 
-    set : function(nodes,scaleByBandwidth) {
+    set : function(nodeData,scaleByBandwidth) {
         var self = this;
-        this._nodes = nodes;
-        this._minMaxBandwidth = null;
-        this._normalizedBandwidth = null;
-        this._bandwidthSum = null;
-        this._totalBandwidth = null;
-
-        var minMax = nodeUtil.getMinMaxBandwidth(this._nodes);
-        var markers = this._nodes.objects.map(function(node) {
-            var relays = node.circle.relays;
+        this._nodes = nodeData.nodes;
+        var minMax = nodeData.minMax;
+        var markers = this._nodes.map(function(node) {
+            var relays = node.relays;
             var title = relays.length === 1 ? relays[0].name : relays.length + ' relays at location';
-            var marker;
+            var pointRadius;
             if (scaleByBandwidth) {
-                var nodeBW = nodeUtil.sumRelaysBandwidth(relays);
-                var pointRadius = lerp(config.node_radius.min,config.node_radius.max,nodeBW / (minMax.max-minMax.min));
-                marker = L.marker(node.latLng, {
-                    icon : L.divIcon({
-                        className: 'relay-cluster',
-                        iconSize:L.point(pointRadius, pointRadius)
-                    })
-                });
+                var nodeBW = node.bandwidth;
+                pointRadius = lerp(
+                    config.node_radius.min,
+                    config.node_radius.max,
+                    nodeBW / (minMax.max-minMax.min));
             } else {
-                marker = L.marker(node.latLng, {
-                    icon: L.divIcon({
-                        className: 'relay-cluster',
-                        iconSize: L.point(config.node_radius.min, config.node_radius.min)
-                    })
-                });
+                pointRadius = config.node_radius.min;
             }
-            marker.data = node;
+            var marker = L.marker(node.latLng, {
+                icon: L.divIcon({
+                    className: 'relay-cluster',
+                    iconSize: L.point(pointRadius,pointRadius)
+                })
+            });
             markertooltip.addHandlers( marker, title );
             return marker;
         });
 
-        markers.forEach(function(marker) {
-            self._markerLayer.addLayer(marker);
+        var CHUNK_SIZE = 10;
+        var chunks = _.chunk(markers,CHUNK_SIZE);
+        var additions = _.map( chunks, function(chunk) {
+            return function(done) {
+                chunk.forEach(function(marker) {
+                    self._markerLayer.addLayer(marker);
+                });
+                done();
+            };
         });
+        async.series(additions);
     },
 
     clear : function() {
