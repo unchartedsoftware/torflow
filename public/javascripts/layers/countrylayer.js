@@ -39,42 +39,56 @@ var CountryLayer = function(map) {
 };
 CountryLayer.prototype = _.extend(CountryLayer.prototype, {
 
-    set : function(countryCodeToCount) {
+    set : function(histogram) {
         var self = this;
-        this._histogram = countryCodeToCount;
-
+        // store country / count histogram
+        this._histogram = histogram;
+        // store timestamp of request, if this changes during a batch
+        // it will cancel the entire series operation, preventing stale
+        // requests
+        var currentTimestamp = Date.now();
+        this._requestTimestamp = currentTimestamp;
         // update max client count
         this._maxClientCount = 0;
         _.forEach(this._histogram, function(count) {
             self._maxClientCount = Math.max(count,self._maxClientCount);
         });
-
-        // request country info
+        // build requests array
+        var requests = [];=
         _.forEach(this._histogram, function(count,countryCode) {
             if ( count === 0 ) {
                 return;
             }
-
             if (self._geoJSONMap[countryCode]) {
-                self._render(countryCode);
+                // we already have the geoJSON
+                requests.push( function(done) {
+                    self._render(countryCode);
+                    done(self._requestTimestamp !== currentTimestamp,null);
+                });
             } else {
-                var request = {
-                    url: '/geo/' + countryCode,
-                    type: 'GET',
-                    contentType: 'application/json; charset=utf-8',
-                    async: true
-                };
-                $.ajax(request)
-                    .done(function (geoJSON) {
-                        self._geoJSONMap[countryCode] = geoJSON;
-                        self._render(countryCode);
-                    })
-                    .fail(function (err) {
-                        console.log(err);
-                    });
+                // request geoJSON from server
+                requests.push( function(done) {
+                    var request = {
+                        url: '/geo/' + countryCode,
+                        type: 'GET',
+                        contentType: 'application/json; charset=utf-8',
+                        async: true
+                    };
+                    $.ajax(request)
+                        .done(function (geoJSON) {
+                            self._geoJSONMap[countryCode] = geoJSON;
+                            self._render(countryCode);
+                            done(self._requestTimestamp !== currentTimestamp,null);
+                        })
+                        .fail(function (err) {
+                            console.log(err);
+                            done(self._requestTimestamp !== currentTimestamp,null);
+                        });
+                });
             }
         });
-
+        // execute the requests one at a time to prevent browser from locking
+        async.series( requests );
     },
 
     _render : function(countryCode) {
@@ -114,5 +128,6 @@ CountryLayer.prototype = _.extend(CountryLayer.prototype, {
     setOpacity : function() {
         // TODO:  how to handle this?
     }
+
 });
 module.exports = CountryLayer;
