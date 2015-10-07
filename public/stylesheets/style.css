@@ -88,11 +88,12 @@ a {
     z-index: auto !important;
 }
 
-.leaflet-objects-pane g {
-    -webkit-animation: fadein 1s; /* Safari, Chrome and Opera > 12.1 */
-       -moz-animation: fadein 1s; /* Firefox < 16 */
-        -ms-animation: fadein 1s; /* Internet Explorer */
-            animation: fadein 1s;
+/*.leaflet-objects-pane g,
+.leaflet-marker-icon {
+    -webkit-animation: fadein 0.4s;
+       -moz-animation: fadein 0.4s;
+        -ms-animation: fadein 0.4s;
+            animation: fadein 0.4s;
 }
 
 @keyframes fadein {
@@ -100,23 +101,21 @@ a {
     to   { opacity: 1; }
 }
 
-/* Firefox < 16 */
 @-moz-keyframes fadein {
     from { opacity: 0; }
     to   { opacity: 1; }
 }
 
-/* Safari, Chrome and Opera > 12.1 */
 @-webkit-keyframes fadein {
     from { opacity: 0; }
     to   { opacity: 1; }
 }
 
-/* Internet Explorer */
 @-ms-keyframes fadein {
     from { opacity: 0; }
     to   { opacity: 1; }
-}
+}*/
+
 .uncharted-logo {
     position: absolute;
     right: 0;

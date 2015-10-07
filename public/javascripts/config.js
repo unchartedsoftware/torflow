@@ -60,7 +60,6 @@ var config = {
             '<a href="http://cartodb.com/attributions#basemaps">CartoDB</a>,' +
             ' under ' +
             '<a href="https://creativecommons.org/licenses/by/3.0/">CC BY 3.0</a>' +
-            '|' +
             '<div class="uncharted-logo">' +
                 '<a href="http://uncharted.software" target="_blank">' +
                     '<img style="width:200px;" src="/img/uncharted-logo-white.png">' +
