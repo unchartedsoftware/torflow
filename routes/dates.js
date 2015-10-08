@@ -25,18 +25,19 @@
 * SOFTWARE.
 */
 var express = require('express');
-var DatesDB = require('../db/dates');
+var datesDB = require('../db/dates');
 var router = express.Router();
 
 /**
  * GET /dates
  */
 router.get('/', function(req, res) {
-    DatesDB.getDates(function(dates) {
-        res.send(dates);
-    }, function() {
-        res.status(500).send('Dates data could not be retrieved.');
-    });
+    datesDB.getDates(
+        function(dates) {
+            res.send(dates);
+        }, function() {
+            res.status(500).send('Dates data could not be retrieved.');
+        });
 });
 
 module.exports = router;

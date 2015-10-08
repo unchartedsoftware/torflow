@@ -32,23 +32,25 @@ var path = require('path');
 var ccLookup = require('../util/countrycode');
 var JSONFileCache = {};
 
-var getGeoJSON = function(cc) {
-    var json = null;
+var getGeoJSON = function(cc,onSuccess,onError) {
     if (JSONFileCache[cc]) {
-        json = JSONFileCache[cc];
+        // exists in cache
+        onSuccess(JSONFileCache[cc]);
     } else {
         var relativeFilePath = __dirname + '/../data/countries_medium/' + cc.toUpperCase() + '.geo.json';
         var absoluteFilePath = path.resolve(relativeFilePath);
-        try {
-            json = JSON.parse(fs.readFileSync(absoluteFilePath, 'utf8'));
-            json.cc_2 = ccLookup.threeToTwo[cc];
-            json.cc_3 = cc;
-            JSONFileCache[cc] = json;
-        } catch (e) {
-            console.log(e.message);
-        }
+        fs.readFile( absoluteFilePath, 'utf8', function(err,file) {
+            if (err) {
+                onError(err);
+            } else {
+                var json = JSON.parse(file);
+                json.cc_2 = ccLookup.threeToTwo[cc];
+                json.cc_3 = cc;
+                JSONFileCache[cc] = json;
+                onSuccess(json);
+            }
+        });
     }
-    return json;
 };
 
 /**
@@ -58,7 +60,14 @@ router.get('/:countrycode', function(req, res) {
     var twoLetterCC = req.params.countrycode.toUpperCase(),
         threeLetterCC = ccLookup.twoToThree[twoLetterCC];
     if (threeLetterCC) {
-        res.send(getGeoJSON(threeLetterCC));
+        getGeoJSON(
+            threeLetterCC,
+            function(json) {
+                res.send(json);
+            },
+            function() {
+                res.send(null);
+            });
     } else {
         res.send(null);
     }

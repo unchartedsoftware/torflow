@@ -47,8 +47,7 @@ MarkerLayer.prototype = _.extend(MarkerLayer.prototype, {
         this._nodes = nodeData.nodes;
         var minMax = nodeData.minMax;
         var markers = this._nodes.map(function(node) {
-            var relays = node.relays;
-            var title = relays.length === 1 ? relays[0].name : relays.length + ' relays at location';
+            var title = node.label;
             var pointRadius;
             if (scaleByBandwidth) {
                 var nodeBW = node.bandwidth;
@@ -59,7 +58,10 @@ MarkerLayer.prototype = _.extend(MarkerLayer.prototype, {
             } else {
                 pointRadius = config.node_radius.min;
             }
-            var marker = L.marker(node.latLng, {
+            var marker = L.marker({
+                    lat: node.lat,
+                    lng: node.lng
+                }, {
                 icon: L.divIcon({
                     className: 'relay-cluster',
                     iconSize: L.point(pointRadius,pointRadius)

@@ -1,21 +1,14 @@
 var dir = require('node-dir');
-var connectionPool = require('../db/connection');
 var ingestFile = require('./ingestFile');
+var relayDB = require('../db/relay');
 var datesDB = require('../db/dates');
 var async = require('async');
 
-var _addDateIndex = function(tableName,onSuccess,onError) {
-	connectionPool.query(
-		'ALTER TABLE `' + tableName + '` ADD INDEX `date` (`date`)',
-		onSuccess,
-		onError );
-};
-
-var csvFilesOnly = function(csvPath) {
+var _csvFilesOnly = function(csvPath) {
 	return (csvPath.indexOf('.csv') === csvPath.length - 4);
 };
 
-var getIngestFileFunc = function(csvPath) {
+var _getIngestFileFunc = function(csvPath) {
 	return function(done) {
 		ingestFile(
 			csvPath,
@@ -47,10 +40,10 @@ var ingestFiles = function(resolvedPath,onSuccess,onError) {
 			onError(err);
 		} else {
 			// Get array of ingest jobs
-			var jobs = files.filter(csvFilesOnly).map(function(csvPath) {
-				return getIngestFileFunc(csvPath);
+			var jobs = files.filter(_csvFilesOnly).map(function(csvPath) {
+				return _getIngestFileFunc(csvPath);
 			});
-			// Truncate dates
+			// create dates table
 			jobs.push( function( done ) {
 				datesDB.updateDates(
 					function() {
@@ -60,21 +53,9 @@ var ingestFiles = function(resolvedPath,onSuccess,onError) {
 						done(err);
 					});
 			});
-			// Add date index to relay table
+			// create aggregates table
 			jobs.push( function( done ) {
-				_addDateIndex(
-					'relays',
-					function() {
-						done(null,null);
-					},
-					function(err) {
-						done(err);
-					});
-			});
-			// Add date index to guard clients table
-			jobs.push( function( done ) {
-				_addDateIndex(
-					'guard_clients',
+				relayDB.updateAggregates(
 					function() {
 						done(null,null);
 					},

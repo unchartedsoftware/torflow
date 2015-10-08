@@ -32,7 +32,7 @@ var CountryLayer = function() {
     this._histogram = null;
     this._geoJSONMap = {};
     this._colorScale = d3.scale.linear()
-        .range(['white', 'blue']) // or use hex values
+        .range(['rgba(0,0,255,0.2)', 'rgba(0,0,255,1.0)']) // or use hex values
         .domain([0,1]);
 };
 

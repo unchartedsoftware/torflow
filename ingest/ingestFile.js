@@ -3,25 +3,23 @@ var readline = require('readline');
 var _ = require('lodash');
 var async = require('async');
 var relayParser = require('./relayParser');
-var RelayDB = require('../db/relay');
+var relayDB = require('../db/relay');
 var connectionPool = require('../db/connection');
 
 var getGuardClientSpecs = function(guardClients,fingerprintToId,date) {
 	var guardClientSpecs = [];
-	Object.keys(fingerprintToId).forEach(function(fingerprint) {
+	// append id to guardclient
+	_.forIn(fingerprintToId,function(id,fingerprint) {
 		if (guardClients[fingerprint]) {
-			guardClients[fingerprint].id = fingerprintToId[fingerprint];
+			guardClients[fingerprint].id = id;
 		}
 	});
-	// For each relay data, push to the list of guard client rows in the database
-	Object.keys(guardClients).forEach(function(fingerprint) {
-		var dataForRelay = guardClients[fingerprint];
-		//Iterate over each country this guard was accessed from and add it to the array
-		Object.keys(dataForRelay.guardClients).forEach(function(cc) {
-			var count = dataForRelay.guardClients[cc];
+	// extract guard client row
+	_.forIn(guardClients, function(guardClient) {
+		_.forIn(guardClient.guardClients,function(count,countrycode) {
 			guardClientSpecs.push([
-				guardClients[fingerprint].id,
-				cc,
+				guardClient.id,
+				countrycode,
 				count,
 				date
 			]);
@@ -37,25 +35,59 @@ var getGuardClientSpecs = function(guardClients,fingerprintToId,date) {
  * @param onError - error callback
  */
 var ingestFile = function(resolvedFilePath, onSuccess, onError) {
-	_extractFromCSV(
-		resolvedFilePath,
-		function(relaySpecs,numSkipped,guardClients,date) {
-			// Insert the relay data into the relays table
-			_insertRelayData(relaySpecs,function() {
-				// Get a mapping from fingerprint -> relay id (in table) and append it to each element we have guard client data for
-				RelayDB.fingerprints(date,function(fingerprintToId) {
-					var guardClientSpecs = getGuardClientSpecs(guardClients,fingerprintToId,date);
-					// For each relay data, push to the list of guard client rows in the database
-					_insertGuardClientData(guardClientSpecs, function() {
-						onSuccess(relaySpecs.length,numSkipped);
-					},
-					onError);
+	async.waterfall([
+		// extract relay data from csv
+		function(done) {
+			_extractFromCSV(
+				resolvedFilePath,
+				function(relaySpecs,numSkipped,guardClients,date) {
+					done(null,relaySpecs,numSkipped,guardClients,date);
 				},
-				onError);
-			},
-			onError);
+				function(err) {
+					done(err);
+				});
 		},
-		onError);
+		// insert relay data into table
+		function(relaySpecs,numSkipped,guardClients,date,done) {
+			_insertRelayData(
+				relaySpecs,
+				function() {
+					done(null,relaySpecs,numSkipped,guardClients,date);
+				},
+				function(err) {
+					done(err);
+				});
+		},
+		// get mapping from fingerprint -> relay id to each element with guard client
+		function(relaySpecs,numSkipped,guardClients,date,done) {
+			relayDB.fingerprints(
+				date,
+				function(fingerprintToId) {
+					done(null,relaySpecs,numSkipped,guardClients,date,fingerprintToId);
+				},
+				function(err) {
+					done(err);
+				});
+		},
+		// push to the list of guard client rows in the database
+		function(relaySpecs,numSkipped,guardClients,date,fingerprintToId,done) {
+			var guardClientSpecs = getGuardClientSpecs(guardClients,fingerprintToId,date);
+			_insertGuardClientData(
+				guardClientSpecs,
+				function() {
+					done(null,relaySpecs.length,numSkipped);
+				},
+				function(err) {
+					done(err);
+				});
+		}],
+        function(err,numImported,numSkipped) {
+            if (err) {
+                onError(err);
+            } else {
+                onSuccess(numImported,numSkipped);
+            }
+        });
 };
 
 /**
@@ -65,8 +97,7 @@ var ingestFile = function(resolvedFilePath, onSuccess, onError) {
  */
 var _getSQLDateFromFilename = function(filename) {
 	var paths = filename.split('/');
-	var name = paths[paths.length-1];
-	name = name.replace('.csv','');
+	var name = paths[paths.length-1].replace('.csv','');
 	var datePieces = name.split('-');
 	var year = datePieces[1];
 	var month = datePieces[2];
@@ -94,7 +125,6 @@ var _extractFromCSV = function(filename,onSuccess,onError) {
 	var relays = [];
 	var guardClients = {};
 	var error = false;
-
 	rd.on('line', function(line) {
 		if (error) {
 			return;
@@ -152,26 +182,27 @@ var _insertGuardClientData = function(guardSpecs,onSuccess,onError) {
 	}
 	var BATCH_INSERT_SIZE = 2000;
 	var chunks = _.chunk(guardSpecs, BATCH_INSERT_SIZE);
-	var jobs = chunks.map(function(chunk) {
-		return function(done) {
-			connectionPool.query(
-				'INSERT INTO guard_clients (relay_id,cc,guardclientcount,date) VALUES ?',
-				[chunk],
-				function() {
-					done(null,null);
-				},
-				function(err) {
-					done(err);
-				});
-		};
-	});
-	async.series(jobs,function(err) {
-		if (err) {
-			onError(err);
-		} else {
-			onSuccess();
-		}
-	});
+	async.series(
+		chunks.map(function(chunk) {
+			return function(done) {
+				connectionPool.query(
+					'INSERT INTO guard_clients (relay_id,cc,guardclientcount,date) VALUES ?',
+					[chunk],
+					function() {
+						done(null,null);
+					},
+					function(err) {
+						done(err);
+					});
+			};
+		}),
+		function(err) {
+			if (err) {
+				onError(err);
+			} else {
+				onSuccess();
+			}
+		});
 };
 
 module.exports = ingestFile;

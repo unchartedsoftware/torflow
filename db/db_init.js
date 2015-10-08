@@ -21,7 +21,23 @@ var _getTableSpecs = function() {
 			db_utils.createColumnString('lng','decimal(11,8)',nonNull),
 			db_utils.createColumnString('date','datetime',nonNull)
 		],
-		primaryKey : 'id'
+		primaryKey : 'id',
+		indices: ['date']
+	};
+
+	var relayaggregates = {
+		name : 'relay_aggregates',
+		columns : [
+			db_utils.createColumnString('date','datetime',nonNull),
+			db_utils.createColumnString('lat','float',nonNull),
+			db_utils.createColumnString('lng','float',nonNull),
+			db_utils.createColumnString('x','float',nonNull),
+			db_utils.createColumnString('y','float',nonNull),
+			db_utils.createColumnString('bandwidth','float',nonNull),
+			db_utils.createColumnString('normalized_bandwidth','float',nonNull),
+			db_utils.createColumnString('label','varchar(255)',nonNull)
+		],
+		indices: ['date']
 	};
 
 	var guardclients = {
@@ -33,7 +49,8 @@ var _getTableSpecs = function() {
 			db_utils.createColumnString('guardclientcount','int(11)',nonNull),
 			db_utils.createColumnString('date','datetime',nonNull)
 		],
-		primaryKey : 'id'
+		primaryKey : 'id',
+		indices: ['date']
 	};
 
 	var dates = {
@@ -44,6 +61,7 @@ var _getTableSpecs = function() {
 	};
 
 	tables.push(relays);
+	tables.push(relayaggregates);
 	tables.push(guardclients);
 	tables.push(dates);
 

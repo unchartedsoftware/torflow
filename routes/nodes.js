@@ -27,92 +27,25 @@
 
 var express = require('express');
 var router = express.Router();
-var moment = require('moment');
-var _ = require('lodash');
-var RelayDB = require('../db/relay');
+var relayDB = require('../db/relay');
 var DBUtil = require('../db/db_utils');
 
-var PI = Math.PI;
-var PI_D_180 = PI / 180;
-var PI_D_4 = PI / 4;
-var PI_2 = PI * 2;
-var ONE_D_360 = 1/360;
-
-var _getNormalizedPosition = function(latLng) {
-    // converts a lat / lng into normalize coordinates
-    // [0,0] being top left
-    // get x value
-    var x = ( latLng.lng + 180 ) * ONE_D_360;
-    // convert from degrees to radians
-    var latRad = latLng.lat * PI_D_180;
-    // get y value
-    var mercN = Math.log( Math.tan( PI_D_4 + ( latRad / 2 ) ) );
-    var y = 0.5 + ( mercN / PI_2 );
-    return {
-        x: x,
-        y: y
-    };
-};
-
-var _aggregateNodes = function(relays) {
-    // Aggregate on equal lat/lon
-    var relaysByBucket = {};
-    _.forIn(relays,function(relay) {
-        var key = relay.lat.toString() + relay.lng.toString();
-        relaysByBucket[key] = relaysByBucket[key] || [];
-        if (!relay) {
-            console.log('WTFWTFWTF');
-            //console.log(relay);
-        }
-        relaysByBucket[key].push(relay);
-    });
-    // parse node payloads
-    var nodes = [];
-    _.forIn(relaysByBucket,function(bucket) {
-        // get total bandwidth for the bucket
-        var totalBandwidth = _.sum(bucket,function(relay) {
-            return relay.bandwidth;
-        });
-        // take first lat / lon
-        var latLng =  {
-            lat : bucket[0].lat,
-            lng : bucket[0].lng
-        };
-        nodes.push({
-            latLng: latLng,
-            position: _getNormalizedPosition( latLng ),
-            bandwidth : totalBandwidth,
-            relays : bucket.map(function(relay) {
-                // return only the necessary relay data to reduce payload size
-                return {
-                    name: relay.name
-                };
-            })
-        });
-    });
-    return nodes;
-};
-
-var _getMinMaxBandwidth = function(nodes) {
+var _getSummaryStats = function(nodes) {
     var max = -Number.MAX_VALUE;
     var min = Number.MAX_VALUE;
-    nodes.forEach(function(node) {
-        var nodeBW = node.bandwidth;
-        max = Math.max(max,nodeBW);
-        min = Math.min(min,nodeBW);
-    });
-    return {
-        min: min,
-        max: max
-    };
-};
-
-var _getTotalBandwidth = function(nodes) {
     var sum = 0;
     nodes.forEach(function(node) {
+        max = Math.max(max,node.bandwidth);
+        min = Math.min(min,node.bandwidth);
         sum += node.bandwidth;
     });
-    return sum;
+    return {
+        minMax : {
+            min: min,
+            max: max
+        },
+        bandwidth: sum
+    };
 };
 
 /**
@@ -120,33 +53,18 @@ var _getTotalBandwidth = function(nodes) {
  */
 router.get('/:dateid', function(req, res) {
     // get sql date from id
-    var momentDate = moment(req.params.dateid);
-    var day = momentDate.date();    // date == day of month, day == day of week.
-    var month = momentDate.month() + 1; // indexed from 0?
-    var year = momentDate.year();
-    var sqlDate = DBUtil.getMySQLDate(year,month,day);
+    var sqlDate = DBUtil.getMySQLDate(req.params.dateid);
     // pull relays for date
-    RelayDB.get(sqlDate,function(relays) {
-        var nodes = _aggregateNodes(relays);
-        var minMax = _getMinMaxBandwidth(nodes);
-        var totalBandwidth = _getTotalBandwidth(nodes);
-        // append normalized bandwidth to each node
-        nodes.forEach(function(node) {
-            node.normalizedBandwidth =  node.bandwidth / totalBandwidth;
+    relayDB.getAggregates(
+        sqlDate,
+        function(nodes) {
+            var payload = _getSummaryStats(nodes);
+            payload.nodes = nodes;
+            res.send(payload);
+        },
+        function() {
+            res.status(500).send('Node data could not be retrieved.');
         });
-        // Ensure larger nodes sit on top
-        nodes.sort(function(a,b) {
-            return a.bandwidth - b.bandwidth;
-        });
-        var payload = {
-            nodes: nodes,
-            bandwidth: totalBandwidth,
-            minMax: minMax
-        };
-        res.send(payload);
-    }, function() {
-        res.status(500).send('Node data could not be retrieved.');
-    });
 });
 
 module.exports = router;

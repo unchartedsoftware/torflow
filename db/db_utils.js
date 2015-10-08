@@ -2,8 +2,13 @@ var config = require('../config');
 var connectionPool = require('./connection');
 var mysql = require('mysql');
 var async = require('async');
+var moment = require('moment');
 
-function getMySQLDate(year, month, day) {
+function getMySQLDate(dateId) {
+	var date = moment(dateId);
+    var day = date.date();    // date == day of month, day == day of week.
+    var month = date.month() + 1; // indexed from 0?
+    var year = date.year();
 	return year + '/' + month + '/' + day + ' 00:00:00';
 }
 
@@ -21,7 +26,7 @@ function tableExists(schema,tablename,success,error) {
 		error );
 }
 
-function createTable(name,columns,pk,success,error) {
+function createTable(name,columns,pk,indices,success,error) {
 	var query = 'CREATE TABLE ' + name + ' ';
 	if (columns.length > 0) {
 		query +=  ' ( ';
@@ -31,6 +36,11 @@ function createTable(name,columns,pk,success,error) {
 		query += columns[columns.length - 1];
 		if (pk) {
 			query += ', PRIMARY KEY (`' + pk + '`)';
+		}
+		if (indices) {
+			indices.forEach( function(key) {
+				query += ', INDEX `' + key + '`(`' + key + '`)';
+			});
 		}
 		query += ')';
 		query += ' ENGINE=InnoDB DEFAULT CHARSET=utf8;';
@@ -49,7 +59,7 @@ function conditionalCreateTable(schemaname,tableSpec,success,error) {
 		function(exists) {
 			if (!exists) {
 				console.log('Creating table ' + tableSpec.name);
-				createTable(tableSpec.name, tableSpec.columns, tableSpec.primaryKey, success, error);
+				createTable(tableSpec.name, tableSpec.columns, tableSpec.primaryKey, tableSpec.indices, success, error);
 			} else {
 				success();
 			}

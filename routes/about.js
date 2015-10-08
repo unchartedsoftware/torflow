@@ -32,7 +32,7 @@ var router = express.Router();
  * GET /about/
  */
 router.get('/', function(req, res) {
-  res.render('about', { title: 'Changelog' });
+    res.render('about', { title: 'Changelog' });
 });
 
 module.exports = router;
