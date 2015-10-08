@@ -74,13 +74,15 @@ function conditionalCreateTable(schemaname,tableSpec,callback) {
 }
 
 function createTables(tableSpecs,callback) {
-	async.waterfall(
+	async.series(
 		tableSpecs.map( function( spec ) {
 			return function( done ) {
 				conditionalCreateTable(config.db.database,spec,done);
 			};
 		}),
-		callback);
+		function(err) {
+			callback(err); // only pass on error, if it exists
+		});
 }
 
 function createColumnString(name, type, notnull, autoinc) {

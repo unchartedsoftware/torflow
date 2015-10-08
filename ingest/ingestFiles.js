@@ -16,7 +16,7 @@ var _getIngestFileFunc = function(csvPath) {
 				if (err) {
 					done(err);
 				} else {
-					var logStr = 'Imported ' + csvPath;
+					var logStr = 'Imported ' + numImported + ' relays from ' + csvPath;
 					if (numSkipped > 0) {
 						logStr += ' (' + numSkipped + ' of ' + numImported+numSkipped + ' skipped due to malformed data)';
 					}
@@ -40,14 +40,14 @@ var ingestFiles = function(resolvedPath,callback) {
 		},
 		// ingest files, in series
 		function(files,done) {
-			async.series(
+			async.waterfall(
 				files.filter(_csvFilesOnly).map(function(csvPath) {
 					return _getIngestFileFunc(csvPath);
 				}),
 				done );
 		},
 		// update dates table
-		function(res,done) {
+		function(done) {
 			datesDB.updateDates(done);
 		},
 		// update relay_aggregates table

@@ -175,7 +175,9 @@ var _insertGuardClientData = function(guardSpecs,callback) {
 					done);
 			};
 		}),
-		callback);
+		function(err) {
+			callback(err);  // only pass on error, if it exists
+		});
 };
 
 module.exports = ingestFile;
