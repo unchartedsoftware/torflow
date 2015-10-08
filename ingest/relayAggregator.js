@@ -58,10 +58,6 @@ var _aggregateNodes = function(relays) {
     _.forIn(relays,function(relay) {
         var key = relay.lat.toString() + relay.lng.toString();
         relaysByBucket[key] = relaysByBucket[key] || [];
-        if (!relay) {
-            console.log('WTFWTFWTF');
-            //console.log(relay);
-        }
         relaysByBucket[key].push(relay);
     });
     // parse node payloads
@@ -97,22 +93,33 @@ var _getTotalBandwidth = function(nodes) {
     return sum;
 };
 
-var aggregateRelays = function( dateId, onSuccess, onError ) {
+var aggregateRelays = function(dateId,callback) {
     // get sql date from id
     var sqlDate = DBUtil.getMySQLDate(dateId);
     // pull relays for date
     relayDB.get(
         sqlDate,
-        function(relays) {
-            var nodes = _aggregateNodes(relays);
-            var totalBandwidth = _getTotalBandwidth(nodes);
-            // append normalized bandwidth to each node
-            nodes.forEach(function(node) {
-                node.normalizedBandwidth =  node.bandwidth / totalBandwidth;
-            });
-            onSuccess( nodes );
-        },
-        onError );
+        function(err,relays) {
+            if (err) {
+                callback(err);
+            } else {
+                var nodes = _aggregateNodes(relays);
+                var totalBandwidth = _getTotalBandwidth(nodes);
+                var nodeSpecs = nodes.map(function(node) {
+                    return [
+                        dateId,
+                        node.lat,
+                        node.lng,
+                        node.x,
+                        node.y,
+                        node.bandwidth,
+                        node.bandwidth / totalBandwidth,
+                        node.label
+                    ];
+                });
+                callback(null,nodeSpecs);
+            }
+        });
 };
 
 module.exports.aggregateRelays = aggregateRelays;

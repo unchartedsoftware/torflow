@@ -44,13 +44,15 @@ var parseCountryCodeLine = function(csvLine,dateStr) {
 var verify = function(line) {
 	var columns = line.replace(')','').split(',');
 	if (columns.length !== COLUMNS.length) {
-		return 'Relay file column format not supported! Line contains ' + columns.length + ' columns, table contains ' + COLUMNS.length + '.';
+		return new Error('Relay file column format not supported! ' +
+			'Line contains ' + columns.length + ' columns, table contains ' +
+			COLUMNS.length + '.');
 	}
 	for (var i = 0; i < columns.length; i++) {
 		if (columns[i] !== COLUMNS[i]) {
-			return 'Relay file format not supported!\n' +
+			return new Error('Relay file format not supported!\n' +
 				'Expected: ' + COLUMNS + '\n' +
-				'Read:     ' + columns + '\n';
+				'Read:     ' + columns + '\n');
 		}
 	}
 	return false;

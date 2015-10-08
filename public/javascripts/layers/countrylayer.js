@@ -65,7 +65,7 @@ CountryLayer.prototype = _.extend(CountryLayer.prototype, {
                 // we already have the geoJSON
                 requests.push( function(done) {
                     self._render(countryCode);
-                    done(self._requestTimestamp !== currentTimestamp,null);
+                    done(self._requestTimestamp !== currentTimestamp);
                 });
             } else {
                 // request geoJSON from server
@@ -80,17 +80,17 @@ CountryLayer.prototype = _.extend(CountryLayer.prototype, {
                         .done(function (geoJSON) {
                             self._geoJSONMap[countryCode] = geoJSON;
                             self._render(countryCode);
-                            done(self._requestTimestamp !== currentTimestamp,null);
+                            done(self._requestTimestamp !== currentTimestamp);
                         })
                         .fail(function (err) {
                             console.log(err);
-                            done(self._requestTimestamp !== currentTimestamp,null);
+                            done(self._requestTimestamp !== currentTimestamp);
                         });
                 });
             }
         });
         // execute the requests one at a time to prevent browser from locking
-        async.series( requests );
+        async.series(requests);
     },
 
     _render : function(countryCode) {

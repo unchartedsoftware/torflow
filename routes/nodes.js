@@ -57,13 +57,14 @@ router.get('/:dateid', function(req, res) {
     // pull relays for date
     relayDB.getAggregates(
         sqlDate,
-        function(nodes) {
-            var payload = _getSummaryStats(nodes);
-            payload.nodes = nodes;
-            res.send(payload);
-        },
-        function() {
-            res.status(500).send('Node data could not be retrieved.');
+        function(err,nodes) {
+            if (err) {
+                res.status(500).send('Node data could not be retrieved.');
+            } else {
+                var payload = _getSummaryStats(nodes);
+                payload.nodes = nodes;
+                res.send(payload);
+            }
         });
 });
 

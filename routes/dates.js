@@ -33,10 +33,12 @@ var router = express.Router();
  */
 router.get('/', function(req, res) {
     datesDB.getDates(
-        function(dates) {
-            res.send(dates);
-        }, function() {
-            res.status(500).send('Dates data could not be retrieved.');
+        function(err,dates) {
+            if (err) {
+                res.status(500).send('Dates data could not be retrieved.');
+            } else {
+                res.send(dates);
+            }
         });
 });
 

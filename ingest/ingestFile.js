@@ -31,42 +31,36 @@ var getGuardClientSpecs = function(guardClients,fingerprintToId,date) {
 /**
  * Ingest a csv relay file into the database
  * @param resolvedFilePath - the resolved path of the file
- * @param onSuccess - success callback
- * @param onError - error callback
+ * @param callback - callback
  */
-var ingestFile = function(resolvedFilePath, onSuccess, onError) {
+var ingestFile = function(resolvedFilePath,callback) {
 	async.waterfall([
 		// extract relay data from csv
 		function(done) {
-			_extractFromCSV(
-				resolvedFilePath,
-				function(relaySpecs,numSkipped,guardClients,date) {
-					done(null,relaySpecs,numSkipped,guardClients,date);
-				},
-				function(err) {
-					done(err);
-				});
+			_extractFromCSV(resolvedFilePath,done);
 		},
 		// insert relay data into table
 		function(relaySpecs,numSkipped,guardClients,date,done) {
 			_insertRelayData(
 				relaySpecs,
-				function() {
-					done(null,relaySpecs,numSkipped,guardClients,date);
-				},
 				function(err) {
-					done(err);
+					if (err) {
+						done(err);
+					} else {
+						done(null,relaySpecs,numSkipped,guardClients,date);
+					}
 				});
 		},
 		// get mapping from fingerprint -> relay id to each element with guard client
 		function(relaySpecs,numSkipped,guardClients,date,done) {
 			relayDB.fingerprints(
 				date,
-				function(fingerprintToId) {
-					done(null,relaySpecs,numSkipped,guardClients,date,fingerprintToId);
-				},
-				function(err) {
-					done(err);
+				function(err,fingerprintToId) {
+					if (err) {
+						done(err);
+					} else {
+						done(null,relaySpecs,numSkipped,guardClients,date,fingerprintToId);
+					}
 				});
 		},
 		// push to the list of guard client rows in the database
@@ -74,20 +68,15 @@ var ingestFile = function(resolvedFilePath, onSuccess, onError) {
 			var guardClientSpecs = getGuardClientSpecs(guardClients,fingerprintToId,date);
 			_insertGuardClientData(
 				guardClientSpecs,
-				function() {
-					done(null,relaySpecs.length,numSkipped);
-				},
 				function(err) {
-					done(err);
+					if (err) {
+						done(err);
+					} else {
+						done(null,relaySpecs.length,numSkipped);
+					}
 				});
 		}],
-        function(err,numImported,numSkipped) {
-            if (err) {
-                onError(err);
-            } else {
-                onSuccess(numImported,numSkipped);
-            }
-        });
+        callback);
 };
 
 /**
@@ -109,10 +98,9 @@ var _getSQLDateFromFilename = function(filename) {
  * Extracts an array of specs from a csv file
  * @private
  * @param filename - name of the file to parse
- * @param onSuccess - success callback
- * @param onError - error callback
+ * @param callback - callback
  */
-var _extractFromCSV = function(filename,onSuccess,onError) {
+var _extractFromCSV = function(filename,callback) {
 	console.log('Parsing csv file: ' + filename);
 	var dateString = _getSQLDateFromFilename(filename);
 	var rd = readline.createInterface({
@@ -124,17 +112,17 @@ var _extractFromCSV = function(filename,onSuccess,onError) {
 	var firstLine = true;
 	var relays = [];
 	var guardClients = {};
-	var error = false;
+	var err = false;
 	rd.on('line', function(line) {
-		if (error) {
+		if (err) {
 			return;
 		}
 		if (firstLine) {
 			// Verify file integrity
 			firstLine = false;
-			error = relayParser.verify(line);
-			if (error) {
-				onError(error);
+			err = relayParser.verify(line);
+			if (err) {
+				callback(err);
 			}
 			// always ignore first line
 			return;
@@ -148,37 +136,33 @@ var _extractFromCSV = function(filename,onSuccess,onError) {
 			guardClients[guardClientMap.fingerprint] = guardClientMap;
 		}
 	});
-
 	rd.on('close',function() {
-		onSuccess(relays,numSkipped,guardClients,dateString);
+		callback(null,relays,numSkipped,guardClients,dateString);
 	});
 };
 
 /**
  * Inserts a list of relays into the db
  * @param relaySpecs - array of spec arrays describing a list of relays
- * @param onSuccess - success callback
- * @param onError - error callback
+ * @param callback - callback
  * @private
  */
-var _insertRelayData = function(relaySpecs,onSuccess,onError) {
+var _insertRelayData = function(relaySpecs,callback) {
 	connectionPool.query(
 		'INSERT INTO relays (' + relayParser.DB_ORDER + ') VALUES ?',
 		[relaySpecs],
-		onSuccess,
-		onError);
+		callback);
 };
 
 /**
  * Inserts a list of guard clients into the db
  * @param guardSpecs - array of spec arrays describing a list of guard clients
- * @param onSuccess - success callback
- * @param onError - error callback
+ * @param callback - callback
  * @private
  */
-var _insertGuardClientData = function(guardSpecs,onSuccess,onError) {
+var _insertGuardClientData = function(guardSpecs,callback) {
 	if ( guardSpecs.length === 0 ) {
-		return onSuccess();
+		return callback();
 	}
 	var BATCH_INSERT_SIZE = 2000;
 	var chunks = _.chunk(guardSpecs, BATCH_INSERT_SIZE);
@@ -188,21 +172,10 @@ var _insertGuardClientData = function(guardSpecs,onSuccess,onError) {
 				connectionPool.query(
 					'INSERT INTO guard_clients (relay_id,cc,guardclientcount,date) VALUES ?',
 					[chunk],
-					function() {
-						done(null,null);
-					},
-					function(err) {
-						done(err);
-					});
+					done);
 			};
 		}),
-		function(err) {
-			if (err) {
-				onError(err);
-			} else {
-				onSuccess();
-			}
-		});
+		callback);
 };
 
 module.exports = ingestFile;

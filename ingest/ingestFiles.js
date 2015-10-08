@@ -12,17 +12,17 @@ var _getIngestFileFunc = function(csvPath) {
 	return function(done) {
 		ingestFile(
 			csvPath,
-			function(numImported,numSkipped) {
-				var logStr = 'Imported ' + csvPath;
-				if (numSkipped > 0) {
-					logStr += ' (' + numSkipped + ' of ' + numImported+numSkipped + ' skipped due to malformed data)';
+			function(err,numImported,numSkipped) {
+				if (err) {
+					done(err);
+				} else {
+					var logStr = 'Imported ' + csvPath;
+					if (numSkipped > 0) {
+						logStr += ' (' + numSkipped + ' of ' + numImported+numSkipped + ' skipped due to malformed data)';
+					}
+					console.log(logStr);
+					done();
 				}
-				console.log(logStr);
-				done(null,null);
-			},
-			function(msg) {
-				console.trace(msg);
-				done(msg);
 			});
 	};
 };
@@ -30,49 +30,31 @@ var _getIngestFileFunc = function(csvPath) {
 /**
  * Ingest a list of csv files from the path specified
  * @param resolvedPath - the resolved file path of the directory containing the csv files to ingest
- * @param onSuccess - success callback
- * @param onError - error callback
+ * @param callback - callback
  */
-var ingestFiles = function(resolvedPath,onSuccess,onError) {
-	// Get a list of files in the containing directory.   Does not include sub dirs.
-	dir.files(resolvedPath, function(err, files) {
-		if (err) {
-			onError(err);
-		} else {
-			// Get array of ingest jobs
-			var jobs = files.filter(_csvFilesOnly).map(function(csvPath) {
-				return _getIngestFileFunc(csvPath);
-			});
-			// create dates table
-			jobs.push( function( done ) {
-				datesDB.updateDates(
-					function() {
-						done(null,null);
-					},
-					function(err) {
-						done(err);
-					});
-			});
-			// create aggregates table
-			jobs.push( function( done ) {
-				relayDB.updateAggregates(
-					function() {
-						done(null,null);
-					},
-					function(err) {
-						done(err);
-					});
-			});
-			// Execute jobs in series
-			async.series(jobs, function(err) {
-				if (err) {
-					onError(err);
-				} else {
-					onSuccess();
-				}
-			});
-		}
-	});
+var ingestFiles = function(resolvedPath,callback) {
+	async.waterfall([
+		// get all .csv filenames
+		function(done) {
+			dir.files(resolvedPath,done);
+		},
+		// ingest files, in series
+		function(files,done) {
+			async.series(
+				files.filter(_csvFilesOnly).map(function(csvPath) {
+					return _getIngestFileFunc(csvPath);
+				}),
+				done );
+		},
+		// update dates table
+		function(res,done) {
+			datesDB.updateDates(done);
+		},
+		// update relay_aggregates table
+		function(done) {
+			relayDB.updateAggregates(done);
+		}],
+		callback);
 };
 
 module.exports = ingestFiles;

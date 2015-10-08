@@ -70,7 +70,10 @@ MarkerLayer.prototype = _.extend(MarkerLayer.prototype, {
             markertooltip.addHandlers( marker, title );
             return marker;
         });
-
+        // store timestamp, if this changes during a batch it will cancel the
+        // entire series operation, preventing stale additions
+        var currentTimestamp = Date.now();
+        this._requestTimestamp = currentTimestamp;
         var CHUNK_SIZE = 10;
         var chunks = _.chunk(markers,CHUNK_SIZE);
         var additions = _.map( chunks, function(chunk) {
@@ -78,9 +81,10 @@ MarkerLayer.prototype = _.extend(MarkerLayer.prototype, {
                 chunk.forEach(function(marker) {
                     self._markerLayer.addLayer(marker);
                 });
-                done();
+                done(self._requestTimestamp !== currentTimestamp);
             };
         });
+        // execute the additions in chunks to prevent browser from locking
         async.series(additions);
     },
 

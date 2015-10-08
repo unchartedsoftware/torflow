@@ -38,12 +38,12 @@ router.get('/:dateid', function(req, res) {
     var sqlDate = DBUtil.getMySQLDate(req.params.dateid);
     countryDB.getCountryHistogram(
         sqlDate,
-        function(histogram) {
-            delete histogram['??']; // remove this entry
-            res.send(histogram);
-        },
-        function() {
-            res.status(500).send('Country data could not be retrieved.');
+        function(err,histogram) {
+            if (err) {
+                res.status(500).send('Country data could not be retrieved.');
+            } else {
+                res.send(histogram);
+            }
         });
 });
 

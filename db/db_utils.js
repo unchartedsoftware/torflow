@@ -12,21 +12,24 @@ function getMySQLDate(dateId) {
 	return year + '/' + month + '/' + day + ' 00:00:00';
 }
 
-function tableExists(schema,tablename,success,error) {
+function tableExists(schema,tablename,callback) {
 	var query = 'SELECT COUNT(*) as count ' +
 		'FROM information_schema.tables ' +
 		'WHERE table_schema = ' + connectionPool.escape(schema) + ' ' +
 		'AND table_name = ' + connectionPool.escape(tablename) + ';';
 	connectionPool.query(
 		query,
-		function(rows) {
-			var exists = rows[0].count === 1;
-			success(exists);
-		},
-		error );
+		function(err,rows) {
+			if (err) {
+				callback(err);
+			} else {
+				var exists = rows[0].count === 1;
+				callback(exists);
+			}
+		});
 }
 
-function createTable(name,columns,pk,indices,success,error) {
+function createTable(name,columns,pk,indices,callback) {
 	var query = 'CREATE TABLE ' + name + ' ';
 	if (columns.length > 0) {
 		query +=  ' ( ';
@@ -47,11 +50,10 @@ function createTable(name,columns,pk,indices,success,error) {
 	}
 	connectionPool.query(
 		query,
-		success,
-		error );
+		callback );
 }
 
-function conditionalCreateTable(schemaname,tableSpec,success,error) {
+function conditionalCreateTable(schemaname,tableSpec,callback) {
 	console.log('\tChecking if table ' + tableSpec.name + ' exists');
 	tableExists(
 		schemaname,
@@ -59,57 +61,48 @@ function conditionalCreateTable(schemaname,tableSpec,success,error) {
 		function(exists) {
 			if (!exists) {
 				console.log('Creating table ' + tableSpec.name);
-				createTable(tableSpec.name, tableSpec.columns, tableSpec.primaryKey, tableSpec.indices, success, error);
+				createTable(
+					tableSpec.name,
+					tableSpec.columns,
+					tableSpec.primaryKey,
+					tableSpec.indices,
+					callback);
 			} else {
-				success();
-			}
-		},
-		error);
-}
-
-function createTables(tableSpecs,success,error) {
-	var jobs = tableSpecs.map( function( spec ) {
-		return function( done ) {
-			conditionalCreateTable(
-				config.db.database,
-				spec,
-				function() {
-					done(null,null);
-				},
-				function(err) {
-					done(err);
-				});
-		};
-	});
-	async.series(
-		jobs,
-		function( err, rows ) {
-			if (err) {
-				error(err);
-			} else {
-				success(rows);
+				callback();
 			}
 		});
+}
+
+function createTables(tableSpecs,callback) {
+	async.waterfall(
+		tableSpecs.map( function( spec ) {
+			return function( done ) {
+				conditionalCreateTable(config.db.database,spec,done);
+			};
+		}),
+		callback);
 }
 
 function createColumnString(name, type, notnull, autoinc) {
 	return '`' + name + '` ' + type + ' ' + (notnull ? 'NOT NULL' : '') + (autoinc ? ' AUTO_INCREMENT ' : '');
 }
 
-function conditionalCreateDatabase(name,success,error) {
+function conditionalCreateDatabase(name,callback) {
 	var connection = mysql.createConnection({
 		host: config.db.host,
 		user: config.db.user,
 		password: config.db.password
 	});
 	connection.connect();
-	connection.query('CREATE DATABASE IF NOT EXISTS ' + name, function(err) {
+	connection.query(
+		'CREATE DATABASE IF NOT EXISTS ' + name,
+		function(err) {
 		if (err) {
 			connection.end();
-			error(err);
+			callback(err);
 		} else {
 			connection.end();
-			success();
+			callback();
 		}
 	});
 }

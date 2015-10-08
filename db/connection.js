@@ -3,76 +3,64 @@ var config = require('../config');
 
 var pool = mysql.createPool(config.db);
 
-var closeConnection = function(connection) {
+var _closeConnection = function(connection) {
 	connection.release();
 };
 
-var openConnection = function(onSuccess,onError) {
+var _openConnection = function(callback) {
 	pool.getConnection(function(err,connection) {
 		if (err) {
 			console.trace(err.message);
-			if ( onError ) {
-				onError(err);
+			if ( callback ) {
+				callback(err);
 			}
 		} else {
 			connection.query('SET NAMES \'utf8mb4\';', function() {
-				onSuccess(connection);
+				callback(null,connection);
 			});
 		}
 	});
 };
 
-var query = function(sql,values,onSuccess,onError) {
-	if ( arguments.length === 3 ) {
-		onError = onSuccess;
-		onSuccess = values;
+var query = function(sql,values,callback) {
+	if ( arguments.length === 2 ) {
+		callback = values;
 		values = undefined;
 	}
-	openConnection(
-		function(connection) {
-			var args = [
-				sql
-			];
-			if ( values ) {
-				args.push( values );
-			}
-			args.push( function(err,res) {
-				if (err) {
-					closeConnection(connection);
-					if (onError) {
-						onError(err);
-					}
-				} else {
-					closeConnection(connection);
-					if (onSuccess) {
-						onSuccess(res);
-					}
+	_openConnection(
+		function(err,connection) {
+			if (err) {
+				if (callback) {
+					callback(err);
 				}
-			});
-			connection.query.apply( connection, args );
-		},
-		onError );
-};
-
-var complete = function(result,connection,onComplete) {
-    closeConnection(connection);
-    onComplete(result);
-};
-
-var error = function(err,connection,onError) {
-    closeConnection(connection);
-    if (onError) {
-        onError(err);
-    }
+			} else {
+				var args = [
+					sql
+				];
+				if (values) {
+					args.push(values);
+				}
+				args.push(function(err,res) {
+					_closeConnection(connection);
+					if (err) {
+						console.trace(err.message);
+						if (callback) {
+							callback(err);
+						}
+					} else {
+						if (callback) {
+							callback(null,res);
+						}
+					}
+				});
+				connection.query.apply(connection,args);
+			}
+		});
 };
 
 var escape = function() {
 	return pool.escape.apply(pool,arguments);
 };
 
-module.exports.open = openConnection;
-module.exports.close = closeConnection;
 module.exports.query = query;
-module.exports.complete = complete;
-module.exports.error = error;
 module.exports.escape = escape;

@@ -1,5 +1,6 @@
 var db_utils = require('./db_utils');
 var config = require('../config');
+var async = require('async');
 
 var _getTableSpecs = function() {
 	var tables = [];
@@ -68,14 +69,18 @@ var _getTableSpecs = function() {
 	return tables;
 };
 
-var initialize = function(onSuccess,onError) {
-	db_utils.conditionalCreateDatabase(
-		config.db.database,
-		function() {
-			var specs = _getTableSpecs();
-			db_utils.createTables(specs,onSuccess,onError);
+var initialize = function(callback) {
+	async.waterfall([
+		// create database, if it doesn;t exist already
+		function(done) {
+			db_utils.conditionalCreateDatabase(config.db.database,done);
 		},
-		onError);
+		// create tables
+		function(done) {
+			var specs = _getTableSpecs();
+			db_utils.createTables(specs,done);
+		}],
+		callback);
 };
 
 module.exports.initialize = initialize;

@@ -4,122 +4,106 @@ var datesDB = require('./dates');
 var async = require('async');
 var relayAggregator = require('../ingest/relayAggregator');
 
-var getRelays = function(date,onSuccess,onError) {
+var getRelays = function(date,callback) {
     connectionPool.query(
         'SELECT * FROM ' + config.db.database + '.relays WHERE date=?',
         [date],
-        function(rows) {
-            var relays = {};
-            rows.forEach(function(row) {
-                relays[row.id] = row;
-            });
-            onSuccess(relays);
-        },
-        onError );
+        function(err,rows) {
+            if (err) {
+                callback(err);
+            } else {
+                var relays = {};
+                rows.forEach(function(row) {
+                    relays[row.id] = row;
+                });
+                callback(null,relays);
+            }
+        });
 };
 
-var updateAggregates = function( onSuccess, onError ) {
+var updateAggregates = function(callback) {
     async.waterfall([
         // truncate table if it exists
         function(done) {
             connectionPool.query(
                 'TRUNCATE ' + config.db.database + '.relay_aggregates',
-                function() {
-                    done();
-                },
-                function(err) {
-                    done(err);
-                });
+                done);
         },
         // get all dates from dates table
-        function(done) {
-            datesDB.getDates(
-                function(dates) {
-                    done(null,dates);
-                },
-                function(err) {
-                    done(err);
-                });
+        function(rows,done) {
+            datesDB.getDates(done);
         },
         // ingest each aggregate in series
-        function( dates, done ) {
+        function(dates,done) {
             async.series(
                 dates.map( function(date) {
+                    // aggregate and insert relays
     				return function(done) {
-    					// aggregate relays
-    					relayAggregator.aggregateRelays(date, function(nodes) {
-    						// organize them into mysql rows
-    						var specs = nodes.map(function(node) {
-    							return [
-    								date,
-    								node.lat,
-    								node.lng,
-    								node.x,
-    								node.y,
-    								node.bandwidth,
-    								node.normalizedBandwidth,
-    								node.label
-    							];
-    						});
-    						// add nodes to table
-    						connectionPool.query(
-    							'INSERT INTO relay_aggregates (date,lat,lng,x,y,bandwidth,normalized_bandwidth,label) VALUES ?',
-    							[specs],
-    							function() {
-    								done();
-    							},
-    							function(err) {
-    								done(err);
-    							});
-    					});
+    					relayAggregator.aggregateRelays(
+                            date,
+                            function(err,nodeSpecs) {
+                                if (err) {
+                                    done(err);
+                                } else {
+                                    // add nodes to table
+            						connectionPool.query(
+            							'INSERT INTO relay_aggregates (date,lat,lng,x,y,bandwidth,normalized_bandwidth,label) VALUES ?',
+            							[nodeSpecs],
+            							done);
+                                }
+    					    });
     				};
     			}),
                 done);
         }],
         function(err) {
+            callback(err); // only pass on error, if it exists
+        });
+};
+
+var getAggregatedRelays = function(date,callback) {
+    connectionPool.query(
+        'SELECT * FROM ' + config.db.database + '.relay_aggregates WHERE date=? ORDER BY bandwidth',
+        [date],
+        function(err,rows) {
             if (err) {
-                onError(err);
+                callback(err);
             } else {
-                onSuccess();
+                callback(null,rows);
             }
         });
 };
 
-var getAggregatedRelays = function(date,onSuccess,onError) {
-    connectionPool.query(
-        'SELECT * FROM ' + config.db.database + '.relay_aggregates WHERE date=? ORDER BY bandwidth',
-        [date],
-        function(rows) {
-            console.log(rows);
-            onSuccess(rows);
-        },
-        onError );
-};
-
-var getFingerprints = function(date,onSuccess,onError) {
+var getFingerprints = function(date,callback) {
     connectionPool.query(
         'SELECT id,fingerprint FROM ' + config.db.database + '.relays WHERE date=?',
         [date],
-        function(rows) {
-            var fingerprintToId = {};
-            rows.forEach(function(row) {
-                fingerprintToId[row.fingerprint] = row.id;
-            });
-            onSuccess(fingerprintToId);
-        },
-        onError );
+        function(err,rows) {
+            if (err) {
+                callback(err);
+            } else {
+                var fingerprintToId = {};
+                rows.forEach(function(row) {
+                    fingerprintToId[row.fingerprint] = row.id;
+                });
+                callback(null,fingerprintToId);
+            }
+        });
 };
 
-var getDates = function(onSuccess,onError) {
+var getDates = function(callback) {
     connectionPool.query(
         'SELECT distinct date FROM ' + config.db.database + '.relays order by date asc',
-        function(rows) {
-            var dates = rows.map(function(row) {
-                return row.date;
-            });
-            onSuccess(dates);
-        },
-        onError );
+        function(err,rows) {
+            if (err) {
+                callback(err);
+            } else {
+                var dates = rows.map(function(row) {
+                    return row.date;
+                });
+                callback(null,dates);
+            }
+        });
 };
 
 module.exports.get = getRelays;
