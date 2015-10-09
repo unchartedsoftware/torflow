@@ -6,7 +6,7 @@ var relayParser = require('./relayParser');
 var relayDB = require('../db/relay');
 var connectionPool = require('../db/connection');
 
-var getGuardClientSpecs = function(guardClients,fingerprintToId,date) {
+var _getGuardClientSpecs = function(guardClients,fingerprintToId,date) {
 	var guardClientSpecs = [];
 	// append id to guardclient
 	_.forIn(fingerprintToId,function(id,fingerprint) {
@@ -29,57 +29,6 @@ var getGuardClientSpecs = function(guardClients,fingerprintToId,date) {
 		});
 	});
 	return guardClientSpecs;
-};
-
-/**
- * Ingest a csv relay file into the database
- * @param resolvedFilePath - the resolved path of the file
- * @param callback - callback
- */
-var ingestFile = function(resolvedFilePath,callback) {
-	async.waterfall([
-		// extract relay data from csv
-		function(done) {
-			_extractFromCSV(resolvedFilePath,done);
-		},
-		// insert relay data into table
-		function(relaySpecs,numSkipped,guardClients,date,done) {
-			_insertRelayData(
-				relaySpecs,
-				function(err) {
-					if (err) {
-						done(err);
-					} else {
-						done(null,relaySpecs,numSkipped,guardClients,date);
-					}
-				});
-		},
-		// get mapping from fingerprint -> relay id to each element with guard client
-		function(relaySpecs,numSkipped,guardClients,date,done) {
-			relayDB.fingerprints(
-				date,
-				function(err,fingerprintToId) {
-					if (err) {
-						done(err);
-					} else {
-						done(null,relaySpecs,numSkipped,guardClients,date,fingerprintToId);
-					}
-				});
-		},
-		// push to the list of guard client rows in the database
-		function(relaySpecs,numSkipped,guardClients,date,fingerprintToId,done) {
-			var guardClientSpecs = getGuardClientSpecs(guardClients,fingerprintToId,date);
-			_insertGuardClientData(
-				guardClientSpecs,
-				function(err) {
-					if (err) {
-						done(err);
-					} else {
-						done(null,relaySpecs.length,numSkipped);
-					}
-				});
-		}],
-        callback);
 };
 
 /**
@@ -180,6 +129,68 @@ var _insertGuardClientData = function(guardSpecs,callback) {
 		}),
 		function(err) {
 			callback(err);  // only pass on error, if it exists
+		});
+};
+
+/**
+ * Ingest a csv relay file into the database
+ * @param resolvedFilePath - the resolved path of the file
+ * @param callback - callback
+ */
+var ingestFile = function(resolvedFilePath,callback) {
+	async.waterfall([
+		// extract relay data from csv
+		function(done) {
+			_extractFromCSV(resolvedFilePath,done);
+		},
+		// insert relay data into table
+		function(relaySpecs,numSkipped,guardClients,date,done) {
+			_insertRelayData(
+				relaySpecs,
+				function(err) {
+					if (err) {
+						done(err);
+					} else {
+						done(null,relaySpecs,numSkipped,guardClients,date);
+					}
+				});
+		},
+		// get mapping from fingerprint -> relay id to each element with guard client
+		function(relaySpecs,numSkipped,guardClients,date,done) {
+			relayDB.fingerprints(
+				date,
+				function(err,fingerprintToId) {
+					if (err) {
+						done(err);
+					} else {
+						done(null,relaySpecs,numSkipped,guardClients,date,fingerprintToId);
+					}
+				});
+		},
+		// push to the list of guard client rows in the database
+		function(relaySpecs,numSkipped,guardClients,date,fingerprintToId,done) {
+			var guardClientSpecs = _getGuardClientSpecs(guardClients,fingerprintToId,date);
+			_insertGuardClientData(
+				guardClientSpecs,
+				function(err) {
+					if (err) {
+						done(err);
+					} else {
+						done(null,relaySpecs.length,numSkipped);
+					}
+				});
+		}],
+        function(err, numImported, numSkipped ) {
+			if (err) {
+				callback(err);
+			} else {
+				var logStr = 'Imported ' + numImported + ' relays from ' + resolvedFilePath;
+				if (numSkipped > 0) {
+					logStr += ' (' + numSkipped + ' of ' + numImported+numSkipped + ' skipped due to malformed data)';
+				}
+				console.log(logStr);
+				callback();
+			}
 		});
 };
 

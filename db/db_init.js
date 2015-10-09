@@ -54,6 +54,16 @@ var _getTableSpecs = function() {
 		indices: ['date']
 	};
 
+	var countrycounts = {
+		name : 'country_counts',
+		columns : [
+			db_utils.createColumnString('date','datetime',nonNull),
+			db_utils.createColumnString('cc','varchar(2)',nonNull),
+			db_utils.createColumnString('count','int(11)',nonNull)
+		],
+		indices: ['date','cc']
+	};
+
 	var dates = {
 		name : 'dates',
 		columns : [
@@ -65,6 +75,7 @@ var _getTableSpecs = function() {
 	tables.push(relayaggregates);
 	tables.push(guardclients);
 	tables.push(dates);
+	tables.push(countrycounts);
 
 	return tables;
 };

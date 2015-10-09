@@ -33,11 +33,10 @@ var updateAggregates = function(callback) {
         function(rows,done) {
             datesDB.getDates(done);
         },
-        // ingest each aggregate in series
+        // aggregate and insert relays
         function(dates,done) {
             async.series(
                 dates.map( function(date) {
-                    // aggregate and insert relays
     				return function(done) {
     					relayAggregator.aggregateRelays(
                             date,

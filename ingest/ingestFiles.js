@@ -2,29 +2,11 @@ var dir = require('node-dir');
 var ingestFile = require('./ingestFile');
 var relayDB = require('../db/relay');
 var datesDB = require('../db/dates');
+var countryDB = require('../db/country');
 var async = require('async');
 
 var _csvFilesOnly = function(csvPath) {
 	return (csvPath.indexOf('.csv') === csvPath.length - 4);
-};
-
-var _getIngestFileFunc = function(csvPath) {
-	return function(done) {
-		ingestFile(
-			csvPath,
-			function(err,numImported,numSkipped) {
-				if (err) {
-					done(err);
-				} else {
-					var logStr = 'Imported ' + numImported + ' relays from ' + csvPath;
-					if (numSkipped > 0) {
-						logStr += ' (' + numSkipped + ' of ' + numImported+numSkipped + ' skipped due to malformed data)';
-					}
-					console.log(logStr);
-					done();
-				}
-			});
-	};
 };
 
 /**
@@ -40,19 +22,31 @@ var ingestFiles = function(resolvedPath,callback) {
 		},
 		// ingest files, in series
 		function(files,done) {
-			async.waterfall(
-				files.filter(_csvFilesOnly).map(function(csvPath) {
-					return _getIngestFileFunc(csvPath);
+			var csvFiles = files.filter(_csvFilesOnly);
+			async.series(
+				csvFiles.map(function(csvPath) {
+					return function(done) {
+						ingestFile(csvPath,done);
+					};
 				}),
-				done );
+				function(err) {
+					done(err);
+				});
 		},
 		// update dates table
 		function(done) {
+			console.log('Updating dates table');
 			datesDB.updateDates(done);
 		},
 		// update relay_aggregates table
 		function(done) {
+			console.log('Updating relay_aggregates table');
 			relayDB.updateAggregates(done);
+		},
+		// update country_counts table
+		function(done) {
+			console.log('Updating country_counts table');
+			countryDB.updateCountries(done);
 		}],
 		callback);
 };
