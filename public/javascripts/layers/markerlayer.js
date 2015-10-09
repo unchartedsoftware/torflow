@@ -74,7 +74,7 @@ MarkerLayer.prototype = _.extend(MarkerLayer.prototype, {
         // entire series operation, preventing stale additions
         var currentTimestamp = Date.now();
         this._requestTimestamp = currentTimestamp;
-        var CHUNK_SIZE = 10;
+        var CHUNK_SIZE = 20;
         var chunks = _.chunk(markers,CHUNK_SIZE);
         var additions = _.map( chunks, function(chunk) {
             return function(done) {
