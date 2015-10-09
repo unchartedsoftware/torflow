@@ -48,17 +48,17 @@ var ParticleLayer = WebGLOverlay.extend({
         this._vertexBuffer = new esper.VertexBuffer(
             new esper.VertexPackage([
                 /**
-                 * x: offsetX
-                 * y: offsetY
-                 * y: speed
-                 * w: noise
+                 * x: startX
+                 * y: startY
+                 * y: endX
+                 * w: endY
                  */
                 filler,
                 /**
-                 * x: offsetX
-                 * y: offsetY
+                 * x: offset
                  * y: speed
-                 * w: noise
+                 * y: rand0
+                 * w: rand1
                  */
                 filler ])
         );
@@ -94,33 +94,33 @@ var ParticleLayer = WebGLOverlay.extend({
         // start the webworker
         worker.postMessage({
             type: 'start',
-            particleConfig: {
+            spec: {
                 speed: Config.particle_base_speed_ms,
                 variance: Config.particle_speed_variance_ms,
                 offset: Config.particle_offset * offsetFactor,
                 count: Config.particle_count
             },
-            nodes: nodes,
-            count: this._particleCount || Config.particle_count
+            nodes: nodes
         });
     },
 
-    _updateParticleCounts: function() {
-        var hiddenServicesCount = Math.floor(Config.hiddenServiceProbability * Config.particle_count);
-        var generalCount = Config.particle_count - hiddenServicesCount;
-        if (this._showTraffic === 'all') {
-            this._particleCount = Config.particle_count;
-        } else if (this._showTraffic === 'general') {
-            this._particleCount = generalCount;
-        } else {
-            this._particleCount = hiddenServicesCount;
-        }
+    _drawHiddenServices: function() {
+        var gl = this._gl,
+            hiddenServicesCount = Math.floor(Config.hiddenServiceProbability * Config.particle_count);
+        this._shader.setUniform( 'uColor', [ 0.6, 0.1, 0.3 ] );
+        gl.drawArrays( gl.POINTS, 0, hiddenServicesCount );
+    },
+
+    _drawGeneralServices: function() {
+        var gl = this._gl,
+            hiddenServicesCount = Math.floor(Config.hiddenServiceProbability * Config.particle_count);
+        this._shader.setUniform( 'uColor', [ 0.1, 0.3, 0.6 ] );
+        gl.drawArrays( gl.POINTS, hiddenServicesCount, Config.particle_count - hiddenServicesCount );
     },
 
     showTraffic: function(state) {
-        if (state!==undefined) {
+        if (state !== undefined) {
             this._showTraffic = state;
-            this._updateParticleCounts();
             return this;
         } else {
             return this._showTraffic;
@@ -150,14 +150,18 @@ var ParticleLayer = WebGLOverlay.extend({
         return Config.particle_size;
     },
 
-    clear: function() {
+    _clearBackBuffer: function() {
         var gl = this._gl;
         gl.clear( gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT );
     },
 
+    clear: function() {
+        this._clearBackBuffer();
+        this._isReady = false;
+    },
+
     draw: function() {
-        var gl = this._gl;
-        this.clear();
+        this._clearBackBuffer();
         if ( this._isReady ) {
             this._viewport.push();
             this._shader.push();
@@ -167,7 +171,17 @@ var ParticleLayer = WebGLOverlay.extend({
             this._shader.setUniform( 'uOffsetFactor', this.getPathOffset() );
             this._shader.setUniform( 'uPointSize', this.getParticleSize() );
             this._vertexBuffer.bind();
-            gl.drawArrays( gl.POINTS, 0, this._particleCount || Config.particle_count );
+            if (this._showTraffic === 'hidden') {
+                // draw hidden traffic
+                this._drawHiddenServices();
+            } else if (this._showTraffic === 'general') {
+                // draw non-hidden traffic
+                this._drawGeneralServices();
+            } else {
+                // draw all traffic
+                this._drawHiddenServices();
+                this._drawGeneralServices();
+            }
             this._vertexBuffer.unbind();
             this._shader.pop();
             this._viewport.pop();

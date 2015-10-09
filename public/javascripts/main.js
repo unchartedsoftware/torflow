@@ -54,6 +54,7 @@ App.prototype = _.extend(App.prototype, {
     _clear : function() {
         this._markerLayer.clear();
         this._countryLayer.clear();
+        this._particleLayer.clear();
     },
 
     _latLngToNormalizedCoord : function(latLng) {

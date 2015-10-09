@@ -53,11 +53,11 @@ var _getProbabilisticPair = function( nodes ) {
     };
 };
 
-var _generateParticles = function(particleConfig,nodes,count) {
-    var PROGRESS_STEP = count / 1000;
-    var buffer = new Float32Array( count * 8 );
+var _generateParticles = function(spec,nodes) {
+    var PROGRESS_STEP = spec.count / 1000;
+    var buffer = new Float32Array( spec.count * 8 );
 
-    for ( var i=0; i<count; i++ ) {
+    for ( var i=0; i<spec.count; i++ ) {
         var pair = _getProbabilisticPair(nodes);
         var start = {
             x: pair.source.x,
@@ -67,8 +67,8 @@ var _generateParticles = function(particleConfig,nodes,count) {
             x: pair.dest.x,
             y: pair.dest.y
         };
-        var speed = particleConfig.speed + particleConfig.variance * Math.random();
-        var offset = particleConfig.offset;
+        var speed = spec.speed + spec.variance * Math.random();
+        var offset = spec.offset;
 
         buffer[ i*8 ] = start.x;
         buffer[ i*8+1 ] = start.y;
@@ -82,7 +82,7 @@ var _generateParticles = function(particleConfig,nodes,count) {
         if ( (i+1) % PROGRESS_STEP === 0 ) {
             this.postMessage({
                 type: 'progress',
-                progress: i / (particleConfig.count-1)
+                progress: i / (spec.count-1)
             });
         }
     }
@@ -97,6 +97,6 @@ var _generateParticles = function(particleConfig,nodes,count) {
 
 this.addEventListener( 'message', function( e ) {
     if ( e.data.type === 'start' ) {
-        _generateParticles( e.data.particleConfig, e.data.nodes, e.data.count );
+        _generateParticles( e.data.spec, e.data.nodes );
     }
 });
