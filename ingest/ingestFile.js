@@ -17,12 +17,15 @@ var getGuardClientSpecs = function(guardClients,fingerprintToId,date) {
 	// extract guard client row
 	_.forIn(guardClients, function(guardClient) {
 		_.forIn(guardClient.guardClients,function(count,countrycode) {
-			guardClientSpecs.push([
-				guardClient.id,
-				countrycode,
-				count,
-				date
-			]);
+			if ( countrycode !== '??' ) {
+				// ignore clients with missing country codes
+				guardClientSpecs.push([
+					guardClient.id,
+					countrycode,
+					count,
+					date
+				]);
+			}
 		});
 	});
 	return guardClientSpecs;
