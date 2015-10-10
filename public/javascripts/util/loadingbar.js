@@ -52,6 +52,7 @@ LoadingBar.prototype.update = function( percent ) {
                 opacity: 0
             }, 400, function() {
                 that._$loader.remove();
+                that._$loader = null;
             });
         }
     }

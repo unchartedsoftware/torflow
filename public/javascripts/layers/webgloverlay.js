@@ -53,6 +53,7 @@ L.WebGLOverlay = L.Class.extend({
         // init the webgl state
         gl.clearColor( 0, 0, 0, 0 );
         gl.enable( gl.BLEND );
+        gl.disable( gl.DEPTH_TEST );
         gl.blendFunc( gl.SRC_ALPHA, gl.ONE );
         // load shaders
         this.initShaders( function() {

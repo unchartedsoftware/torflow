@@ -83,21 +83,22 @@ var ParticleLayer = WebGLOverlay.extend({
                     self._loadingBar.update( e.data.progress );
                     break;
                 case 'complete':
+                    this._loadingBar = null;
                     self._vertexBuffer.bufferData( new Float32Array( e.data.buffer ) );
                     self._timestamp = Date.now();
                     self._isReady = true; // flag as ready to draw
                     worker.terminate();
+                    worker = null;
                     break;
             }
         });
-        var offsetFactor = this._pathOffset !== undefined ? this._pathOffset : 1;
         // start the webworker
         worker.postMessage({
             type: 'start',
             spec: {
                 speed: Config.particle_base_speed_ms,
                 variance: Config.particle_speed_variance_ms,
-                offset: Config.particle_offset * offsetFactor,
+                offset: Config.particle_offset * this.getPathOffset(),
                 count: Config.particle_count
             },
             nodes: nodes
@@ -152,7 +153,7 @@ var ParticleLayer = WebGLOverlay.extend({
 
     _clearBackBuffer: function() {
         var gl = this._gl;
-        gl.clear( gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT );
+        gl.clear( gl.COLOR_BUFFER_BIT );
     },
 
     clear: function() {
@@ -179,8 +180,8 @@ var ParticleLayer = WebGLOverlay.extend({
                 this._drawGeneralServices();
             } else {
                 // draw all traffic
-                this._drawHiddenServices();
                 this._drawGeneralServices();
+                this._drawHiddenServices();
             }
             this._vertexBuffer.unbind();
             this._shader.pop();
