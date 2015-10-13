@@ -29,6 +29,7 @@ var CountryLayer = function() {
     this._geoJSONLayer = L.geoJson(null,{
         style : this._getFeatureStyle.bind(this)
     });
+    this._opacity = 0.3;
     this._histogram = null;
     this._geoJSONMap = {};
     this._colorScale = d3.scale.linear()
@@ -119,7 +120,7 @@ CountryLayer.prototype = _.extend(CountryLayer.prototype, {
         return {
             color : fillColor,
             weight : 0,
-            opacity : 0.3
+            opacity : this._opacity
         };
     },
 
@@ -127,8 +128,29 @@ CountryLayer.prototype = _.extend(CountryLayer.prototype, {
         this._geoJSONLayer.clearLayers();
     },
 
-    setOpacity : function() {
-        // TODO:  how to handle this?
+    setOpacity : function(opacity) {
+        if (this._opacity !== opacity) {
+            this._opacity = opacity;
+            console.log('Implement this');
+        }
+    },
+
+    getOpacity : function() {
+        return this._opacity;
+    },
+
+    show: function() {
+        this._hidden = false;
+        console.log('Implement this');
+    },
+
+    hide: function() {
+        this._hidden = true;
+        console.log('Implement this');
+    },
+
+    isHidden: function() {
+        return this._hidden;
     }
 
 });

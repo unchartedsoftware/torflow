@@ -30,10 +30,10 @@ var config = {
         min : 5,
         max : 40
     },
-    particle_count : 500000,
+    particle_count : 200000,
     particle_offset : 0.01,
     particle_min_offset: 0.0001,
-    particle_max_offset: 2.0,
+    particle_max_offset: 4.0,
     particle_base_speed_ms : 40000, // ms for particle to circle the earth
     particle_speed_variance_ms : 40000,
     particle_speed_min_factor : 0.01,

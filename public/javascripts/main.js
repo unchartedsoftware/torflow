@@ -45,11 +45,9 @@ App.prototype = _.extend(App.prototype, {
     _map : null,
     _element : null,
     _dateLabel : null,
-    _nodeData : null,
+    _currentNodeData : null,
     _currentDate : null,
     _currentHistogram : null,
-    _showFlow : true,
-    _showingLabels : null,
 
     _clear : function() {
         this._markerLayer.clear();
@@ -64,10 +62,6 @@ App.prototype = _.extend(App.prototype, {
             x: px.x / dim,
             y: ( dim - px.y ) / dim
         };
-    },
-
-    _scaleByBandwidth : function() {
-        return this._element.find('#scale-bandwidth-input').prop('checked');
     },
 
     _getMoment : function(index) {
@@ -105,21 +99,6 @@ App.prototype = _.extend(App.prototype, {
         $(containerEl).css('-webkit-filter','brightness(' + newBrightness + ')');
     },
 
-    _onSpeedSlide : function() {
-        var newSpeed = this._speedSlider.slider('getValue');
-        this._particleLayer.setSpeed( newSpeed );
-    },
-
-    _onPathSlide : function() {
-        var offset = this._pathSlider.slider('getValue');
-        this._particleLayer.setPathOffset( offset );
-    },
-
-    _onOpacitySlide : function() {
-        var newOpacity = this._opacitySlider.slider('getValue');
-        this._countryLayer.setOpacity(newOpacity);
-    },
-
     _onHiddenFilterChange : function() {
         var checkedRadioBtn = this._element.find('#hidden-filter-btn-group').find('.active > input');
         var checkedState = checkedRadioBtn.attr('hidden-id');
@@ -130,20 +109,6 @@ App.prototype = _.extend(App.prototype, {
         } else if (checkedState === 'general') {
             this._particleLayer.showTraffic('general');
         }
-    },
-
-    _onToggleFlow : function() {
-        if (this._particleLayer.isHidden()) {
-            this._showFlow = true;
-            this._particleLayer.show();
-        } else {
-            this._showFlow = false;
-            this._particleLayer.hide();
-        }
-    },
-
-    _onToggleScale : function() {
-        this._update();
     },
 
     _onToggleLabels : function() {
@@ -160,9 +125,9 @@ App.prototype = _.extend(App.prototype, {
 
         function handleNodes(data) {
             // Create markers
-            self._markerLayer.set(data,self._scaleByBandwidth());
+            self._markerLayer.set(data);
             // Update particles, if they are different
-            if ( oldNodes !== self._nodeData ) {
+            if ( oldNodes !== self._currentNodeData ) {
                 self._particleLayer.updateNodes(data.nodes);
             }
         }
@@ -171,17 +136,17 @@ App.prototype = _.extend(App.prototype, {
             self._countryLayer.set(histogram);
         }
 
-        var oldNodes = this._nodeData,
+        var oldNodes = this._currentNodeData,
             self = this;
 
         if (this._currentDate === isoDateStr) {
             // selected current date, simply refresh layers
-            handleNodes(this._nodeData);
+            handleNodes(this._currentNodeData);
             handleHistogram(this._currentHistogram);
         } else {
             // new date, request new information
             d3.json('/nodes/' + encodeURI(isoDateStr), function (data) {
-                self._nodeData = data;
+                self._currentNodeData = data;
                 handleNodes(data);
             });
             d3.json('/country/' + encodeURI(isoDateStr),function(histogram) {
@@ -192,7 +157,121 @@ App.prototype = _.extend(App.prototype, {
         }
     },
 
-    _initUI : function() {
+    _createLayerUI : function(layerName,layer) {
+        var $controls = $(
+                '<div class="map-control-element"></div>'),
+            $head = $('<div class="layer-control-head"></div>'),
+            $body = $('<div class="layer-control-body"></div>'),
+            $title = $('<div class="layer-title">'+layerName+'</div>'),
+            $toggleIcon = $( !layer.isHidden() ? '<i class="fa fa-check-square-o">' : '<i class="fa fa-square-o">'),
+            $toggle = $('<div class="layer-toggle"></div>'),
+            $opacitySlider = $(
+                '<div class="layer-control">' +
+                    '<Label class="layer-control-label">Opacity</Label>' +
+                    '<input class="opacity-slider slider" ' +
+                        'type="text" data-slider-min="'+0+'" ' +
+                        'data-slider-max="'+1+'" ' +
+                        'data-slider-step="0.01" ' +
+                        'data-slider-value="'+layer.getOpacity()+'"/>'+
+                '</div>');
+        $toggle.append( $toggleIcon );
+        $head.click( function() {
+            if ( layer.isHidden() ) {
+                layer.show();
+                $toggleIcon.removeClass('fa-square-o');
+                $toggleIcon.addClass('fa-check-square-o');
+            } else {
+                layer.hide();
+                $toggleIcon.removeClass('fa-check-square-o');
+                $toggleIcon.addClass('fa-square-o');
+            }
+        });
+
+        $opacitySlider.find('.slider').slider({ tooltip: 'hide' });
+        $opacitySlider.find('.slider').on('slide', function( event ) {
+            layer.setOpacity( event.value );
+        });
+        $head.append( $toggle ).append( $title );
+        $body.append( $opacitySlider ).append('<div style="clear:both;"></div>');
+        $controls.append( $head ).append( $body );
+        return $controls;
+    },
+
+    _addFlowControls : function($controlElement, layer) {
+        var $speedSlider = $(
+            '<div class="layer-control">' +
+                '<Label class="layer-control-label">Particle Speed</Label>' +
+                '<input class="speed-slider slider" ' +
+                    'type="text" data-slider-min="'+Config.particle_speed_min_factor+'" ' +
+                    'data-slider-max="'+Config.particle_speed_max_factor+'" ' +
+                    'data-slider-step="0.01" ' +
+                    'data-slider-value="'+layer.getSpeed()+'"/>'+
+            '</div>'),
+            $pathSlider = $('<div class="layer-control">' +
+                '<Label class="layer-control-label">Path Width</Label>' +
+                '<input class="path-slider slider" ' +
+                    'type="text" data-slider-min="'+Config.particle_min_offset+'" ' +
+                    'data-slider-max="'+Config.particle_max_offset+'" ' +
+                    'data-slider-step="0.01" ' +
+                    'data-slider-value="'+layer.getPathOffset()+'"/>'+
+            '</div>'),
+            $particleSizeSlider = $('<div class="layer-control">' +
+                '<Label class="layer-control-label">Particle Size</Label>' +
+                '<input class="path-slider slider" ' +
+                    'type="text" data-slider-min="'+0+'" ' +
+                    'data-slider-max="'+4+'" ' +
+                    'data-slider-step="1" ' +
+                    'data-slider-value="'+1+'"/>'+
+            '</div>');
+
+        $speedSlider.find('.slider').slider({ tooltip: 'hide' });
+        $speedSlider.find('.slider').on('slideStop', function( event ) {
+            layer.setSpeed( event.value );
+        });
+
+        $pathSlider.find('.slider').slider({ tooltip: 'hide' });
+        $pathSlider.find('.slider').on('slide', function( event ) {
+            layer.setPathOffset( event.value );
+        });
+
+        $particleSizeSlider.find('.slider').slider({ tooltip: 'hide' });
+
+
+        $controlElement.find('.layer-control-body')
+            .append( $speedSlider ).append('<div style="clear:both;"></div>')
+            .append( $pathSlider ).append('<div style="clear:both;"></div>')
+            .append( $particleSizeSlider ).append('<div style="clear:both;"></div>');
+        return $controlElement;
+    },
+
+    _addMarkerControls : function($controlElement,layer) {
+        var $toggleIcon = $( layer.scaleByBandwidth() ? '<i class="fa fa-check-square-o">' : '<i class="fa fa-square-o">'),
+            $toggle = $('<div class="layer-toggle"></div>'),
+            $control = $(
+                '<div class="layer-control">' +
+                    '<Label style="float:left" class="layer-control-label">Scale by bandwidth</Label>' +
+                '</div>');
+
+        $toggle.append($toggleIcon);
+        $control.append($toggle);
+        $toggle.click( function() {
+            if ( layer.scaleByBandwidth() ) {
+                layer.scaleByBandwidth(false);
+                $toggleIcon.removeClass('fa-check-square-o');
+                $toggleIcon.addClass('fa-square-o');
+            } else {
+                layer.scaleByBandwidth(true);
+                $toggleIcon.removeClass('fa-square-o');
+                $toggleIcon.addClass('fa-check-square-o');
+            }
+        });
+
+        $controlElement.find('.layer-control-body')
+            .append( $control ).append('<div style="clear:both;"></div>');
+        return $controlElement;
+    },
+
+    _initIndex : function() {
         var totalDays = this._dates.length;
         var extendedConfig = _.extend(Config,{
             maxIndex : totalDays-1,
@@ -200,11 +279,21 @@ App.prototype = _.extend(App.prototype, {
         });
 
         this._element = $(document.body).append(Template(extendedConfig));
+    },
 
-        this._element.find('.hidden-filter-btn').change(this._onHiddenFilterChange.bind(this));
-        this._element.find('#show-flow-input').change(this._onToggleFlow.bind(this));
-        this._element.find('#label-input').change(this._onToggleLabels.bind(this));
-        this._element.find('#scale-bandwidth-input').change(this._onToggleScale.bind(this));
+    _initUI : function() {
+
+        var $map = $('.map-controls');
+        $map.append( this._addFlowControls( this._createLayerUI('Flow', this._particleLayer ), this._particleLayer ) );
+        $map.append( this._addMarkerControls( this._createLayerUI('Nodes', this._markerLayer ), this._markerLayer ) );
+        $map.append( this._createLayerUI('Labels', this._labelLayer ) );
+        $map.append( this._createLayerUI('Countries', this._countryLayer ) );
+
+        this._dateLabel = this._element.find('#date-label');
+        this._dateSlider = this._element.find('#date-slider').slider({ tooltip: 'hide' });
+
+        this._dateSlider.on('slideStop', this._update.bind(this));
+        this._dateSlider.on('slide',this._onDateSlide.bind(this));
 
         this._element.find('#summary-button').click( function() {
             swal({
@@ -214,26 +303,6 @@ App.prototype = _.extend(App.prototype, {
                 confirmButtonColor: '#149BDF'
             });
         });
-
-        this._showingLabels = this._element.find('#label-input').prop('checked');
-
-        this._dateLabel = this._element.find('#date-label');
-        this._dateSlider = this._element.find('#date-slider').slider({ tooltip: 'hide' });
-
-        this._dateSlider.on('slideStop', this._update.bind(this));
-        this._dateSlider.on('slide',this._onDateSlide.bind(this));
-
-        this._brightnessSlider = this._element.find('#brightness-slider').slider({ tooltip: 'hide' });
-        this._brightnessSlider.on('slide',this._onBrightnessSlide.bind(this));
-
-        this._speedSlider = this._element.find('#speed-slider').slider({ tooltip: 'hide' });
-        this._speedSlider.on('slideStop',this._onSpeedSlide.bind(this));
-
-        this._pathSlider = this._element.find('#path-slider').slider({ tooltip: 'hide' });
-        this._pathSlider.on('slide',this._onPathSlide.bind(this));
-
-        this._opacitySlider = this._element.find('#opacity-slider').slider({ tooltip: 'hide' });
-        this._opacitySlider.on('slide',this._onOpacitySlide.bind(this));
     },
 
     _initMap : function() {
@@ -252,6 +321,7 @@ App.prototype = _.extend(App.prototype, {
 
     _initLayers : function() {
         // Initialize the baselayer
+        var self = this;
         var mapUrlBase = 'http://{s}.basemaps.cartocdn.com/';
         if (Config.localMapServer) {
             mapUrlBase = 'http://' + window.location.host + '/map/';
@@ -281,21 +351,34 @@ App.prototype = _.extend(App.prototype, {
                 noWrap: true,
                 zIndex: 10
             });
-        if (this._showingLabels) {
-            this._labelLayer.addTo(this._map);
-        }
+        this._labelLayer.addTo(this._map);
+        this._labelLayer.getOpacity = function() {
+            return this.options.opacity;
+        };
+        this._labelLayer.show = function() {
+            this._hidden = false;
+            self._map.addLayer(this);
+        };
+        this._labelLayer.hide = function() {
+            this._hidden = true;
+            self._map.removeLayer(this);
+        };
+        this._labelLayer.isHidden = function() {
+            return this._hidden;
+        };
     },
 
     _init : function(dates) {
         this._dates = dates;
         // init app
-        this._initUI();
+        this._initIndex();
         this._initMap();
         this._initLayers();
+        this._initUI();
         // set initial state
-        this._onBrightnessSlide();
-        this._onSpeedSlide();
-        this._onPathSlide();
+        // this._onBrightnessSlide();
+        // this._onSpeedSlide();
+        // this._onPathSlide();
         // begin
         this._update();
     },

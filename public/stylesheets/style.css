@@ -38,6 +38,84 @@ body {
               user-select: none;
 }
 
+.map-control-element {
+    background-color: rgba(0,0,0,0.1);
+    border-radius: 4px;
+    border: 1px solid #000;
+    padding: 4px;
+    margin-bottom: 10px;
+}
+
+.layer-control-head {
+    cursor: pointer;
+    border-bottom: 1px solid #000;
+    padding-bottom: 4px;
+}
+
+.layer-title {
+    font-size: 16px;
+    line-height: 24px;
+    font-weight: bold;
+}
+
+.layer-control-body {
+    padding-right: 10px;
+}
+
+.layer-control {
+    float:left;
+    height: 24px;
+}
+
+.layer-control-label {
+    position: relative;
+    color: #999;
+    font-size: 12px;
+    line-height: 24px;
+    width: 140px;
+}
+
+.layer-toggle {
+    cursor: pointer;
+    line-height: 24px;
+    width: 24px;
+    font-size: 20px;
+    padding-right: 8px;
+    float: left;
+    color: rgb(20, 155, 223);
+}
+
+.layer-control .slider.slider-horizontal {
+    width: 80px;
+}
+
+.slider.slider-horizontal .slider-track {
+    border-radius: 4px;
+    background: none;
+    border: 1px solid rgb(20, 155, 223)
+}
+
+.slider.slider-horizontal .slider-track-high {
+    background: none;
+    background-color: rgba(0,0,0,0.4);
+    border-radius: 4px;
+}
+
+.slider.slider-horizontal .slider-selection {
+    background: none;
+    background-color: rgba(20, 155, 223, 0.5);
+    border-radius: 4px;
+}
+
+.slider-handle {
+    height: 18px;
+    width: 18px;
+}
+
+.slider-handle.round {
+    border-radius: 4px;
+}
+
 header {
     position: absolute;
     left: 10px;
@@ -147,7 +225,7 @@ a {
 }
 
 .relay-cluster {
-    border-radius: 50%;
+    border-radius: 100%;
     background-color: rgba(255,255,255,0.3);
     border: 1px solid #000;
     box-sizing: border-box;
@@ -189,11 +267,6 @@ a {
     background-color: rgb(40, 96, 144);
 }
 
-.map-control-element {
-    height: 24px;
-    box-sizing: border-box;
-}
-
 .release-notes-container {
     margin-left: 15px;
 }
@@ -208,13 +281,6 @@ a {
     line-height: 26px;
     text-align: center;
     color: #fff;
-}
-
-#brightness-slider,
-#opacity-slider,
-#speed-slider,
-#path-slider {
-    width:80px;
 }
 
 .btn-primary,

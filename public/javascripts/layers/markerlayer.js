@@ -32,6 +32,8 @@ var markertooltip = require('../util/markertooltip');
 var MarkerLayer = function() {
     this._markerLayer = L.layerGroup();
     this._nodes = null;
+    this._opacity = 1;
+    this._scaleByBandwidth = true;
 };
 
 MarkerLayer.prototype = _.extend(MarkerLayer.prototype, {
@@ -42,19 +44,19 @@ MarkerLayer.prototype = _.extend(MarkerLayer.prototype, {
         return this;
     },
 
-    set : function(nodeData,scaleByBandwidth) {
+    set : function(nodeData) {
         var self = this;
         this._nodes = nodeData.nodes;
-        var minMax = nodeData.minMax;
+        this._minMax = nodeData.minMax;
         var markers = this._nodes.map(function(node) {
             var title = node.label;
             var pointRadius;
-            if (scaleByBandwidth) {
+            if (self._scaleByBandwidth) {
                 var nodeBW = node.bandwidth;
                 pointRadius = lerp(
                     config.node_radius.min,
                     config.node_radius.max,
-                    nodeBW / (minMax.max-minMax.min));
+                    nodeBW / (self._minMax.max-self._minMax.min));
             } else {
                 pointRadius = config.node_radius.min;
             }
@@ -92,9 +94,43 @@ MarkerLayer.prototype = _.extend(MarkerLayer.prototype, {
         this._markerLayer.clearLayers();
     },
 
-    setOpacity : function() {
-        // TODO:  how to handle this?
-    }
+    setOpacity: function( opacity ) {
+        if (this._opacity !== opacity) {
+            this._opacity = opacity;
+            console.log('Implement this');
+        }
+    },
+
+    scaleByBandwidth: function( scaleByBandwidth ) {
+        if (scaleByBandwidth !== undefined &&
+            scaleByBandwidth !== this._scaleByBandwidth) {
+            this._scaleByBandwidth = scaleByBandwidth;
+            this.clear();
+            this.set({
+                minMax: this._minMax,
+                nodes: this._nodes
+            });
+        }
+        return this._scaleByBandwidth;
+    },
+
+    getOpacity: function() {
+        return this._opacity;
+    },
+
+    show: function() {
+        this._hidden = false;
+        console.log('Implement this');
+    },
+
+    hide: function() {
+        this._hidden = true;
+        console.log('Implement this');
+    },
+
+    isHidden: function() {
+        return this._hidden;
+    },
 
 });
 

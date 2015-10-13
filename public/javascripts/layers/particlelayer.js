@@ -161,6 +161,15 @@ var ParticleLayer = WebGLOverlay.extend({
         this._isReady = false;
     },
 
+    setOpacity: function( opacity ) {
+        this._opacity = opacity;
+        // TODO
+    },
+
+    getOpacity: function() {
+        return this._opacity !== undefined ? this._opacity : 1.0;
+    },
+
     draw: function() {
         this._clearBackBuffer();
         if ( this._isReady ) {
@@ -171,6 +180,7 @@ var ParticleLayer = WebGLOverlay.extend({
             this._shader.setUniform( 'uSpeedFactor', this.getSpeed() );
             this._shader.setUniform( 'uOffsetFactor', this.getPathOffset() );
             this._shader.setUniform( 'uPointSize', this.getParticleSize() );
+            this._shader.setUniform( 'uOpacity', this.getOpacity() );
             this._vertexBuffer.bind();
             if (this._showTraffic === 'hidden') {
                 // draw hidden traffic

@@ -76,8 +76,8 @@ var _generateParticles = function(spec,nodes) {
         buffer[ i*8+3 ] = end.y;
         buffer[ i*8+4 ] = offset;
         buffer[ i*8+5 ] = speed;
-        buffer[ i*8+6 ] = Math.random();
-        buffer[ i*8+7 ] = Math.random();
+        buffer[ i*8+6 ] = Math.random()*2 - 1;
+        buffer[ i*8+7 ] = Math.random()*2 - 1;
 
         if ( (i+1) % PROGRESS_STEP === 0 ) {
             this.postMessage({

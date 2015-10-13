@@ -35,7 +35,8 @@ void main() {
     // calc cosine offset
     highp float period = floor( rand1 * MAX_PERIOD ) / 2.0;
     highp float phase = 0.0; //noise * PI_2;
-    highp vec2 sinOffset = sin( t * PI_2 * period + phase ) * perp * distOffset;
+    highp float amplitude = rand0 * distOffset;
+    highp vec2 sinOffset = sin( t * PI_2 * period + phase ) * perp * amplitude;
     // set point size
     gl_PointSize = uPointSize;
     // set position
