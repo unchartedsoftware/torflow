@@ -3,14 +3,20 @@
         <h1>{{title}}</h1>
     </header>
 
-    <div id="summary-button" class="summary-button">
+    <div class="summary-button">
         <i class="icon fa fa-question"></i>
     </div>
 
     <div class="date-controls">
         <div class="map-control-element">
-            <input id="date-slider" class='slider' data-slider-id='date-slider' type="text" data-slider-min="0" data-slider-max="{{maxIndex}}" data-slider-step="1" data-slider-value="{{maxIndex}}"/>
-            <div id="date-label" class="padded-left">{{defaultDate}}</div>
+            <input class='slider date-slider'
+                type="text"
+                data-slider-id='date-slider' 
+                data-slider-min="0"
+                data-slider-max="{{maxIndex}}"
+                data-slider-step="1"
+                data-slider-value="{{maxIndex}}"/>
+            <div class="padded-left date-label">{{defaultDate}}</div>
         </div>
     </div>
 

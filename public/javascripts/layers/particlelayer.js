@@ -144,11 +144,19 @@ var ParticleLayer = WebGLOverlay.extend({
         return this._pathOffset !== undefined ? this._pathOffset : 1.0;
     },
 
-    getParticleSize: function() {
+    setParticleSize: function(size) {
+        this._particleSize = size;
         if ( Config.particle_zoom_scale ) {
             return Config.particle_zoom_scale( this._map.getZoom(), Config.particle_size );
         }
         return Config.particle_size;
+    },
+
+    getParticleSize: function() {
+        if ( this.scaleByZoom() ) {
+            return Config.particle_zoom_scale( this._map.getZoom(), this._particleSize || Config.particle_size );
+        }
+        return this._particleSize || Config.particle_size;
     },
 
     _clearBackBuffer: function() {
@@ -163,11 +171,18 @@ var ParticleLayer = WebGLOverlay.extend({
 
     setOpacity: function( opacity ) {
         this._opacity = opacity;
-        // TODO
     },
 
     getOpacity: function() {
         return this._opacity !== undefined ? this._opacity : 1.0;
+    },
+
+    scaleByZoom: function(scaleByZoom) {
+        if ( scaleByZoom !== undefined ) {
+            this._scaleByZoom = scaleByZoom;
+            return this;
+        }
+        return this._scaleByZoom !== undefined ? this._scaleByZoom : Config.particle_zoom_scale;
     },
 
     draw: function() {

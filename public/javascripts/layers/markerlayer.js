@@ -27,7 +27,6 @@
 
 var lerp = require('../util/lerp');
 var config = require('../config');
-var markertooltip = require('../util/markertooltip');
 
 var MarkerLayer = function() {
     this._markerLayer = L.layerGroup();
@@ -69,7 +68,7 @@ MarkerLayer.prototype = _.extend(MarkerLayer.prototype, {
                     iconSize: L.point(pointRadius,pointRadius)
                 })
             });
-            markertooltip.addHandlers( marker, title );
+            self._addMarkerHandlers( marker, title );
             return marker;
         });
         // store timestamp, if this changes during a batch it will cancel the
@@ -131,6 +130,39 @@ MarkerLayer.prototype = _.extend(MarkerLayer.prototype, {
     isHidden: function() {
         return this._hidden;
     },
+
+    _addMarkerHandlers : function( marker, label ) {
+        var self = this;
+        if ( typeof label === 'function' ) {
+            label = label();
+        }
+        // on mouse over create label
+        marker.on( 'mouseover', function( leafletEvent ) {
+            var event = leafletEvent.originalEvent,
+                offset = $(document.body).offset(),
+                relativeX = event.pageX - offset.left,
+                relativeY = event.pageY - offset.top;
+            if ( self._$label ) {
+                self._$label.remove();
+            }
+            self._$label = $(
+                '<div class="relay-cluster-label">'+
+                    '<a>' + label + '</a>' +
+                '</div>' );
+            $( document.body ).append( self._$label );
+            self._$label.css({
+                'left': -self._$label.outerWidth()/2 + relativeX + 'px',
+                'top': -self._$label.outerHeight()*1.5 + relativeY + 'px'
+            });
+        });
+        // on mouse out destroy label
+        marker.on( 'mouseout', function() {
+            if ( self._$label ) {
+                self._$label.remove();
+                self._$label = null;
+            }
+        });
+    }
 
 });
 

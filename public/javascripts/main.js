@@ -44,7 +44,6 @@ App.prototype = _.extend(App.prototype, {
     _countryLayer : null,
     _map : null,
     _element : null,
-    _dateLabel : null,
     _currentNodeData : null,
     _currentDate : null,
     _currentHistogram : null,
@@ -85,12 +84,6 @@ App.prototype = _.extend(App.prototype, {
         var isoDate = this._getISODate(newDateIdx);
         this._clear();
         this._fetch(isoDate);
-    },
-
-    _onDateSlide : function() {
-        var newDateIdx = this._dateSlider.slider('getValue');
-        var friendlyDate = this._getFriendlyDate(newDateIdx);
-        this._dateLabel.text(friendlyDate);
     },
 
     _onBrightnessSlide : function() {
@@ -151,23 +144,35 @@ App.prototype = _.extend(App.prototype, {
                         'data-slider-max="'+1+'" ' +
                         'data-slider-step="0.01" ' +
                         'data-slider-value="'+layer.getOpacity()+'"/>'+
+                    '<Label class="control-value-label">'+layer.getOpacity()+'</Label>' +
                 '</div>');
         $toggle.append( $toggleIcon );
+        var prevHeight;
         $head.click( function() {
             if ( layer.isHidden() ) {
                 layer.show();
                 $toggleIcon.removeClass('fa-square-o');
                 $toggleIcon.addClass('fa-check-square-o');
+                $body.css({
+                    height: prevHeight,
+                    border: ''
+                });
             } else {
                 layer.hide();
                 $toggleIcon.removeClass('fa-check-square-o');
                 $toggleIcon.addClass('fa-square-o');
+                prevHeight = $body.outerHeight();
+                $body.css({
+                    height: '0px',
+                    border: 'none'
+                });
             }
         });
 
         $opacitySlider.find('.slider').slider({ tooltip: 'hide' });
-        $opacitySlider.find('.slider').on('slide', function( event ) {
-            layer.setOpacity( event.value );
+        $opacitySlider.find('.slider').on('change', function( event ) {
+            layer.setOpacity( event.value.newValue );
+            $opacitySlider.find('.control-value-label').text( event.value.newValue );
         });
         $head.append( $toggle ).append( $title );
         $body.append( $opacitySlider ).append('<div style="clear:both;"></div>');
@@ -184,6 +189,7 @@ App.prototype = _.extend(App.prototype, {
                         'data-slider-max="'+Config.particle_speed_max_factor+'" ' +
                         'data-slider-step="0.01" ' +
                         'data-slider-value="'+layer.getSpeed()+'"/>'+
+                    '<Label class="control-value-label">'+layer.getSpeed()+'</Label>' +
                 '</div>'),
             $pathSlider = $(
                 '<div class="layer-control">' +
@@ -193,41 +199,68 @@ App.prototype = _.extend(App.prototype, {
                         'data-slider-max="'+Config.particle_max_offset+'" ' +
                         'data-slider-step="0.01" ' +
                         'data-slider-value="'+layer.getPathOffset()+'"/>'+
+                    '<Label class="control-value-label">'+layer.getPathOffset()+'</Label>' +
                 '</div>'),
             $particleSizeSlider = $(
                 '<div class="layer-control">' +
                     '<Label class="layer-control-label">Particle Size</Label>' +
                     '<input class="path-slider slider" ' +
-                        'type="text" data-slider-min="'+0+'" ' +
-                        'data-slider-max="'+4+'" ' +
+                        'type="text" data-slider-min="'+1+'" ' +
+                        'data-slider-max="'+Config.particle_max_size+'" ' +
                         'data-slider-step="1" ' +
                         'data-slider-value="'+1+'"/>'+
+                    '<Label class="control-value-label">'+1+'</Label>' +
                 '</div>'),
             $servicesButtons = $(
                     '<div class="btn-group services-btn-group" data-toggle="buttons">' +
                         '<label class="btn btn-xs btn-primary active hidden-filter-btn active">' +
-                            '<input class="hidden-filter-input" type="radio" name="hidden-options" autocomplete="off" hidden-id="all">All' +
+                            '<input class="hidden-filter-input" type="radio" name="hidden-options" hidden-id="all">All' +
                         '</label>' +
                         '<label class="btn btn-xs btn-primary hidden-filter-btn">' +
-                            '<input class="hidden-filter-input" type="radio" name="hidden-options" autocomplete="off" hidden-id="hidden">Hidden Services' +
+                            '<input class="hidden-filter-input" type="radio" name="hidden-options" hidden-id="hidden">Hidden Services' +
                         '</label>' +
                         '<label class="btn btn-xs btn-primary hidden-filter-btn">' +
-                            '<input class="hidden-filter-input" type="radio" name="hidden-options" autocomplete="off" hidden-id="general">General Purpose' +
+                            '<input class="hidden-filter-input" type="radio" name="hidden-options" hidden-id="general">General Purpose' +
                         '</label>' +
-                    '</div>');
+                    '</div>'),
+            $toggleIcon = $( layer.scaleByZoom() ? '<i class="fa fa-check-square-o">' : '<i class="fa fa-square-o">'),
+            $toggle = $('<div class="layer-toggle"></div>'),
+            $scaleByZoom = $(
+                '<div class="layer-control">' +
+                    '<Label style="float:left" class="layer-control-label">Scale by zoom</Label>' +
+                '</div>');
 
         $speedSlider.find('.slider').slider({ tooltip: 'hide' });
         $speedSlider.find('.slider').on('slideStop', function( event ) {
             layer.setSpeed( event.value );
+            $speedSlider.find('.control-value-label').text( event.value );
         });
 
         $pathSlider.find('.slider').slider({ tooltip: 'hide' });
-        $pathSlider.find('.slider').on('slide', function( event ) {
-            layer.setPathOffset( event.value );
+        $pathSlider.find('.slider').on('change', function( event ) {
+            layer.setPathOffset( event.value.newValue );
+            $pathSlider.find('.control-value-label').text( event.value.newValue );
         });
 
         $particleSizeSlider.find('.slider').slider({ tooltip: 'hide' });
+        $particleSizeSlider.find('.slider').on('change', function( event ) {
+            layer.setParticleSize( event.value.newValue );
+            $particleSizeSlider.find('.control-value-label').text( event.newValue );
+        });
 
+        $toggle.append($toggleIcon);
+        $scaleByZoom.append($toggle);
+        $toggle.click( function() {
+            if ( layer.scaleByZoom() ) {
+                layer.scaleByZoom(false);
+                $toggleIcon.removeClass('fa-check-square-o');
+                $toggleIcon.addClass('fa-square-o');
+            } else {
+                layer.scaleByZoom(true);
+                $toggleIcon.removeClass('fa-square-o');
+                $toggleIcon.addClass('fa-check-square-o');
+            }
+        });
 
         $servicesButtons.find('.hidden-filter-btn').change(function() {
             var checkedRadioBtn = $servicesButtons.find('.active > input');
@@ -246,6 +279,7 @@ App.prototype = _.extend(App.prototype, {
             .append( $speedSlider ).append('<div style="clear:both;"></div>')
             .append( $pathSlider ).append('<div style="clear:both;"></div>')
             .append( $particleSizeSlider ).append('<div style="clear:both;"></div>')
+            .append( $scaleByZoom ).append('<div style="clear:both;"></div>')
             .append( $servicesButtons ).append('<div style="clear:both;"></div>');
         return $controlElement;
     },
@@ -283,30 +317,31 @@ App.prototype = _.extend(App.prototype, {
             maxIndex : totalDays-1,
             defaultDate : this._getFriendlyDate(totalDays-1)
         });
-
         this._element = $(document.body).append(Template(extendedConfig));
     },
 
     _initUI : function() {
 
-        var $map = $('.map-controls');
+        var self = this,
+            $map = $('.map-controls');
         $map.append( this._addFlowControls( this._createLayerUI('Flow', this._particleLayer ), this._particleLayer ) );
         $map.append( this._addMarkerControls( this._createLayerUI('Nodes', this._markerLayer ), this._markerLayer ) );
         $map.append( this._createLayerUI('Labels', this._labelLayer ) );
         $map.append( this._createLayerUI('Countries', this._countryLayer ) );
 
-        this._dateLabel = this._element.find('#date-label');
-        this._dateSlider = this._element.find('#date-slider').slider({ tooltip: 'hide' });
+        this._dateSlider = this._element.find('.date-slider').slider({ tooltip: 'hide' });
 
         this._dateSlider.on('slideStop', this._update.bind(this));
-        this._dateSlider.on('slide',this._onDateSlide.bind(this));
+        this._dateSlider.on('slide', function( event ) {
+            var date = self._getFriendlyDate(event.value);
+            $('.date-label').text(date);
+        });
 
-        this._element.find('#summary-button').click( function() {
+        this._element.find('.summary-button').click( function() {
             swal({
                 title: null,
                 text: Config.summary,
-                html: true,
-                confirmButtonColor: '#149BDF'
+                html: true
             });
         });
     },
@@ -382,10 +417,6 @@ App.prototype = _.extend(App.prototype, {
         this._initMap();
         this._initLayers();
         this._initUI();
-        // set initial state
-        // this._onBrightnessSlide();
-        // this._onSpeedSlide();
-        // this._onPathSlide();
         // begin
         this._update();
     },
