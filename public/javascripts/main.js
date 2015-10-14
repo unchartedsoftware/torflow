@@ -204,9 +204,6 @@ App.prototype = _.extend(App.prototype, {
                         'data-slider-value="'+1+'"/>'+
                 '</div>'),
             $servicesButtons = $(
-                // '<div>'+
-                //     '<Label class="layer-control-label">Services</Label>' +
-                //     '<div style="clear:both;"></div>' +
                     '<div class="btn-group services-btn-group" data-toggle="buttons">' +
                         '<label class="btn btn-xs btn-primary active hidden-filter-btn active">' +
                             '<input class="hidden-filter-input" type="radio" name="hidden-options" autocomplete="off" hidden-id="all">All' +
@@ -217,8 +214,7 @@ App.prototype = _.extend(App.prototype, {
                         '<label class="btn btn-xs btn-primary hidden-filter-btn">' +
                             '<input class="hidden-filter-input" type="radio" name="hidden-options" autocomplete="off" hidden-id="general">General Purpose' +
                         '</label>' +
-                    '</div>');// +
-                // '</div>');
+                    '</div>');
 
         $speedSlider.find('.slider').slider({ tooltip: 'hide' });
         $speedSlider.find('.slider').on('slideStop', function( event ) {
@@ -234,8 +230,9 @@ App.prototype = _.extend(App.prototype, {
 
 
         $servicesButtons.find('.hidden-filter-btn').change(function() {
-            var checkedRadioBtn = $servicesButtons.find('.services-btn-group').find('.active > input');
+            var checkedRadioBtn = $servicesButtons.find('.active > input');
             var checkedState = checkedRadioBtn.attr('hidden-id');
+            console.log(checkedState);
             if (checkedState === 'all') {
                 layer.showTraffic('all');
             } else if (checkedState === 'hidden') {
