@@ -99,28 +99,6 @@ App.prototype = _.extend(App.prototype, {
         $(containerEl).css('-webkit-filter','brightness(' + newBrightness + ')');
     },
 
-    _onHiddenFilterChange : function() {
-        var checkedRadioBtn = this._element.find('#hidden-filter-btn-group').find('.active > input');
-        var checkedState = checkedRadioBtn.attr('hidden-id');
-        if (checkedState === 'all') {
-            this._particleLayer.showTraffic('all');
-        } else if (checkedState === 'hidden') {
-            this._particleLayer.showTraffic('hidden');
-        } else if (checkedState === 'general') {
-            this._particleLayer.showTraffic('general');
-        }
-    },
-
-    _onToggleLabels : function() {
-        if (this._showingLabels) {
-            this._map.removeLayer(this._labelLayer);
-            this._showingLabels = false;
-        } else {
-            this._map.addLayer(this._labelLayer);
-            this._showingLabels = true;
-        }
-    },
-
     _fetch : function(isoDateStr) {
 
         function handleNodes(data) {
@@ -199,30 +177,48 @@ App.prototype = _.extend(App.prototype, {
 
     _addFlowControls : function($controlElement, layer) {
         var $speedSlider = $(
-            '<div class="layer-control">' +
-                '<Label class="layer-control-label">Particle Speed</Label>' +
-                '<input class="speed-slider slider" ' +
-                    'type="text" data-slider-min="'+Config.particle_speed_min_factor+'" ' +
-                    'data-slider-max="'+Config.particle_speed_max_factor+'" ' +
-                    'data-slider-step="0.01" ' +
-                    'data-slider-value="'+layer.getSpeed()+'"/>'+
-            '</div>'),
-            $pathSlider = $('<div class="layer-control">' +
-                '<Label class="layer-control-label">Path Width</Label>' +
-                '<input class="path-slider slider" ' +
-                    'type="text" data-slider-min="'+Config.particle_min_offset+'" ' +
-                    'data-slider-max="'+Config.particle_max_offset+'" ' +
-                    'data-slider-step="0.01" ' +
-                    'data-slider-value="'+layer.getPathOffset()+'"/>'+
-            '</div>'),
-            $particleSizeSlider = $('<div class="layer-control">' +
-                '<Label class="layer-control-label">Particle Size</Label>' +
-                '<input class="path-slider slider" ' +
-                    'type="text" data-slider-min="'+0+'" ' +
-                    'data-slider-max="'+4+'" ' +
-                    'data-slider-step="1" ' +
-                    'data-slider-value="'+1+'"/>'+
-            '</div>');
+                '<div class="layer-control">' +
+                    '<Label class="layer-control-label">Particle Speed</Label>' +
+                    '<input class="speed-slider slider" ' +
+                        'type="text" data-slider-min="'+Config.particle_speed_min_factor+'" ' +
+                        'data-slider-max="'+Config.particle_speed_max_factor+'" ' +
+                        'data-slider-step="0.01" ' +
+                        'data-slider-value="'+layer.getSpeed()+'"/>'+
+                '</div>'),
+            $pathSlider = $(
+                '<div class="layer-control">' +
+                    '<Label class="layer-control-label">Path Width</Label>' +
+                    '<input class="path-slider slider" ' +
+                        'type="text" data-slider-min="'+Config.particle_min_offset+'" ' +
+                        'data-slider-max="'+Config.particle_max_offset+'" ' +
+                        'data-slider-step="0.01" ' +
+                        'data-slider-value="'+layer.getPathOffset()+'"/>'+
+                '</div>'),
+            $particleSizeSlider = $(
+                '<div class="layer-control">' +
+                    '<Label class="layer-control-label">Particle Size</Label>' +
+                    '<input class="path-slider slider" ' +
+                        'type="text" data-slider-min="'+0+'" ' +
+                        'data-slider-max="'+4+'" ' +
+                        'data-slider-step="1" ' +
+                        'data-slider-value="'+1+'"/>'+
+                '</div>'),
+            $servicesButtons = $(
+                // '<div>'+
+                //     '<Label class="layer-control-label">Services</Label>' +
+                //     '<div style="clear:both;"></div>' +
+                    '<div class="btn-group services-btn-group" data-toggle="buttons">' +
+                        '<label class="btn btn-xs btn-primary active hidden-filter-btn active">' +
+                            '<input class="hidden-filter-input" type="radio" name="hidden-options" autocomplete="off" hidden-id="all">All' +
+                        '</label>' +
+                        '<label class="btn btn-xs btn-primary hidden-filter-btn">' +
+                            '<input class="hidden-filter-input" type="radio" name="hidden-options" autocomplete="off" hidden-id="hidden">Hidden Services' +
+                        '</label>' +
+                        '<label class="btn btn-xs btn-primary hidden-filter-btn">' +
+                            '<input class="hidden-filter-input" type="radio" name="hidden-options" autocomplete="off" hidden-id="general">General Purpose' +
+                        '</label>' +
+                    '</div>');// +
+                // '</div>');
 
         $speedSlider.find('.slider').slider({ tooltip: 'hide' });
         $speedSlider.find('.slider').on('slideStop', function( event ) {
@@ -237,10 +233,23 @@ App.prototype = _.extend(App.prototype, {
         $particleSizeSlider.find('.slider').slider({ tooltip: 'hide' });
 
 
+        $servicesButtons.find('.hidden-filter-btn').change(function() {
+            var checkedRadioBtn = $servicesButtons.find('.services-btn-group').find('.active > input');
+            var checkedState = checkedRadioBtn.attr('hidden-id');
+            if (checkedState === 'all') {
+                layer.showTraffic('all');
+            } else if (checkedState === 'hidden') {
+                layer.showTraffic('hidden');
+            } else if (checkedState === 'general') {
+                layer.showTraffic('general');
+            }
+        });
+
         $controlElement.find('.layer-control-body')
             .append( $speedSlider ).append('<div style="clear:both;"></div>')
             .append( $pathSlider ).append('<div style="clear:both;"></div>')
-            .append( $particleSizeSlider ).append('<div style="clear:both;"></div>');
+            .append( $particleSizeSlider ).append('<div style="clear:both;"></div>')
+            .append( $servicesButtons ).append('<div style="clear:both;"></div>');
         return $controlElement;
     },
 

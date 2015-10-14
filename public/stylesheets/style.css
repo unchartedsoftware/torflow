@@ -29,7 +29,7 @@ body {
     font: 14px "Lucida Grande", Helvetica, Arial, sans-serif;
     font-size: 14px;
     line-height: 1.42857143;
-    color: #aaa;
+    color: #eee;
     -webkit-touch-callout: none;
       -webkit-user-select: none;
        -khtml-user-select: none;
@@ -39,7 +39,7 @@ body {
 }
 
 .map-control-element {
-    background-color: rgba(0,0,0,0.1);
+    background-color: rgba(0,0,0,0.2);
     border-radius: 4px;
     border: 1px solid #000;
     padding: 4px;
@@ -58,10 +58,6 @@ body {
     font-weight: bold;
 }
 
-.layer-control-body {
-    padding-right: 10px;
-}
-
 .layer-control {
     float:left;
     height: 24px;
@@ -69,7 +65,7 @@ body {
 
 .layer-control-label {
     position: relative;
-    color: #999;
+    color: #aaa;
     font-size: 12px;
     line-height: 24px;
     width: 140px;
@@ -92,7 +88,7 @@ body {
 .slider.slider-horizontal .slider-track {
     border-radius: 4px;
     background: none;
-    border: 1px solid rgb(20, 155, 223)
+    border: 1px solid rgb(20, 155, 223);
 }
 
 .slider.slider-horizontal .slider-track-high {
@@ -107,6 +103,11 @@ body {
     border-radius: 4px;
 }
 
+.btn-primary {
+    border: 1px solid rgb(20, 155, 223);
+    background: none;
+}
+
 .slider-handle {
     height: 18px;
     width: 18px;
@@ -114,6 +115,50 @@ body {
 
 .slider-handle.round {
     border-radius: 4px;
+}
+
+.btn-primary:hover,
+.btn-primary.active,
+.btn-primary.active:hover,
+.summary-button,
+.leaflet-bar a {
+    border: 1px solid rgb(20, 155, 223);
+    background-color: rgba(20, 155, 223, 0.5);
+}
+
+.leaflet-bar a:last-child {
+    border-top: none;
+    border-bottom: 1px solid rgb(20, 155, 223);
+}
+
+.leaflet-bar a {
+    color: #eee;
+    line-height: 24px;
+}
+
+.leaflet-bar a:hover,
+.summary-button:hover {
+    background-color: rgb(40, 96, 144);
+    color: #eee;
+    line-height: 24px;
+}
+
+.summary-button {
+    position: absolute;
+    top: 10px;
+    right: 44px;
+    width: 26px;
+    height: 26px;
+    line-height: 26px;
+    z-index: 2;
+    box-sizing: border-box;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+
+.services-btn-group {
+    padding: 4px 0;
 }
 
 header {
@@ -124,7 +169,7 @@ header {
 }
 
 h1 {
-    color: rgb(20, 155, 223);
+    color: #fff;
     font-size: 36px;
     font-weight: bold;
     margin: 0;
@@ -139,23 +184,16 @@ a {
     background: #111 !important;
 }
 
-.leaflet-bar a {
-    background-color: rgb(20, 155, 223);
-    border-bottom: 1px solid rgb(32, 77, 116);
-    color: #fff;
-}
-
-.leaflet-bar a:hover {
-    background-color: rgb(40, 96, 144);
-    border-bottom: 1px solid rgb(32, 77, 116);
-    color: #fff;
-}
-
 .leaflet-control-attribution {
     background: none !important;
     bottom: 10px;
     right: 10px;
     padding: 0;
+}
+
+.leaflet-control-zoom-in,
+.leaflet-control-zoom-out {
+    line-height: 24px;
 }
 
 .leaflet-tile-pane {
@@ -198,7 +236,6 @@ a {
     position: absolute;
     right: 0;
     bottom: 14px;
-    opacity: 0.8;
 }
 
 .attribution {
@@ -251,22 +288,6 @@ a {
     z-index: 2;
 }
 
-.summary-button {
-    position: absolute;
-    top: 10px;
-    right: 44px;
-    width: 26px;
-    height: 26px;
-    z-index: 2;
-    background-color: rgb(20, 155, 223);
-    border-radius: 4px;
-    cursor: pointer;
-}
-
-.summary-button:hover {
-    background-color: rgb(40, 96, 144);
-}
-
 .release-notes-container {
     margin-left: 15px;
 }
@@ -278,20 +299,9 @@ a {
 .icon {
     width: 100%;
     font-size: 16px;
-    line-height: 26px;
+    line-height: 24px;
     text-align: center;
     color: #fff;
-}
-
-.btn-primary,
-.slider-handle {
-    background-color: rgb(20, 155, 223);
-}
-
-.btn-primary:hover,
-.btn-primary.active,
-.slider-handle:hover {
-    background-color: rgb(40, 96, 144);
 }
 
 #date-label {
