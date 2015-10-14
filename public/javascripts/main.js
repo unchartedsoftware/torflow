@@ -245,7 +245,7 @@ App.prototype = _.extend(App.prototype, {
         $particleSizeSlider.find('.slider').slider({ tooltip: 'hide' });
         $particleSizeSlider.find('.slider').on('change', function( event ) {
             layer.setParticleSize( event.value.newValue );
-            $particleSizeSlider.find('.control-value-label').text( event.newValue );
+            $particleSizeSlider.find('.control-value-label').text( event.value.newValue );
         });
 
         $toggle.append($toggleIcon);

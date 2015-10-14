@@ -32,7 +32,7 @@ var config = {
     },
     particle_count : 200000,
     particle_offset : 0.01,
-    particle_max_size : 6,
+    particle_max_size : 10,
     particle_min_offset: 0.0001,
     particle_max_offset: 4.0,
     particle_base_speed_ms : 40000, // ms for particle to circle the earth
