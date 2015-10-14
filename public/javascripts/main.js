@@ -355,7 +355,8 @@ App.prototype = _.extend(App.prototype, {
             {
                 maxZoom: Config.maxZoom || 18,
                 noWrap: true,
-                zIndex: 10
+                zIndex: 10,
+                opacity: 0.65
             });
         this._labelLayer.addTo(this._map);
         this._labelLayer.getOpacity = function() {
