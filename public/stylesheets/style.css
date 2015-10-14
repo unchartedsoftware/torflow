@@ -275,14 +275,14 @@ a {
 
 .map-controls {
     position: absolute;
-    bottom: 10px;
+    bottom: 0;
     left: 10px;
     z-index: 2;
 }
 
 .date-controls {
     position: absolute;
-    bottom: 10px;
+    bottom: 0;
     left: calc(50% - 200px);
     z-index: 2;
 }
