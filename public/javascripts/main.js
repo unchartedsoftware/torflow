@@ -28,6 +28,10 @@
 var ParticleLayer = require('./layers/particlelayer');
 var CountryLayer = require('./layers/countrylayer');
 var MarkerLayer = require('./layers/markerlayer');
+var Slider = require('./ui/slider');
+var ToggleBox = require('./ui/togglebox');
+var ButtonGroup = require('./ui/buttongroup');
+var LayerMenu = require('./ui/layermenu');
 var Config = require('./config');
 var Template = require('./templates/main');
 
@@ -129,185 +133,126 @@ App.prototype = _.extend(App.prototype, {
     },
 
     _createLayerUI : function(layerName,layer) {
-        var $controls = $(
-                '<div class="map-control-element"></div>'),
-            $head = $('<div class="layer-control-head"></div>'),
-            $body = $('<div class="layer-control-body"></div>'),
-            $title = $('<div class="layer-title">'+layerName+'</div>'),
-            $toggleIcon = $( !layer.isHidden() ? '<i class="fa fa-check-square-o">' : '<i class="fa fa-square-o">'),
-            $toggle = $('<div class="layer-toggle"></div>'),
-            $opacitySlider = $(
-                '<div class="layer-control">' +
-                    '<Label class="layer-control-label">Opacity</Label>' +
-                    '<input class="opacity-slider slider" ' +
-                        'type="text" data-slider-min="'+0+'" ' +
-                        'data-slider-max="'+1+'" ' +
-                        'data-slider-step="0.01" ' +
-                        'data-slider-value="'+layer.getOpacity()+'"/>'+
-                    '<Label class="control-value-label">'+layer.getOpacity()+'</Label>' +
-                '</div>');
-        $toggle.append( $toggleIcon );
-        var prevHeight;
-        $head.click( function() {
-            if ( layer.isHidden() ) {
-                layer.show();
-                $toggleIcon.removeClass('fa-square-o');
-                $toggleIcon.addClass('fa-check-square-o');
-                $body.css({
-                    height: prevHeight,
-                    border: ''
-                });
-            } else {
-                layer.hide();
-                $toggleIcon.removeClass('fa-check-square-o');
-                $toggleIcon.addClass('fa-square-o');
-                prevHeight = $body.outerHeight();
-                $body.css({
-                    height: '0px',
-                    border: 'none'
-                });
-            }
-        });
-
-        $opacitySlider.find('.slider').slider({ tooltip: 'hide' });
-        $opacitySlider.find('.slider').on('change', function( event ) {
-            layer.setOpacity( event.value.newValue );
-            $opacitySlider.find('.control-value-label').text( event.value.newValue );
-        });
-        $head.append( $toggle ).append( $title );
-        $body.append( $opacitySlider ).append('<div style="clear:both;"></div>');
-        $controls.append( $head ).append( $body );
-        return $controls;
+        var layerMenu = new LayerMenu({
+                layer: layer,
+                label: layerName
+            }),
+            opacitySlider = new Slider({
+                label: 'Opacity',
+                min: 0,
+                max: 1,
+                step: 0.01,
+                initialValue: layer.getOpacity(),
+                change: function( event ) {
+                    layer.setOpacity( event.value.newValue );
+                }
+            });
+        layerMenu.getBody().append( opacitySlider.getElement() ).append('<div style="clear:both;"></div>');
+        return layerMenu.getElement();
     },
 
     _addFlowControls : function($controlElement, layer) {
-        var $speedSlider = $(
-                '<div class="layer-control">' +
-                    '<Label class="layer-control-label">Particle Speed</Label>' +
-                    '<input class="speed-slider slider" ' +
-                        'type="text" data-slider-min="'+Config.particle_speed_min_factor+'" ' +
-                        'data-slider-max="'+Config.particle_speed_max_factor+'" ' +
-                        'data-slider-step="0.01" ' +
-                        'data-slider-value="'+layer.getSpeed()+'"/>'+
-                    '<Label class="control-value-label">'+layer.getSpeed()+'</Label>' +
-                '</div>'),
-            $pathSlider = $(
-                '<div class="layer-control">' +
-                    '<Label class="layer-control-label">Path Width</Label>' +
-                    '<input class="path-slider slider" ' +
-                        'type="text" data-slider-min="'+Config.particle_min_offset+'" ' +
-                        'data-slider-max="'+Config.particle_max_offset+'" ' +
-                        'data-slider-step="0.01" ' +
-                        'data-slider-value="'+layer.getPathOffset()+'"/>'+
-                    '<Label class="control-value-label">'+layer.getPathOffset()+'</Label>' +
-                '</div>'),
-            $particleSizeSlider = $(
-                '<div class="layer-control">' +
-                    '<Label class="layer-control-label">Particle Size</Label>' +
-                    '<input class="path-slider slider" ' +
-                        'type="text" data-slider-min="'+1+'" ' +
-                        'data-slider-max="'+Config.particle_max_size+'" ' +
-                        'data-slider-step="1" ' +
-                        'data-slider-value="'+1+'"/>'+
-                    '<Label class="control-value-label">'+1+'</Label>' +
-                '</div>'),
-            $servicesButtons = $(
-                    '<div class="btn-group services-btn-group" data-toggle="buttons">' +
-                        '<label class="btn btn-xs btn-primary active hidden-filter-btn active">' +
-                            '<input class="hidden-filter-input" type="radio" name="hidden-options" hidden-id="all">All' +
-                        '</label>' +
-                        '<label class="btn btn-xs btn-primary hidden-filter-btn">' +
-                            '<input class="hidden-filter-input" type="radio" name="hidden-options" hidden-id="hidden">Hidden Services' +
-                        '</label>' +
-                        '<label class="btn btn-xs btn-primary hidden-filter-btn">' +
-                            '<input class="hidden-filter-input" type="radio" name="hidden-options" hidden-id="general">General Purpose' +
-                        '</label>' +
-                    '</div>'),
-            $toggleIcon = $( layer.scaleByZoom() ? '<i class="fa fa-check-square-o">' : '<i class="fa fa-square-o">'),
-            $toggle = $('<div class="layer-toggle"></div>'),
-            $scaleByZoom = $(
-                '<div class="layer-control">' +
-                    '<Label style="float:left" class="layer-control-label">Scale by zoom</Label>' +
-                '</div>');
-
-        $speedSlider.find('.slider').slider({ tooltip: 'hide' });
-        $speedSlider.find('.slider').on('slideStop', function( event ) {
-            layer.setSpeed( event.value );
-            $speedSlider.find('.control-value-label').text( event.value );
-        });
-
-        $pathSlider.find('.slider').slider({ tooltip: 'hide' });
-        $pathSlider.find('.slider').on('change', function( event ) {
-            layer.setPathOffset( event.value.newValue );
-            $pathSlider.find('.control-value-label').text( event.value.newValue );
-        });
-
-        $particleSizeSlider.find('.slider').slider({ tooltip: 'hide' });
-        $particleSizeSlider.find('.slider').on('change', function( event ) {
-            layer.setParticleSize( event.value.newValue );
-            $particleSizeSlider.find('.control-value-label').text( event.value.newValue );
-        });
-
-        $toggle.append($toggleIcon);
-        $scaleByZoom.append($toggle);
-        $toggle.click( function() {
-            if ( layer.scaleByZoom() ) {
-                layer.scaleByZoom(false);
-                $toggleIcon.removeClass('fa-check-square-o');
-                $toggleIcon.addClass('fa-square-o');
-            } else {
-                layer.scaleByZoom(true);
-                $toggleIcon.removeClass('fa-square-o');
-                $toggleIcon.addClass('fa-check-square-o');
-            }
-        });
-
-        $servicesButtons.find('.hidden-filter-btn').change(function() {
-            var checkedRadioBtn = $servicesButtons.find('.active > input');
-            var checkedState = checkedRadioBtn.attr('hidden-id');
-            console.log(checkedState);
-            if (checkedState === 'all') {
-                layer.showTraffic('all');
-            } else if (checkedState === 'hidden') {
-                layer.showTraffic('hidden');
-            } else if (checkedState === 'general') {
-                layer.showTraffic('general');
-            }
-        });
-
+        var speedSlider = new Slider({
+                label: 'Particle Speed',
+                min: Config.particle_speed_min_factor,
+                max: Config.particle_speed_max_factor,
+                step: 0.01,
+                initialValue: layer.getSpeed(),
+                slideStop: function( event ) {
+                    layer.setSpeed( event.value );
+                }
+            }),
+            pathSlider = new Slider({
+                label: 'Path Width',
+                min: Config.particle_min_offset,
+                max: Config.particle_max_offset,
+                step: 0.01,
+                initialValue: layer.getPathOffset(),
+                change: function( event ) {
+                    layer.setPathOffset( event.value.newValue );
+                }
+            }),
+            particleSizeSlider = new Slider({
+                label: 'Particle Size',
+                min: Config.particle_min_size,
+                max: Config.particle_max_size,
+                step: 1,
+                initialValue: layer.getParticleSize(),
+                change: function( event ) {
+                    layer.setParticleSize( event.value.newValue );
+                }
+            }),
+            particleCountSlider = new Slider({
+                label: 'Particle Count',
+                min: Config.particle_count_min,
+                max: Config.particle_count_max,
+                step: (Config.particle_count_max - Config.particle_count_min)/10,
+                initialValue: layer.getParticleCount(),
+                formatter: function( value ) {
+                    return (value/1000) + 'K';
+                },
+                slideStop: function( event ) {
+                    if ( event.value !== layer.getParticleCount() ) {
+                        layer.setParticleCount( event.value );
+                    }
+                }
+            }),
+            servicesButtonGroup = new ButtonGroup({
+                intialValue: 0,
+                buttons: [
+                    {
+                        label: 'All',
+                        click: function() {
+                            layer.showTraffic('all');
+                        }
+                    },
+                    {
+                        label: 'Hidden Services',
+                        click: function() {
+                            layer.showTraffic('hidden');
+                        }
+                    },
+                    {
+                        label: 'General Purpose',
+                        click: function() {
+                            layer.showTraffic('general');
+                        }
+                    }
+                ]
+            }),
+            scaleByZoomToggle = new ToggleBox({
+                label: 'Scale by Zoom',
+                initialValue: layer.scaleByZoom(),
+                enabled: function() {
+                    layer.scaleByZoom(true);
+                },
+                disabled: function() {
+                    layer.scaleByZoom(false);
+                }
+            });
         $controlElement.find('.layer-control-body')
-            .append( $speedSlider ).append('<div style="clear:both;"></div>')
-            .append( $pathSlider ).append('<div style="clear:both;"></div>')
-            .append( $particleSizeSlider ).append('<div style="clear:both;"></div>')
-            .append( $scaleByZoom ).append('<div style="clear:both;"></div>')
-            .append( $servicesButtons ).append('<div style="clear:both;"></div>');
+            .append( speedSlider.getElement() ).append('<div style="clear:both;"></div>')
+            .append( pathSlider.getElement() ).append('<div style="clear:both;"></div>')
+            .append( particleSizeSlider.getElement() ).append('<div style="clear:both;"></div>')
+            .append( particleCountSlider.getElement() ).append('<div style="clear:both;"></div>')
+            .append( scaleByZoomToggle.getElement() ).append('<div style="clear:both;"></div>')
+            .append( servicesButtonGroup.getElement() ).append('<div style="clear:both;"></div>');
         return $controlElement;
     },
 
     _addMarkerControls : function($controlElement,layer) {
-        var $toggleIcon = $( layer.scaleByBandwidth() ? '<i class="fa fa-check-square-o">' : '<i class="fa fa-square-o">'),
-            $toggle = $('<div class="layer-toggle"></div>'),
-            $control = $(
-                '<div class="layer-control">' +
-                    '<Label style="float:left" class="layer-control-label">Scale by bandwidth</Label>' +
-                '</div>');
-
-        $toggle.append($toggleIcon);
-        $control.append($toggle);
-        $toggle.click( function() {
-            if ( layer.scaleByBandwidth() ) {
-                layer.scaleByBandwidth(false);
-                $toggleIcon.removeClass('fa-check-square-o');
-                $toggleIcon.addClass('fa-square-o');
-            } else {
+        var scaleByBandwidthToggle = new ToggleBox({
+            label: 'Scale by Bandwidth',
+            initialValue: layer.scaleByBandwidth(),
+            enabled: function() {
                 layer.scaleByBandwidth(true);
-                $toggleIcon.removeClass('fa-square-o');
-                $toggleIcon.addClass('fa-check-square-o');
+            },
+            disabled: function() {
+                layer.scaleByBandwidth(false);
             }
         });
-
         $controlElement.find('.layer-control-body')
-            .append( $control ).append('<div style="clear:both;"></div>');
+            .append( scaleByBandwidthToggle.getElement() ).append('<div style="clear:both;"></div>');
         return $controlElement;
     },
 
@@ -329,15 +274,16 @@ App.prototype = _.extend(App.prototype, {
         $map.append( this._createLayerUI('Labels', this._labelLayer ) );
         $map.append( this._createLayerUI('Countries', this._countryLayer ) );
 
-        this._dateSlider = this._element.find('.date-slider').slider({ tooltip: 'hide' });
-
+        this._dateSlider = this._element.find('.date-slider');
+        this._dateSlider.slider({ tooltip: 'hide' });
         this._dateSlider.on('slideStop', this._update.bind(this));
         this._dateSlider.on('slide', function( event ) {
             var date = self._getFriendlyDate(event.value);
             $('.date-label').text(date);
         });
 
-        this._element.find('.summary-button').click( function() {
+        this._summaryButton = this._element.find('.summary-button');
+        this._summaryButton.click( function() {
             swal({
                 title: null,
                 text: Config.summary,

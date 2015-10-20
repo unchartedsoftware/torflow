@@ -6,13 +6,13 @@
     "bootstrap": "3.3.5",
     "cyborg-bootstrap": "~0.0.1",
     "d3": "~3.5.6",
-    "esper": "^0.4.0",
+    "esper": "0.4.0",
     "jquery": "2.1.4",
     "leaflet": "0.7.5",
     "leaflet-canvas-layer": "https://github.com/CartoDB/Leaflet.CanvasLayer.git#gh-pages",
     "lodash": "~3.10.1",
     "moment": "~2.10.6",
-    "seiyria-bootstrap-slider": "4.10.4",
+    "seiyria-bootstrap-slider": "5.2.4",
     "sweetalert": "~1.1.0",
     "async": "~1.4.2"
   },
@@ -21,13 +21,6 @@
       "main": [
         "dist/css/bootstrap.min.css",
         "dist/js/bootstrap.min.js"
-      ]
-    },
-    "leaflet.markercluster": {
-      "main": [
-        "dist/leaflet.markercluster.js",
-        "dist/MarkerCluster.Default.css",
-        "dist/MarkerCluster.css"
       ]
     },
     "leaflet-canvas-layer": {

@@ -30,19 +30,26 @@ var config = {
         min : 5,
         max : 40
     },
+    // particle count config
     particle_count : 200000,
+    particle_count_min : 20000,
+    particle_count_max : 2000000,
+    // particle path offset config
     particle_offset : 0.01,
-    particle_max_size : 10,
     particle_min_offset: 0.0001,
     particle_max_offset: 4.0,
+    // particle size config
+    particle_size: 1,
+    particle_min_size : 1,
+    particle_max_size : 10,
+    particle_zoom_scale: function( zoom, config_particle_size ) {
+        return Math.max( 1, Math.max( config_particle_size, config_particle_size * ( zoom - 3 ) / 2 ) );
+    },
+    // particle speed config
     particle_base_speed_ms : 40000, // ms for particle to circle the earth
     particle_speed_variance_ms : 40000,
     particle_speed_min_factor : 0.01,
     particle_speed_max_factor : 4.0,
-    particle_zoom_scale: function( zoom, config_particle_size ) {
-        return Math.max( 1, Math.max( config_particle_size, config_particle_size * ( zoom - 3 ) / 2 ) );
-    },
-    particle_size: 1,
     title : 'TorFlow',
     summary :
         '<h2>Data Flow in the Tor Network</h2>' +

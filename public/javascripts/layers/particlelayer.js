@@ -27,7 +27,7 @@
 
 var Config = require('../config.js');
 var WebGLOverlay = require('./webgloverlay');
-var LoadingBar = require('../util/loadingbar');
+var LoadingBar = require('../ui/loadingbar');
 
 var ParticleLayer = WebGLOverlay.extend({
 
@@ -43,7 +43,7 @@ var ParticleLayer = WebGLOverlay.extend({
 
     initBuffers: function( done ) {
         // create filler array
-        var filler = _.fill( new Array( Config.particle_count ), [ 0,0,0,0 ] );
+        var filler = _.fill( new Array( Config.particle_count_max ), [ 0,0,0,0 ] );
         // create vertex buffer, this will be updated periodically
         this._vertexBuffer = new esper.VertexBuffer(
             new esper.VertexPackage([
@@ -67,17 +67,24 @@ var ParticleLayer = WebGLOverlay.extend({
     },
 
     updateNodes: function(nodes) {
+        var self = this;
+        if (nodes) {
+            this._nodes = nodes;
+        }
         // prepare loading bar
         if ( this._loadingBar ) {
             this._loadingBar.cancel();
         }
         this._loadingBar = new LoadingBar();
-        var self = this;
         // flag as not ready to draw
         this._isReady = false;
+        // terminate existing worker
+        if ( this._worker ) {
+            this._worker.terminate();
+        }
         // create web worker to generate particles
-        var worker = new Worker('javascripts/particles/particlesystem.js');
-        worker.addEventListener('message', function( e ) {
+        this._worker = new Worker('javascripts/particles/particlesystem.js');
+        this._worker.addEventListener('message', function( e ) {
             switch ( e.data.type ) {
                 case 'progress':
                     self._loadingBar.update( e.data.progress );
@@ -87,36 +94,36 @@ var ParticleLayer = WebGLOverlay.extend({
                     self._vertexBuffer.bufferData( new Float32Array( e.data.buffer ) );
                     self._timestamp = Date.now();
                     self._isReady = true; // flag as ready to draw
-                    worker.terminate();
-                    worker = null;
+                    self._worker.terminate();
+                    self._worker = null;
                     break;
             }
         });
         // start the webworker
-        worker.postMessage({
+        this._worker.postMessage({
             type: 'start',
             spec: {
                 speed: Config.particle_base_speed_ms,
                 variance: Config.particle_speed_variance_ms,
                 offset: Config.particle_offset * this.getPathOffset(),
-                count: Config.particle_count
+                count: this.getParticleCount()
             },
-            nodes: nodes
+            nodes: this._nodes
         });
     },
 
     _drawHiddenServices: function() {
         var gl = this._gl,
-            hiddenServicesCount = Math.floor(Config.hiddenServiceProbability * Config.particle_count);
+            hiddenServicesCount = Math.floor(Config.hiddenServiceProbability * this.getParticleCount());
         this._shader.setUniform( 'uColor', [ 0.6, 0.1, 0.3 ] );
         gl.drawArrays( gl.POINTS, 0, hiddenServicesCount );
     },
 
     _drawGeneralServices: function() {
         var gl = this._gl,
-            hiddenServicesCount = Math.floor(Config.hiddenServiceProbability * Config.particle_count);
+            hiddenServicesCount = Math.floor(Config.hiddenServiceProbability * this.getParticleCount());
         this._shader.setUniform( 'uColor', [ 0.1, 0.3, 0.6 ] );
-        gl.drawArrays( gl.POINTS, hiddenServicesCount, Config.particle_count - hiddenServicesCount );
+        gl.drawArrays( gl.POINTS, hiddenServicesCount, this.getParticleCount() - hiddenServicesCount );
     },
 
     showTraffic: function(state) {
@@ -157,6 +164,17 @@ var ParticleLayer = WebGLOverlay.extend({
             return Config.particle_zoom_scale( this._map.getZoom(), this._particleSize || Config.particle_size );
         }
         return this._particleSize || Config.particle_size;
+    },
+
+    setParticleCount: function(count) {
+        this._particleCount = count;
+        console.log('before');
+        this.updateNodes();
+        console.log('after');
+    },
+
+    getParticleCount: function() {
+        return this._particleCount || Config.particle_count;
     },
 
     _clearBackBuffer: function() {
