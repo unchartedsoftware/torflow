@@ -60,9 +60,10 @@ var updateAggregates = function(callback) {
         });
 };
 
-var getAggregatedRelays = function(date,callback) {
+var getAggregatedRelays = function(date,count,callback) {
+    var limitStr = count ? 'LIMIT ' + count : '';
     connectionPool.query(
-        'SELECT * FROM ' + config.db.database + '.relay_aggregates WHERE date=? ORDER BY bandwidth',
+        'SELECT * FROM ' + config.db.database + '.relay_aggregates WHERE date=? ORDER BY bandwidth DESC ' + limitStr,
         [date],
         function(err,rows) {
             if (err) {

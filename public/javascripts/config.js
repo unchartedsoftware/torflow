@@ -26,13 +26,19 @@
 */
 
 var config = {
+    // relay node config
+    node_count: 2000,
+    node_count_mobile: 500,
     node_radius : {
         min : 5,
         max : 40
     },
+    // country geo json
+    country_count: 50,
+    country_count_mobile: 10,
     // particle count config
     particle_count : 200000,
-    particle_count_min : 20000,
+    particle_count_min : 100000,
     particle_count_max : 2000000,
     // particle path offset config
     particle_offset : 0.01,
@@ -50,6 +56,11 @@ var config = {
     particle_speed_variance_ms : 40000,
     particle_speed_min_factor : 0.01,
     particle_speed_max_factor : 4.0,
+    // particle mobile factor
+    particle_mobile_factor: 0.1,
+    // hidden services
+    hiddenServiceProbability : 0.04,
+    // html config
     title : 'TorFlow',
     summary :
         '<h2>Data Flow in the Tor Network</h2>' +
@@ -60,7 +71,7 @@ var config = {
         '<p>The following visualization shows information flow between the ~6500 relay servers.  General purpose Tor traffic is shown in blue.  Traffic to hidden services is shown in red.</p>' +
         '<p>Each circle below represents the aggregated bandwidth of relay servers grouped by proximity.  Hover over a circle to see information about that group.  Click on a circle to zoom the map to the contents of the group.</p>' +
         '<p>Use the slider below to select the simulation date.  Checkboxes can be used to configure the display.</p>',
-    hiddenServiceProbability : 0.04,
+    // base layer config
     localMapServer : false,
     mapAttribution:
         '<span class="attribution">' +
@@ -73,13 +84,7 @@ var config = {
                     '<img style="width:200px;" src="/img/uncharted-logo-white.png">' +
                 '</a>' +
             '</div>' +
-        '</span>',
-    minBrightness : 0.01,
-    maxBrightness : 3.0,
-    defaultBrightness : 1.0,
-    minOpacity : 0,
-    maxOpacity : 1,
-    defaultOpacity : 0.45
+        '</span>'
 };
 
 if (config.localMapServer) {

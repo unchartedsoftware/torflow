@@ -57,6 +57,7 @@ router.get('/:dateid', function(req, res) {
     // pull relays for date
     relayDB.getAggregates(
         sqlDate,
+        req.query.count, // get count from query param
         function(err,nodes) {
             if (err) {
                 res.status(500).send('Node data could not be retrieved.');

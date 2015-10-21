@@ -38,6 +38,7 @@ router.get('/:dateid', function(req, res) {
     var sqlDate = DBUtil.getMySQLDate(req.params.dateid);
     countryDB.getCountryHistogram(
         sqlDate,
+        req.query.count, // get count from query param
         function(err,histogram) {
             if (err) {
                 res.status(500).send('Country data could not be retrieved.');

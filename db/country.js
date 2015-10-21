@@ -5,9 +5,10 @@ var clientsDB = require('./guardclients');
 var async = require('async');
 var _ = require('lodash');
 
-var getCountryHistogram = function(date,callback) {
+var getCountryHistogram = function(date,count,callback) {
+    var limitStr = count ? 'LIMIT ' + count : '';
     connectionPool.query(
-        'SELECT * FROM ' + config.db.database + '.country_counts WHERE date=?',
+        'SELECT * FROM ' + config.db.database + '.country_counts WHERE date=? ORDER BY count DESC ' + limitStr,
         [date],
         function(err,rows) {
             if (err) {

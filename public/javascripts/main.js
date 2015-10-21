@@ -35,6 +35,11 @@ var LayerMenu = require('./ui/layermenu');
 var Config = require('./config');
 var Template = require('./templates/main');
 
+// Reduce counts if on mobile device
+var IS_MOBILE = require('./util/mobile').IS_MOBILE;
+var NODE_COUNT = IS_MOBILE ? Config.node_count_mobile : Config.node_count;
+var COUNTRY_COUNT = IS_MOBILE ? Config.country_count_mobile : Config.country_count;
+
 /**
  * Creates the TorFlow front-end app
  * @constructor
@@ -120,11 +125,11 @@ App.prototype = _.extend(App.prototype, {
             handleHistogram(this._currentHistogram);
         } else {
             // new date, request new information
-            d3.json('/nodes/' + encodeURI(isoDateStr), function (data) {
+            d3.json('/nodes/' + encodeURI(isoDateStr) + '?count=' + NODE_COUNT, function (data) {
                 self._currentNodeData = data;
                 handleNodes(data);
             });
-            d3.json('/country/' + encodeURI(isoDateStr),function(histogram) {
+            d3.json('/country/' + encodeURI(isoDateStr) + '?count=' + COUNTRY_COUNT,function(histogram) {
                 self._currentHistogram = histogram;
                 handleHistogram(histogram);
             });
@@ -184,9 +189,9 @@ App.prototype = _.extend(App.prototype, {
             }),
             particleCountSlider = new Slider({
                 label: 'Particle Count',
-                min: Config.particle_count_min,
-                max: Config.particle_count_max,
-                step: (Config.particle_count_max - Config.particle_count_min)/10,
+                min: layer.getParticleCountMin(),
+                max: layer.getParticleCountMax(),
+                step: (layer.getParticleCountMax() - layer.getParticleCountMin())/10,
                 initialValue: layer.getParticleCount(),
                 formatter: function( value ) {
                     return (value/1000) + 'K';

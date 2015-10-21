@@ -29,6 +29,11 @@ var Config = require('../config.js');
 var WebGLOverlay = require('./webgloverlay');
 var LoadingBar = require('../ui/loadingbar');
 
+var IS_MOBILE = require('../util/mobile').IS_MOBILE;
+var PARTICLE_COUNT = IS_MOBILE ? Config.particle_count * Config.particle_mobile_factor : Config.particle_count;
+var PARTICLE_COUNT_MIN = IS_MOBILE ? Config.particle_count_min * Config.particle_mobile_factor : Config.particle_count_min;
+var PARTICLE_COUNT_MAX = IS_MOBILE ? Config.particle_count_max * Config.particle_mobile_factor : Config.particle_count_max;
+
 var ParticleLayer = WebGLOverlay.extend({
 
     initShaders: function( done ) {
@@ -168,13 +173,19 @@ var ParticleLayer = WebGLOverlay.extend({
 
     setParticleCount: function(count) {
         this._particleCount = count;
-        console.log('before');
         this.updateNodes();
-        console.log('after');
     },
 
     getParticleCount: function() {
-        return this._particleCount || Config.particle_count;
+        return this._particleCount || PARTICLE_COUNT;
+    },
+
+    getParticleCountMin: function() {
+        return PARTICLE_COUNT_MIN;
+    },
+
+    getParticleCountMax: function() {
+        return PARTICLE_COUNT_MAX;
     },
 
     _clearBackBuffer: function() {
