@@ -27,7 +27,7 @@
 
 var config = {
     // relay node config
-    node_count: 2000,
+    node_count: 1000,
     node_count_mobile: 500,
     node_radius : {
         min : 5,

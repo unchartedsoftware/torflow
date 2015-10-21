@@ -245,6 +245,10 @@ a {
             animation: fadein 0.4s;
 }
 
+.leaflet-overlay-pane path {
+    fill-opacity: 1;
+}
+
 @keyframes fadein {
     from { opacity: 0; }
     to   { opacity: 1; }

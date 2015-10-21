@@ -40,6 +40,8 @@ MarkerLayer.prototype = _.extend(MarkerLayer.prototype, {
     addTo: function(map) {
         this._map = map;
         this._markerLayer.addTo(map);
+        this._$pane = $('#map').find('.leaflet-marker-pane');
+        this.setOpacity(this.getOpacity());
         return this;
     },
 
@@ -93,13 +95,6 @@ MarkerLayer.prototype = _.extend(MarkerLayer.prototype, {
         this._markerLayer.clearLayers();
     },
 
-    setOpacity: function( opacity ) {
-        if (this._opacity !== opacity) {
-            this._opacity = opacity;
-            console.log('Implement this');
-        }
-    },
-
     scaleByBandwidth: function( scaleByBandwidth ) {
         if (scaleByBandwidth !== undefined &&
             scaleByBandwidth !== this._scaleByBandwidth) {
@@ -117,14 +112,28 @@ MarkerLayer.prototype = _.extend(MarkerLayer.prototype, {
         return this._opacity;
     },
 
+    setOpacity: function( opacity ) {
+        if (this._opacity !== opacity ||
+            this._$pane.css('opacity') !== opacity) {
+            this._opacity = opacity;
+            if ( this._$pane ) {
+                this._$pane.css('opacity', this._opacity);
+            }
+        }
+    },
+
     show: function() {
         this._hidden = false;
-        console.log('Implement this');
+        if ( this._$pane ) {
+            this._$pane.css('display', '');
+        }
     },
 
     hide: function() {
         this._hidden = true;
-        console.log('Implement this');
+        if ( this._$pane ) {
+            this._$pane.css('display', 'none');
+        }
     },
 
     isHidden: function() {

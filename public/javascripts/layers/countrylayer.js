@@ -29,11 +29,11 @@ var CountryLayer = function() {
     this._geoJSONLayer = L.geoJson(null,{
         style : this._getFeatureStyle.bind(this)
     });
-    this._opacity = 0.3;
+    this._opacity = 0.2;
     this._histogram = null;
     this._geoJSONMap = {};
     this._colorScale = d3.scale.linear()
-        .range(['rgba(0,0,255,0.2)', 'rgba(0,0,255,1.0)']) // or use hex values
+        .range(['rgb(0,0,50)', 'rgb(50,50,255)']) // or use hex values
         .domain([0,1]);
 };
 
@@ -42,6 +42,8 @@ CountryLayer.prototype = _.extend(CountryLayer.prototype, {
     addTo: function(map) {
         this._map = map;
         this._geoJSONLayer.addTo(map);
+        this._$pane = $('#map').find('.leaflet-overlay-pane');
+        this.setOpacity(this.getOpacity());
         return this;
     },
 
@@ -120,7 +122,7 @@ CountryLayer.prototype = _.extend(CountryLayer.prototype, {
         return {
             color : fillColor,
             weight : 0,
-            opacity : this._opacity
+            'fill-opacity': 1.0
         };
     },
 
@@ -128,25 +130,32 @@ CountryLayer.prototype = _.extend(CountryLayer.prototype, {
         this._geoJSONLayer.clearLayers();
     },
 
-    setOpacity : function(opacity) {
-        if (this._opacity !== opacity) {
-            this._opacity = opacity;
-            console.log('Implement this');
-        }
-    },
-
     getOpacity : function() {
         return this._opacity;
     },
 
+    setOpacity: function( opacity ) {
+        if (this._opacity !== opacity ||
+            this._$pane.css('opacity') !== opacity) {
+            this._opacity = opacity;
+            if ( this._$pane ) {
+                this._$pane.css('opacity', this._opacity);
+            }
+        }
+    },
+
     show: function() {
         this._hidden = false;
-        console.log('Implement this');
+        if ( this._$pane ) {
+            this._$pane.css('display', '');
+        }
     },
 
     hide: function() {
         this._hidden = true;
-        console.log('Implement this');
+        if ( this._$pane ) {
+            this._$pane.css('display', 'none');
+        }
     },
 
     isHidden: function() {
