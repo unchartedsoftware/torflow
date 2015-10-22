@@ -108,9 +108,7 @@ var ParticleLayer = WebGLOverlay.extend({
         this._worker.postMessage({
             type: 'start',
             spec: {
-                speed: Config.particle_base_speed_ms,
-                variance: Config.particle_speed_variance_ms,
-                offset: Config.particle_offset * this.getPathOffset(),
+                offset: Config.particle_offset,
                 count: this.getParticleCount()
             },
             nodes: this._nodes
@@ -221,7 +219,7 @@ var ParticleLayer = WebGLOverlay.extend({
             this._shader.push();
             this._shader.setUniform( 'uProjectionMatrix', this._camera.projectionMatrix() );
             this._shader.setUniform( 'uTime', Date.now() - this._timestamp );
-            this._shader.setUniform( 'uSpeedFactor', this.getSpeed() );
+            this._shader.setUniform( 'uSpeedFactor', Config.particle_base_speed_ms / this.getSpeed() );
             this._shader.setUniform( 'uOffsetFactor', this.getPathOffset() );
             this._shader.setUniform( 'uPointSize', this.getParticleSize() );
             this._shader.setUniform( 'uOpacity', this.getOpacity() );

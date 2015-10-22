@@ -41,9 +41,9 @@ var config = {
     particle_count_min : 100000,
     particle_count_max : 2000000,
     // particle path offset config
-    particle_offset : 0.01,
+    particle_offset : 0.05,
     particle_min_offset: 0.0001,
-    particle_max_offset: 4.0,
+    particle_max_offset: 5.0,
     // particle size config
     particle_size: 1,
     particle_min_size : 1,
@@ -52,8 +52,7 @@ var config = {
         return Math.max( 1, Math.max( config_particle_size, config_particle_size * ( zoom - 3 ) / 2 ) );
     },
     // particle speed config
-    particle_base_speed_ms : 40000, // ms for particle to circle the earth
-    particle_speed_variance_ms : 40000,
+    particle_base_speed_ms : 60000, // ms for particle to circle the earth
     particle_speed_min_factor : 0.01,
     particle_speed_max_factor : 4.0,
     // particle mobile factor

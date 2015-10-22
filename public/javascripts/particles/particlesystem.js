@@ -53,32 +53,28 @@ var _getProbabilisticPair = function( nodes ) {
     };
 };
 
-var _generateParticles = function(spec,nodes) {
+var _generateParticles = function(spec, nodes) {
     var PROGRESS_STEP = spec.count / 1000;
     var buffer = new Float32Array( spec.count * 8 );
+    var offset = spec.offset;
 
     for ( var i=0; i<spec.count; i++ ) {
         var pair = _getProbabilisticPair(nodes);
-        var start = {
-            x: pair.source.x,
-            y: pair.source.y
-        };
-        var end = {
-            x: pair.dest.x,
-            y: pair.dest.y
-        };
-        var speed = spec.speed + spec.variance * Math.random();
-        var offset = spec.offset;
-
-        buffer[ i*8 ] = start.x;
-        buffer[ i*8+1 ] = start.y;
-        buffer[ i*8+2 ] = end.x;
-        buffer[ i*8+3 ] = end.y;
-        buffer[ i*8+4 ] = offset;
-        buffer[ i*8+5 ] = speed;
-        buffer[ i*8+6 ] = Math.random()*2 - 1;
-        buffer[ i*8+7 ] = Math.random()*2 - 1;
-
+        var sign = Math.random() > 0.5 ? 1 : -1;
+        var t0 = Math.random() / 2;
+        var t1 = Math.random() / 2 + 0.5;
+        // start position
+        buffer[ i*8 ] = pair.source.x;
+        buffer[ i*8+1 ] = pair.source.y;
+        // stop position
+        buffer[ i*8+2 ] = pair.dest.x;
+        buffer[ i*8+3 ] = pair.dest.y;
+        // bezier curve sub point parameters
+        buffer[ i*8+4 ] = t0;
+        buffer[ i*8+5 ] = sign * Math.random() * offset;
+        buffer[ i*8+6 ] = t1;
+        buffer[ i*8+7 ] = sign * Math.random() * offset;
+        // print progress
         if ( (i+1) % PROGRESS_STEP === 0 ) {
             this.postMessage({
                 type: 'progress',
