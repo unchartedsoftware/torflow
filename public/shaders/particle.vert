@@ -1,43 +1,67 @@
-attribute highp vec4 aPositions;
-attribute highp vec4 aOffset;
+precision mediump float;
 
-uniform highp mat4 uProjectionMatrix;
-uniform highp float uTime;
-uniform highp float uPointSize;
-uniform highp float uSpeedFactor;
-uniform highp float uOffsetFactor;
+attribute vec4 aPositions;
+attribute vec4 aOffsets;
 
-#define PI 3.1415926
-#define PI_2 (PI*2.0)
-#define MAX_PERIOD 10.0
+uniform mat4 uProjectionMatrix;
+uniform float uTime;
+uniform float uPointSize;
+uniform float uSpeedFactor;
+uniform float uOffsetFactor;
+
+float B1(float t) {
+    return t*t*t;
+}
+
+float B2(float t) {
+    return 3.0*t*t*(1.0-t);
+}
+
+float B3(float t) {
+    return 3.0*t*(1.0-t)*(1.0-t);
+}
+
+float B4(float t) {
+    return (1.0-t)*(1.0-t)*(1.0-t);
+}
+
+vec2 getBezier(float percent, vec2 C1, vec2 C2, vec2 C3, vec2 C4) {
+  return vec2(
+      C1.x*B1(percent) + C2.x*B2(percent) + C3.x*B3(percent) + C4.x*B4(percent),
+      C1.y*B1(percent) + C2.y*B2(percent) + C3.y*B3(percent) + C4.y*B4(percent)
+  );
+}
+
+float rand(vec2 co){
+    return fract(sin(dot(co.xy ,vec2(12.9898,78.233))) * 43758.5453);
+}
 
 void main() {
-    // extract components
-    highp vec2 startPos = aPositions.xy;
-    highp vec2 stopPos = aPositions.zw;
-    highp float offset = aOffset.x * uOffsetFactor;
-    highp float speed = aOffset.y / uSpeedFactor;
-    highp float rand0 = aOffset.z;
-    highp float rand1 = aOffset.w;
-
-    highp vec2 diff = stopPos - startPos;
-    highp float dist = length( diff );
-    highp float distOffset = dist * offset;
-    highp vec2 perp = normalize( cross( vec3( diff, 0.0 ), vec3(0.0, 0.0, 1.0) ).xy );
-    highp float nspeed = speed * dist;
-    highp float timeOffset = nspeed * rand0;
-
-    // calc t and interpolate the position
-    highp float t = mod( uTime + timeOffset, nspeed ) / nspeed;
-    highp vec2 position = startPos + ( stopPos - startPos ) * t;
-    // calc positional offset
-    highp vec2 fixedOffset = sin( t * PI ) * perp * distOffset;
-    // calc cosine offset
-    highp float period = floor( rand1 * MAX_PERIOD ) / 2.0;
-    highp float phase = 0.0; //noise * PI_2;
-    highp vec2 sinOffset = sin( t * PI_2 * period + phase ) * perp * distOffset;
+    // get start and end positions
+    vec2 startPos = aPositions.xy;
+    vec2 endPos = aPositions.zw;
+    // get difference vector and distance distance
+    vec2 diff = endPos - startPos;
+    float dist = length( diff );
+    // get normalize vector perpendicular to path
+    vec2 perp = normalize( cross( vec3( diff, 0.0 ), vec3( 0.0, 0.0, 1.0 ) ).xy );
+    // get subpoint parameters and offsets
+    float t0 = aOffsets.x;
+    float t1 = aOffsets.z;
+    float offset0 = aOffsets.y * dist * uOffsetFactor;
+    float offset1 = aOffsets.w * dist * uOffsetFactor;
+    // build sub points
+    vec2 p1 = startPos + ( t0 * diff + offset0 * perp );
+    vec2 p2 = startPos + ( t1 * diff + offset1 * -perp );
+    // get two randum numbers
+    float r0 = rand( vec2(p1.x, p2.y) );
+    float r1 = rand( vec2(p1.y, p2.x) );
+    // normalize speed by distance, vary by random number
+    float nSpeed = ( uSpeedFactor + uSpeedFactor * r1 ) * dist;
+    float tOffset = r0 * nSpeed;
+    float t = mod( uTime + tOffset, nSpeed ) / nSpeed;
     // set point size
     gl_PointSize = uPointSize;
     // set position
-    gl_Position = uProjectionMatrix * vec4( position + fixedOffset + sinOffset, 0.0, 1.0 );
+    gl_Position = uProjectionMatrix * vec4( getBezier(t, startPos, p1, p2, endPos), 0.0, 1.0 );
 }

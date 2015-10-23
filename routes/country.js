@@ -29,23 +29,23 @@ var express = require('express');
 var router = express.Router();
 var countryDB = require('../db/country');
 var DBUtil = require('../db/db_utils');
-var moment = require('moment');
 
 /**
  * GET /country/:countryid
  */
 router.get('/:dateid', function(req, res) {
-    var momentDate = moment(req.params.dateid);
-    var day = momentDate.date();    // date == day of month, day == day of week.
-    var month = momentDate.month() + 1; // indexed from 0?
-    var year = momentDate.year();
-    var sqlDate = DBUtil.getMySQLDate(year,month,day);
-    countryDB.getCountryHistogram(sqlDate,function(histogram) {
-        delete histogram['??']; // remove this entry
-        res.send(histogram);
-    }, function() {
-        res.status(500).send('Country data could not be retrieved.');
-    });
+    // get sql date from id
+    var sqlDate = DBUtil.getMySQLDate(req.params.dateid);
+    countryDB.getCountryHistogram(
+        sqlDate,
+        req.query.count, // get count from query param
+        function(err,histogram) {
+            if (err) {
+                res.status(500).send('Country data could not be retrieved.');
+            } else {
+                res.send(histogram);
+            }
+        });
 });
 
 module.exports = router;

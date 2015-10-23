@@ -28,8 +28,8 @@
 var _getProbabilisticNodeIndex = function( nodes ) {
     var rnd = Math.random();
     var i = 0;
-    while (i < nodes.length && rnd > nodes[i].bandwidth) {
-        rnd -= nodes[i].bandwidth;
+    while (i < nodes.length && rnd > nodes[i].normalized_bandwidth) {
+        rnd -= nodes[i].normalized_bandwidth;
         i++;
     }
     return Math.min(i,nodes.length-1);
@@ -53,30 +53,32 @@ var _getProbabilisticPair = function( nodes ) {
     };
 };
 
-var _generateParticles = function(particleConfig,nodes,count) {
-    var PROGRESS_STEP = count / 1000;
-    var buffer = new Float32Array( count * 8 );
+var _generateParticles = function(spec, nodes) {
+    var PROGRESS_STEP = spec.count / 1000;
+    var buffer = new Float32Array( spec.count * 8 );
+    var offset = spec.offset;
 
-    for ( var i=0; i<count; i++ ) {
+    for ( var i=0; i<spec.count; i++ ) {
         var pair = _getProbabilisticPair(nodes);
-        var start = pair.source.pos;
-        var end = pair.dest.pos;
-        var speed = particleConfig.speed + particleConfig.variance * Math.random();
-        var offset = particleConfig.offset;
-
-        buffer[ i*8 ] = start.x;
-        buffer[ i*8+1 ] = start.y;
-        buffer[ i*8+2 ] = end.x;
-        buffer[ i*8+3 ] = end.y;
-        buffer[ i*8+4 ] = offset;
-        buffer[ i*8+5 ] = speed;
-        buffer[ i*8+6 ] = Math.random();
-        buffer[ i*8+7 ] = Math.random();
-
+        var sign = Math.random() > 0.5 ? 1 : -1;
+        var t0 = Math.random() / 2;
+        var t1 = Math.random() / 2 + 0.5;
+        // start position
+        buffer[ i*8 ] = pair.source.x;
+        buffer[ i*8+1 ] = pair.source.y;
+        // stop position
+        buffer[ i*8+2 ] = pair.dest.x;
+        buffer[ i*8+3 ] = pair.dest.y;
+        // bezier curve sub point parameters
+        buffer[ i*8+4 ] = t0;
+        buffer[ i*8+5 ] = sign * Math.random() * offset;
+        buffer[ i*8+6 ] = t1;
+        buffer[ i*8+7 ] = sign * Math.random() * offset;
+        // print progress
         if ( (i+1) % PROGRESS_STEP === 0 ) {
             this.postMessage({
                 type: 'progress',
-                progress: i / (particleConfig.count-1)
+                progress: i / (spec.count-1)
             });
         }
     }
@@ -91,6 +93,6 @@ var _generateParticles = function(particleConfig,nodes,count) {
 
 this.addEventListener( 'message', function( e ) {
     if ( e.data.type === 'start' ) {
-        _generateParticles( e.data.particleConfig, e.data.nodes, e.data.count );
+        _generateParticles( e.data.spec, e.data.nodes );
     }
 });

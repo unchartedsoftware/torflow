@@ -1,45 +1,49 @@
 var connectionPool = require('./connection');
 var config = require('../config');
-var relays = require('./relay');
-var Process = require('../util/process_each');
-var lodash = require('lodash');
+var relayDB = require('./relay');
+var async = require('async');
 
-var getDates = function(onSuccess,onError) {
+var getDates = function(callback) {
     connectionPool.query(
         'SELECT date FROM ' + config.db.database + '.dates order by date asc',
-        function(dates) {
-            onSuccess(dates);
-        },
-        onError );
-};
-
-
-var updateDates = function(onSuccess,onError) {
-    relays._getDates(function(dates) {
-        connectionPool.query(
-            'TRUNCATE ' + config.db.database + '.dates',
-            function() {
-                var dateSpecs = dates.map(function(date) {
-                    return [date];
+        function(err,rows) {
+            if (err) {
+                callback(err);
+            } else {
+                var dates = rows.map(function(row) {
+                    return row.date;
                 });
-                connectionPool.query('INSERT INTO ' + config.db.database + '.dates (date) VALUES ?',[dateSpecs],onSuccess,onError);
-            },
-        onError );
-    },onError)
+                callback(null,dates);
+            }
+        });
 };
 
-var getDates = function(onSuccess,onError) {
-    connectionPool.query(
-        'SELECT distinct date FROM ' + config.db.database + '.relays order by date asc',
-        function(rows) {
-            var dates = rows.map(function(row) {
-                return row.date;
-            });
-            onSuccess(dates);
+var updateDates = function(callback) {
+    async.waterfall([
+        // truncate table if it exists
+        function(done) {
+            connectionPool.query(
+                'TRUNCATE ' + config.db.database + '.dates',
+                done);
         },
-        onError );
+        // get all dates from relay table
+        function(rows,done) {
+            relayDB.getDates(done);
+        },
+        // insert dates into date table
+        function(dates,done) {
+            var dateSpecs = dates.map(function(date) {
+                return [date];
+            });
+            connectionPool.query(
+                'INSERT INTO ' + config.db.database + '.dates (date) VALUES ?',
+                [dateSpecs],
+                done);
+        }],
+        function(err) {
+            callback(err); // only pass on error, if it exists
+        });
 };
-
 
 module.exports.updateDates = updateDates;
 module.exports.getDates = getDates;

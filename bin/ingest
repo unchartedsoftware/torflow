@@ -3,6 +3,7 @@
 var path = require('path');
 var ingestFiles = require('../ingest/ingestFiles');
 var db_init = require('../db/db_init');
+var async = require('async');
 
 if (process.argv.length < 3) {
 	console.log('usage:\n\tnode bin/ingest %DATA_DIRECTORY%');
@@ -12,17 +13,23 @@ if (process.argv.length < 3) {
 var filePath = path.resolve(process.argv[2]);
 console.log('Importing from ' + filePath);
 
-var onSuccess = function() {
-	console.log('IMPORT COMPLETED SUCCESSFULLY');
-	process.exit(0);
-};
 
-var onError = function(err) {
-	console.trace(err.message);
-	console.log('IMPORT FAILED');
-	process.exit(0);
-};
-
-db_init.initialize(function() {
-	ingestFiles(filePath,onSuccess,onError);
-}, onError);
+async.series([
+	// initialize the database
+	function(done) {
+		db_init.initialize(done);
+	},
+	// ingest files
+	function(done) {
+		ingestFiles(filePath,done);
+	}],
+	// finally
+	function(err) {
+		if (err) {
+			console.trace(err.message);
+			console.log('IMPORT FAILED');
+		} else {
+			console.log('IMPORT COMPLETED SUCCESSFULLY');
+		}
+		process.exit(0);
+	});

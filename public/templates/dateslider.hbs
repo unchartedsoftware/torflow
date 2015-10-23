@@ -1,0 +1,14 @@
+<div class="map-control-element" data-toggle="buttons">
+    <label class="btn btn-xs btn-primary date-slider-button left">
+        <input class="hidden-filter-input" type="button" name="hidden-options">-
+    </label>
+    <input class="slider"
+        data-slider-min="0"
+        data-slider-max={{numDates}}
+        data-slider-step="1"
+        data-slider-value={{initialIndex}}>
+    <label class="btn btn-xs btn-primary date-slider-button right">
+        <input class="hidden-filter-input" type="button" name="hidden-options">+
+    </label>
+    <div class="padded-left padded-right date-label">{{initialDateString}}</div>
+</div>

@@ -25,48 +25,40 @@
 * SOFTWARE.
 */
 
-var express = require('express');
-var router = express.Router();
-var relayDB = require('../db/relay');
-var DBUtil = require('../db/db_utils');
+var ButtonGroupTemplate = require('../templates/buttongroup');
 
-var _getSummaryStats = function(nodes) {
-    var max = -Number.MAX_VALUE;
-    var min = Number.MAX_VALUE;
-    var sum = 0;
-    nodes.forEach(function(node) {
-        max = Math.max(max,node.bandwidth);
-        min = Math.min(min,node.bandwidth);
-        sum += node.bandwidth;
+var ButtonGroup = function(spec) {
+    var self = this;
+    // parse inputs
+    spec = spec || {};
+    spec.buttons = spec.buttons || [];
+    spec.initialValue = spec.initialValue !== undefined ? spec.initialValue : 0;
+    // create buttons
+    spec.buttons = spec.buttons.map( function( button, index ) {
+        return {
+            label: button.label || 'missing-label-' + index,
+            className: ( index === spec.initialValue ) ? 'active' : '',
+            click: button.click || null
+        };
     });
-    return {
-        minMax : {
-            min: min,
-            max: max
-        },
-        bandwidth: sum
-    };
-};
-
-/**
- * GET /nodes/:dateid
- */
-router.get('/:dateid', function(req, res) {
-    // get sql date from id
-    var sqlDate = DBUtil.getMySQLDate(req.params.dateid);
-    // pull relays for date
-    relayDB.getAggregates(
-        sqlDate,
-        req.query.count, // get count from query param
-        function(err,nodes) {
-            if (err) {
-                res.status(500).send('Node data could not be retrieved.');
-            } else {
-                var payload = _getSummaryStats(nodes);
-                payload.nodes = nodes;
-                res.send(payload);
+    // create container element
+    this._$container = $( ButtonGroupTemplate(spec) );
+    this._$group = this._$container.find('.services-btn-group');
+    this._$buttons = this._$group.find('.btn-primary');
+    // add click callbacks
+    spec.buttons.forEach( function( button, index ) {
+        var click = button.click || null;
+        var $button = $( self._$buttons.get(index) );
+        $button.click( function() {
+            if ($.isFunction(click)) {
+                click();
             }
         });
-});
+    });
+};
 
-module.exports = router;
+ButtonGroup.prototype.getElement = function() {
+    return this._$container;
+};
+
+module.exports = ButtonGroup;

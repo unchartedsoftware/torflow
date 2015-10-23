@@ -36,6 +36,7 @@
 	  	"process":true,
 	  	"esper": true,
 		"swal": true,
+		"async": true,
 		"__dirname":true
 	}
 }

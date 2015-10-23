@@ -2,71 +2,14 @@
     <header>
         <h1>{{title}}</h1>
     </header>
-
-    <div id="summary-button" class="summary-button">
+    <!-- summary button -->
+    <div class="summary-button">
         <i class="icon fa fa-question"></i>
     </div>
-
-    <div class="date-controls">
-        <div class="map-control-element">
-            <input id="date-slider" class='slider' data-slider-id='date-slider' type="text" data-slider-min="0" data-slider-max="{{maxIndex}}" data-slider-step="1" data-slider-value="{{maxIndex}}"/>
-            <div id="date-label" class="padded-left">{{defaultDate}}</div>
-        </div>
-    </div>
-
-    <div class="map-controls">
-        <div class="map-control-element">
-            <Label class="padded-right">Brightness</Label>
-            <span class="padded-right">-</span>
-            <input id="brightness-slider" class='slider' data-slider-id='brightness-slider' type="text" data-slider-min="{{minBrightness}}" data-slider-max="{{maxBrightness}}" data-slider-step="0.01" data-slider-value="{{defaultBrightness}}"/>
-            <span class="padded-left">+</span>
-        </div>
-        <div class="map-control-element">
-            <Label class="padded-right">Opacity</Label>
-            <span class="padded-right">-</span>
-            <input id="opacity-slider" class='slider' data-slider-id='opacity-slider' type="text" data-slider-min="{{minOpacity}}" data-slider-max="{{maxOpacity}}" data-slider-step="0.01" data-slider-value="{{defaultOpacity}}"/>
-            <span class="padded-left">+</span>
-        </div>
-        <div class="map-control-element">
-            <Label class="padded-right">Speed</Label>
-            <span class="padded-right">-</span>
-            <input id="speed-slider" class='slider' data-slider-id='speed-slider' type="text" data-slider-min="{{particle_speed_min_factor}}" data-slider-max="{{particle_speed_max_factor}}" data-slider-step="0.01" data-slider-value="1.0"/>
-            <span class="padded-left">+</span>
-        </div>
-        <div class="map-control-element">
-            <Label class="padded-right">Paths</Label>
-            <span class="padded-right">-</span>
-            <input id="path-slider" class='slider' data-slider-id='path-slider' type="text" data-slider-min="{{particle_min_offset}}" data-slider-max="{{particle_max_offset}}" data-slider-step="0.01" data-slider-value="1.0"/>
-            <span class="padded-left">+</span>
-        </div>
-
-        <div class="map-control-element">
-            <input id="show-flow-input" type="checkbox" checked>
-            <label>Flow</label>
-        </div>
-        <div class="map-control-element">
-            <input id="label-input" type="checkbox" checked>
-            <label>Labels</label>
-        </div>
-        <div class="map-control-element">
-            <input id="scale-bandwidth-input" type="checkbox" checked>
-            <label>Scale by Bandwidth</label>
-        </div>
-
-        <div class="map-control-element">
-            <div class="btn-group" data-toggle="buttons" id="hidden-filter-btn-group">
-                <label class="btn btn-xs btn-primary active hidden-filter-btn active">
-                    <input class="hidden-filter-input" type="radio" name="hidden-options" autocomplete="off" hidden-id="all">All
-                </label>
-                <label class="btn btn-xs btn-primary hidden-filter-btn">
-                    <input class="hidden-filter-input" type="radio" name="hidden-options" autocomplete="off" hidden-id="hidden">Hidden Services
-                </label>
-                <label class="btn btn-xs btn-primary hidden-filter-btn">
-                    <input class="hidden-filter-input" type="radio" name="hidden-options" autocomplete="off" hidden-id="general">General Purpose
-                </label>
-            </div>
-        </div>
-    </div>
-
+    <!-- date controls -->
+    <div class="date-controls"></div>
+    <!-- map controls -->
+    <div class="map-controls"></div>
+    <!-- leaflet map anchor -->
     <div id="map"></div>
 </div>

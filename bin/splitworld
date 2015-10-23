@@ -3,7 +3,7 @@ var worldHighJSON = require('../data/world.high.geo.json');
 var worldMedJSON = require('../data/world.medium.geo.json');
 var path = require('path');
 var fs = require('fs');
-var _ = require('underscore');
+var _ = require('lodash');
 
 var writeCountry = function(iso,countryFeature,subDir) {
 	var filename = iso + '.geo.json';
@@ -34,5 +34,3 @@ worldMedJSON.features.forEach(function(countryFeature) {
 	var countryISO_A3 = countryFeature.properties.iso_a3;
 	writeCountry(countryISO_A3,countryFeature,'countries_medium');
 });
-
-

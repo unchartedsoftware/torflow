@@ -27,51 +27,22 @@
 
 var express = require('express');
 var router = express.Router();
-var fs = require('fs');
-var path = require('path');
-var ccLookup = require('../util/countrycode');
-var JSONFileCache = {};
-
-var getGeoJSON = function(cc,callback) {
-    if (JSONFileCache[cc]) {
-        // exists in cache
-        callback(null,JSONFileCache[cc]);
-    } else {
-        var relativeFilePath = __dirname + '/../data/countries_medium/' + cc.toUpperCase() + '.geo.json';
-        var absoluteFilePath = path.resolve(relativeFilePath);
-        fs.readFile( absoluteFilePath, 'utf8', function(err,file) {
-            if (err) {
-                callback(err);
-            } else {
-                var json = JSON.parse(file);
-                json.cc_2 = ccLookup.threeToTwo[cc];
-                json.cc_3 = cc;
-                JSONFileCache[cc] = json;
-                callback(null,json);
-            }
-        });
-    }
-};
+var countryDB = require('../db/country');
 
 /**
- * GET /geo/
+ * GET /outliers
  */
-router.get('/:countrycode', function(req, res) {
-    var twoLetterCC = req.params.countrycode.toUpperCase(),
-        threeLetterCC = ccLookup.twoToThree[twoLetterCC];
-    if (threeLetterCC) {
-        getGeoJSON(
-            threeLetterCC,
-            function(err,json) {
-                if (err) {
-                    res.send(null);
-                } else {
-                    res.send(json);
-                }
-            });
-    } else {
-        res.send(null);
-    }
+router.get('/:countrycode/:count', function(req, res) {
+    var cc = req.params.countrycode.toLowerCase();
+    var count = parseInt(req.params.count,10);
+
+    countryDB.getCountryOutliers(cc,count,function(err,json) {
+        if (err) {
+            res.send(null);
+        } else {
+            res.send(json);
+        }
+    });
 });
 
 module.exports = router;

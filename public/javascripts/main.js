@@ -25,12 +25,21 @@
 * SOFTWARE.
 */
 
-var DotLayer = require('./layers/dotlayer');
+var ParticleLayer = require('./layers/particlelayer');
 var CountryLayer = require('./layers/countrylayer');
-var Lerp = require('./util/lerp');
+var MarkerLayer = require('./layers/markerlayer');
+var DateSlider = require('./ui/dateslider');
+var Slider = require('./ui/slider');
+var ToggleBox = require('./ui/togglebox');
+var ButtonGroup = require('./ui/buttongroup');
+var LayerMenu = require('./ui/layermenu');
 var Config = require('./config');
-var MarkerTooltip = require('./util/markertooltip');
 var Template = require('./templates/main');
+
+// Reduce counts if on mobile device
+var IS_MOBILE = require('./util/mobile').IS_MOBILE;
+var NODE_COUNT = IS_MOBILE ? Config.node_count_mobile : Config.node_count;
+var COUNTRY_COUNT = IS_MOBILE ? Config.country_count_mobile : Config.country_count;
 
 /**
  * Creates the TorFlow front-end app
@@ -40,246 +49,34 @@ var App = function() {};
 
 App.prototype = _.extend(App.prototype, {
 
-    _clusters : {},     // zoom level -> list of clusters
     _particleLayer : null,
-    _markersLayer : null,
+    _markerLayer : null,
     _countryLayer : null,
     _map : null,
     _element : null,
-    _dateLabel : null,
-    _currentNodes : null,
+    _currentNodeData : null,
     _currentDate : null,
     _currentHistogram : null,
-    _showFlow : true,
-    _showingLabels : null,
 
     _clear : function() {
-        if (this._markersLayer) {
-            this._markersLayer.clearLayers();
-        }
-        if (this._countryLayer) {
-            this._countryLayer.clear();
-        }
+        this._markerLayer.clear();
+        this._countryLayer.clear();
+        this._particleLayer.clear();
     },
 
-    _getVisibleRelays : function() {
-        var bounds = this._map.getBounds();
-        return this._currentNodes.objects.filter(function(aggregate) {
-            return bounds.contains(aggregate.latLng);
-        });
-    },
-
-    _latLngToNormalizedCoord : function(latLng) {
-        var px = this._map.project( latLng ),
-            dim = Math.pow( 2, this._map.getZoom() ) * 256;
-        return {
-            x: px.x / dim,
-            y: ( dim - px.y ) / dim
-        };
-    },
-
-    _sumRelaysBandwidth : function( relays ) {
-        return _.reduce(relays, function(memo, relay) {
-            return memo + relay.bandwidth;
-        }, 0);
-    },
-
-    _getNormalizedBandwidth : function( relays ) {
-        return this._sumRelaysBandwidth(relays) / this._getCurrentTotalBandwidth();
-    },
-
-    _getMinMaxBandwidth : function() {
-        var max = -Number.MAX_VALUE;
-        var min = Number.MAX_VALUE;
-        var self = this;
-        this._currentNodes.objects.forEach(function(node) {
-            var nodeBW = self._sumRelaysBandwidth(node.circle.relays);
-            max = Math.max(max,nodeBW);
-            min = Math.min(min,nodeBW);
-        });
-        return {
-            min: min,
-            max: max
-        };
-    },
-
-    _createParticles : function() {
-        var self = this;
-        var nodes = this._currentNodes.objects.map(function (node) {
-            return {
-                bandwidth: self._getNormalizedBandwidth(node.circle.relays),
-                latLng: node.latLng,
-                pos: self._latLngToNormalizedCoord(node.latLng)
-            };
-        });
-        this._particleLayer.updateNodes(nodes);
-    },
-
-    _scaleByBandwidth : function() {
-        return this._element.find('#scale-bandwidth-input').prop('checked');
-    },
-
-    _getMoment : function(index) {
-        return moment(this._dates[index]);
-    },
-
-    _getFriendlyDate : function(index) {
-        return this._getMoment(index).format('dddd, MMMM Do YYYY');
-    },
-
-    _getISODate : function(index) {
-        var m = this._getMoment(index)
-            .hours(0)
-            .minutes(0)
-            .seconds(0);
-        return m.format();
-    },
-
-    _update : function() {
-        var newDateIdx = this._dateSlider.slider('getValue');
-        var isoDate = this._getISODate(newDateIdx);
+    _update : function( isoDate ) {
         this._clear();
         this._fetch(isoDate);
     },
 
-    _onDateSlide : function() {
-        var newDateIdx = this._dateSlider.slider('getValue');
-        var friendlyDate = this._getFriendlyDate(newDateIdx);
-        this._dateLabel.text(friendlyDate);
-    },
-
-    _onBrightnessSlide : function() {
-        var newBrightness = this._brightnessSlider.slider('getValue');
-        var containerEl = this._baseTileLayer.getContainer();
-        $(containerEl).css('-webkit-filter','brightness(' + newBrightness + ')');
-    },
-
-    _onSpeedSlide : function() {
-        var newSpeed = this._speedSlider.slider('getValue');
-        this._particleLayer.setSpeed( newSpeed );
-    },
-
-    _onPathSlide : function() {
-        var offset = this._pathSlider.slider('getValue');
-        this._particleLayer.setPathOffset( offset );
-    },
-
-    _onOpacitySlide : function() {
-        var newOpacity = this._opacitySlider.slider('getValue');
-        this._countryLayer.setOpacity(newOpacity);
-    },
-
-    _onHiddenFilterChange : function() {
-        var checkedRadioBtn = this._element.find('#hidden-filter-btn-group').find('.active > input');
-        var checkedState = checkedRadioBtn.attr('hidden-id');
-        if (checkedState === 'all') {
-            this._particleLayer.showTraffic('all');
-        } else if (checkedState === 'hidden') {
-            this._particleLayer.showTraffic('hidden');
-        } else if (checkedState === 'general') {
-            this._particleLayer.showTraffic('general');
-        }
-    },
-
-    _onToggleFlow : function() {
-        if (this._particleLayer.isHidden()) {
-            this._showFlow = true;
-            this._particleLayer.show();
-        } else {
-            this._showFlow = false;
-            this._particleLayer.hide();
-        }
-    },
-
-    _onToggleScale : function() {
-        this._update();
-    },
-
-    _onToggleLabels : function() {
-        if (this._showingLabels) {
-            this._map.removeLayer(this._labelLayer);
-            this._showingLabels = false;
-        } else {
-            this._map.addLayer(this._labelLayer);
-            this._showingLabels = true;
-        }
-    },
-
-    _createMarkers : function() {
-        var self = this;
-        var minMax = this._getMinMaxBandwidth();
-        var markers = this._currentNodes.objects.map(function(node) {
-            var relays = node.circle.relays;
-            var title = relays.length === 1 ? relays[0].name : relays.length + ' relays at location';
-            var marker;
-            if (self._scaleByBandwidth()) {
-                var nodeBW = self._sumRelaysBandwidth(relays);
-                var pointRadius = Lerp(Config.node_radius.min,Config.node_radius.max,nodeBW / (minMax.max-minMax.min));
-                marker = L.marker(node.latLng, {
-                    icon : L.divIcon({
-                        className: 'relay-cluster',
-                        iconSize:L.point(pointRadius, pointRadius)
-                    })
-                });
-            } else {
-                marker = L.marker(node.latLng, {
-                    icon: L.divIcon({
-                        className: 'relay-cluster',
-                        iconSize: L.point(Config.node_radius.min, Config.node_radius.min)
-                    })
-                });
-            }
-            marker.data = node;
-            MarkerTooltip( marker, title );
-            return marker;
-        });
-
-        markers.forEach(function(marker) {
-            self._markersLayer.addLayer(marker);
-        });
-
-        //this._markersLayer = L.layerGroup(markers);
-        //this._map.addLayer(this._markersLayer);
-    },
-
-    _getCurrentTotalBandwidth : function() {
-        var total = 0;
-        this._currentNodes.objects.forEach(function(aggregate) {
-            aggregate.circle.relays.forEach(function(relay) {
-                total+=relay.bandwidth;
-            });
-        });
-        return total;
-    },
-
-    _getCurrentTotalRelays : function() {
-        var totalRelays = 0;
-        this._currentNodes.objects.forEach(function(node) {
-            totalRelays+= node.circle.relays.length;
-        });
-        return totalRelays;
-    },
-
     _fetch : function(isoDateStr) {
 
-        function handleNodes(nodes) {
-            // Add a LatLng object to each item in the dataset
-            nodes.objects.forEach(function(node) {
-                node.latLng = new L.LatLng(
-                    node.circle.coordinates[0],
-                    node.circle.coordinates[1]);
-            });
-            // Initialize zoom -> clusters map
-            var minZoom = self._map.getMinZoom();
-            var maxZoom = self._map.getMaxZoom();
-            for (var i = minZoom; i <= maxZoom; i++) {
-                self._clusters[i] = [];
-            }
+        function handleNodes(data) {
             // Create markers
-            self._createMarkers();
-            // Update particles
-            if ( oldNodes !== self._currentNodes ) {
-                self._createParticles();
+            self._markerLayer.set(data);
+            // Update particles, if they are different
+            if ( oldNodes !== self._currentNodeData ) {
+                self._particleLayer.updateNodes(data.nodes);
             }
         }
 
@@ -287,18 +84,20 @@ App.prototype = _.extend(App.prototype, {
             self._countryLayer.set(histogram);
         }
 
-        var oldNodes = this._currentNodes,
+        var oldNodes = this._currentNodeData,
             self = this;
 
         if (this._currentDate === isoDateStr) {
-            handleNodes(this._currentNodes);
+            // selected current date, simply refresh layers
+            handleNodes(this._currentNodeData);
             handleHistogram(this._currentHistogram);
         } else {
-            d3.json('/nodes/' + encodeURI(isoDateStr), function (nodes) {
-                self._currentNodes = nodes;
-                handleNodes(nodes);
+            // new date, request new information
+            d3.json('/nodes/' + encodeURI(isoDateStr) + '?count=' + NODE_COUNT, function (data) {
+                self._currentNodeData = data;
+                handleNodes(data);
             });
-            d3.json('/country/' + encodeURI(isoDateStr),function(histogram) {
+            d3.json('/country/' + encodeURI(isoDateStr) + '?count=' + COUNTRY_COUNT,function(histogram) {
                 self._currentHistogram = histogram;
                 handleHistogram(histogram);
             });
@@ -306,48 +105,161 @@ App.prototype = _.extend(App.prototype, {
         }
     },
 
-    _initUI : function() {
-        var totalDays = this._dates.length;
-        var extendedConfig = _.extend(Config,{
-            maxIndex : totalDays-1,
-            defaultDate : this._getFriendlyDate(totalDays-1)
+    _createLayerUI : function(layerName,layer) {
+        var layerMenu = new LayerMenu({
+                layer: layer,
+                label: layerName
+            }),
+            opacitySlider = new Slider({
+                label: 'Opacity',
+                min: 0,
+                max: 1,
+                step: 0.01,
+                initialValue: layer.getOpacity(),
+                change: function( event ) {
+                    layer.setOpacity( event.value.newValue );
+                }
+            });
+        layerMenu.getBody().append( opacitySlider.getElement() ).append('<div style="clear:both;"></div>');
+        return layerMenu.getElement();
+    },
+
+    _addFlowControls : function($controlElement, layer) {
+        var speedSlider = new Slider({
+                label: 'Particle Speed',
+                min: Config.particle_speed_min_factor,
+                max: Config.particle_speed_max_factor,
+                step: 0.01,
+                initialValue: layer.getSpeed(),
+                slideStop: function( event ) {
+                    layer.setSpeed( event.value );
+                }
+            }),
+            pathSlider = new Slider({
+                label: 'Path Width',
+                min: Config.particle_min_offset,
+                max: Config.particle_max_offset,
+                step: 0.01,
+                initialValue: layer.getPathOffset(),
+                change: function( event ) {
+                    layer.setPathOffset( event.value.newValue );
+                }
+            }),
+            particleSizeSlider = new Slider({
+                label: 'Particle Size',
+                min: Config.particle_min_size,
+                max: Config.particle_max_size,
+                step: 1,
+                initialValue: layer.getParticleSize(),
+                change: function( event ) {
+                    layer.setParticleSize( event.value.newValue );
+                }
+            }),
+            particleCountSlider = new Slider({
+                label: 'Particle Count',
+                min: layer.getParticleCountMin(),
+                max: layer.getParticleCountMax(),
+                step: (layer.getParticleCountMax() - layer.getParticleCountMin())/10,
+                initialValue: layer.getParticleCount(),
+                formatter: function( value ) {
+                    return (value/1000) + 'K';
+                },
+                slideStop: function( event ) {
+                    if ( event.value !== layer.getParticleCount() ) {
+                        layer.setParticleCount( event.value );
+                    }
+                }
+            }),
+            scaleByZoomToggle = new ToggleBox({
+                label: 'Scale by Zoom',
+                initialValue: layer.scaleByZoom(),
+                enabled: function() {
+                    layer.scaleByZoom(true);
+                },
+                disabled: function() {
+                    layer.scaleByZoom(false);
+                }
+            }),
+            servicesButtonGroup = new ButtonGroup({
+                intialValue: 0,
+                buttons: [
+                    {
+                        label: 'All',
+                        click: function() {
+                            layer.showTraffic('all');
+                        }
+                    },
+                    {
+                        label: 'Hidden Services',
+                        click: function() {
+                            layer.showTraffic('hidden');
+                        }
+                    },
+                    {
+                        label: 'General Purpose',
+                        click: function() {
+                            layer.showTraffic('general');
+                        }
+                    }
+                ]
+            });
+        $controlElement.find('.layer-control-body')
+            .append( speedSlider.getElement() ).append('<div style="clear:both;"></div>')
+            .append( pathSlider.getElement() ).append('<div style="clear:both;"></div>')
+            .append( particleSizeSlider.getElement() ).append('<div style="clear:both;"></div>')
+            .append( particleCountSlider.getElement() ).append('<div style="clear:both;"></div>')
+            .append( scaleByZoomToggle.getElement() ).append('<div style="clear:both;"></div>')
+            .append( servicesButtonGroup.getElement() ).append('<div style="clear:both;"></div>');
+        return $controlElement;
+    },
+
+    _addMarkerControls : function($controlElement,layer) {
+        var scaleByBandwidthToggle = new ToggleBox({
+            label: 'Scale by Bandwidth',
+            initialValue: layer.scaleByBandwidth(),
+            enabled: function() {
+                layer.scaleByBandwidth(true);
+            },
+            disabled: function() {
+                layer.scaleByBandwidth(false);
+            }
         });
+        $controlElement.find('.layer-control-body')
+            .append( scaleByBandwidthToggle.getElement() ).append('<div style="clear:both;"></div>');
+        return $controlElement;
+    },
 
-        this._element = $(document.body).append(Template(extendedConfig));
-        
-        this._element.find('.hidden-filter-btn').change(this._onHiddenFilterChange.bind(this));
-        this._element.find('#show-flow-input').change(this._onToggleFlow.bind(this));
-        this._element.find('#label-input').change(this._onToggleLabels.bind(this));
-        this._element.find('#scale-bandwidth-input').change(this._onToggleScale.bind(this));
+    _initIndex : function() {
+        this._element = $(document.body).append(Template(Config));
+    },
 
-        this._element.find('#summary-button').click( function() {
+    _initUI : function() {
+
+        var self = this,
+            $mapControls = $('.map-controls'),
+            $dateControls = $('.date-controls');
+        $mapControls.append( this._addFlowControls( this._createLayerUI('Flow', this._particleLayer ), this._particleLayer ) );
+        $mapControls.append( this._addMarkerControls( this._createLayerUI('Nodes', this._markerLayer ), this._markerLayer ) );
+        $mapControls.append( this._createLayerUI('Labels', this._labelLayer ) );
+        $mapControls.append( this._createLayerUI('Countries', this._countryLayer ) );
+
+        this._dateSlider = new DateSlider({
+            dates: this._dates,
+            slideStop: function() {
+                var isoDate = self._dateSlider.getISODate();
+                self._update(isoDate);
+            }
+        });
+        $dateControls.append(this._dateSlider.getElement());
+
+        this._summaryButton = this._element.find('.summary-button');
+        this._summaryButton.click( function() {
             swal({
                 title: null,
                 text: Config.summary,
-                html: true,
-                confirmButtonColor: '#149BDF'
+                html: true
             });
         });
-
-        this._showingLabels = this._element.find('#label-input').prop('checked');
-
-        this._dateLabel = this._element.find('#date-label');
-        this._dateSlider = this._element.find('#date-slider').slider({ tooltip: 'hide' });
-
-        this._dateSlider.on('slideStop', this._update.bind(this));
-        this._dateSlider.on('slide',this._onDateSlide.bind(this));
-
-        this._brightnessSlider = this._element.find('#brightness-slider').slider({ tooltip: 'hide' });
-        this._brightnessSlider.on('slide',this._onBrightnessSlide.bind(this));
-
-        this._speedSlider = this._element.find('#speed-slider').slider({ tooltip: 'hide' });
-        this._speedSlider.on('slideStop',this._onSpeedSlide.bind(this));
-
-        this._pathSlider = this._element.find('#path-slider').slider({ tooltip: 'hide' });
-        this._pathSlider.on('slide',this._onPathSlide.bind(this));
-
-        this._opacitySlider = this._element.find('#opacity-slider').slider({ tooltip: 'hide' });
-        this._opacitySlider.on('slide',this._onOpacitySlide.bind(this));
     },
 
     _initMap : function() {
@@ -366,6 +278,7 @@ App.prototype = _.extend(App.prototype, {
 
     _initLayers : function() {
         // Initialize the baselayer
+        var self = this;
         var mapUrlBase = 'http://{s}.basemaps.cartocdn.com/';
         if (Config.localMapServer) {
             mapUrlBase = 'http://' + window.location.host + '/map/';
@@ -379,12 +292,13 @@ App.prototype = _.extend(App.prototype, {
             });
         this._baseTileLayer.addTo(this._map);
         // Initialize the country layer
-        this._countryLayer = new CountryLayer(this._map);
+        this._countryLayer = new CountryLayer();
+        this._countryLayer.addTo(this._map);
         // Initialize markers layer
-        this._markersLayer = L.layerGroup();
-        this._markersLayer.addTo(this._map);
+        this._markerLayer = new MarkerLayer();
+        this._markerLayer.addTo(this._map);
         // Initialize particle layer
-        this._particleLayer = new DotLayer();
+        this._particleLayer = new ParticleLayer();
         this._particleLayer.addTo(this._map);
         // Initialize the label layer
         this._labelLayer = L.tileLayer(
@@ -392,30 +306,37 @@ App.prototype = _.extend(App.prototype, {
             {
                 maxZoom: Config.maxZoom || 18,
                 noWrap: true,
-                zIndex: 10
+                zIndex: 10,
+                opacity: 0.65
             });
-        if (this._showingLabels) {
-            this._labelLayer.addTo(this._map);
-        }
+        this._labelLayer.addTo(this._map);
+        this._labelLayer.getOpacity = function() {
+            return this.options.opacity;
+        };
+        this._labelLayer.show = function() {
+            this._hidden = false;
+            self._map.addLayer(this);
+        };
+        this._labelLayer.hide = function() {
+            this._hidden = true;
+            self._map.removeLayer(this);
+        };
+        this._labelLayer.isHidden = function() {
+            return this._hidden;
+        };
     },
 
     _init : function(dates) {
         this._dates = dates;
         // init app
-        this._initUI();
+        this._initIndex();
         this._initMap();
         this._initLayers();
-        // set initial state
-        this._onBrightnessSlide();
-        this._onSpeedSlide();
-        this._onPathSlide();
+        this._initUI();
         // begin
-        this._update();
+        this._update(this._dateSlider.getISODate());
     },
 
-    /**
-     * Application startup.
-     */
     start: function () {
         // Fetch the dates available + relay count for each date
         $.get('/dates',this._init.bind(this));
