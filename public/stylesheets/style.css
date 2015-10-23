@@ -397,3 +397,26 @@ a {
     height: 5px;
     width: 0%;
 }
+
+.bar {
+
+}
+
+.bar:hover {
+    fill: white;
+}
+
+.axis {
+    font: 10px sans-serif;
+}
+
+.axis path,
+.axis line {
+    fill: none;
+    stroke: #000;
+    shape-rendering: crispEdges;
+}
+
+.x.axis path {
+    display: none;
+}

@@ -4,6 +4,67 @@ var datesDB = require('./dates');
 var clientsDB = require('./guardclients');
 var async = require('async');
 var _ = require('lodash');
+var moment = require('moment');
+
+var getCountryOutliers = function(cc,count,callback) {
+    var MAX_COUNT = 10;
+    connectionPool.query(
+        'SELECT * FROM ' + config.db.database + '.country_counts WHERE cc=? ORDER BY count DESC',
+        [cc],
+        function(err,rows) {
+            if (err) {
+                callback(err);
+            } else {
+                var i;
+
+                count = Math.max(count,MAX_COUNT);
+
+                if (rows.length === 0) {
+                    var res = {};
+                    res[cc] = [];
+                    return res;
+                }
+                if (Math.floor(rows.length/2) < count) {
+                    count = Math.floor(rows.length/2)
+                }
+
+
+                var sum = 0;
+                rows.forEach(function(row) {
+                    sum += row.count;
+                });
+                var avg = [{
+                    position : 0,
+                    date : 'Avg',
+                    client_count : sum/rows.length
+                }];
+
+
+                var topN = [];
+                for (i = 0; i < count; i++) {
+                    topN.push({
+                        position : count-i,
+                        client_count : rows[i].count,
+                        date : moment(rows[i].date).format('YYYY-MM-DD')
+                    });
+                }
+
+                rows = _(rows).reverse().value();
+                var bottomN = [];
+                for (i = 0; i < count; i++) {
+                    bottomN.push({
+                        position : count-i,
+                        client_count : rows[i].count,
+                        date : moment(rows[i].date).format('YYYY-MM-DD')
+                    });
+                }
+
+                var res = {};
+                res[cc] = topN.concat(avg.concat(bottomN));
+                callback(null,res);
+            }
+        });
+};
 
 var getCountryHistogram = function(date,count,callback) {
     var limitStr = count ? 'LIMIT ' + count : '';
@@ -81,5 +142,6 @@ var updateCountries = function(callback) {
         });
 };
 
+module.exports.getCountryOutliers = getCountryOutliers;
 module.exports.getCountryHistogram = getCountryHistogram;
 module.exports.updateCountries = updateCountries;

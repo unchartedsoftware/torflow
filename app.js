@@ -40,6 +40,7 @@ var dates = require('./routes/dates');
 var map = require('./routes/map');
 var geo = require('./routes/geo');
 var country = require('./routes/country');
+var outliers = require('./routes/outliers');
 
 var app = express();
 
@@ -63,6 +64,7 @@ app.use('/dates',dates);
 app.use('/map',map);
 app.use('/geo',geo);
 app.use('/country',country);
+app.use('/outliers',outliers);
 
 
 // catch 404 and forward to error handler
