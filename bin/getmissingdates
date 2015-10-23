@@ -1,0 +1,37 @@
+var moment = require('moment');
+var datesDB = require('../db/dates');
+
+var FIRST_DATE = '2015-07-28';
+
+var formatMoment = function(m) {
+    return m.format('YYYY MM DD');
+};
+
+datesDB.getDates(
+    function(err,dates) {
+        if (err) {
+            console.log('Dates could not be retrieved');
+            process.exit(1);
+        }
+
+        var dateMap = {};
+        var moments = dates.forEach(function(d) {
+            var m = moment(d);
+            var dateStr = formatMoment(m);
+            dateMap[dateStr] = true;
+        });
+
+        var firstMoment = moment(FIRST_DATE);
+        var todayMoment = moment();
+        var daysBetween = todayMoment.diff(firstMoment, 'days');
+
+
+        for (var i = 0; i < daysBetween; i++) {
+            var m = moment(FIRST_DATE).add(i,'days');
+            var dateStr = formatMoment(m);
+            if (!dateMap[dateStr]) {
+                console.log(dateStr);
+            }
+        }
+        process.exit(0);
+});

@@ -1,0 +1,41 @@
+var moment = require('moment');
+var datesDB = require('../db/dates');
+
+var FIRST_DATE = '2015-07-28';
+
+var formatMoment = function(m) {
+    return m.format('YYYY MM');
+};
+
+datesDB.getDates(
+    function(err,dates) {
+        if (err) {
+            console.log('Dates could not be retrieved');
+            process.exit(1);
+        }
+
+        var monthMap = {};
+        var moments = dates.forEach(function(d) {
+            var m = moment(d);
+            var dateStr = formatMoment(m);
+            monthMap[dateStr] = true;
+        });
+
+        var firstMoment = moment(FIRST_DATE);
+        var todayMoment = moment();
+        var daysBetween = todayMoment.diff(firstMoment, 'days');
+
+
+        for (var i = 0; i < daysBetween; i++) {
+            var m = moment(FIRST_DATE).add(i,'days');
+            var dateStr = formatMoment(m);
+            if (!monthMap[dateStr]) {
+                monthMap[dateStr] = true;
+            }
+        }
+
+        Object.keys(monthMap).forEach(function(monthStr) {
+            console.log(monthStr);
+        });
+        process.exit(0);
+});
