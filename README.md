@@ -20,6 +20,12 @@ Build:
 
 ## Running
 
+Create a config file:
+
+	cp config.template.js config.js
+
+Edit config.js to point to your MySQL database.
+
 Run the server:
 
 	npm start
@@ -34,12 +40,9 @@ Ingest data into MySQL via the bin/ingest node script.  There is a set of sample
 
 	node bin/ingest data/sample
 
-## Building the Docker container
+# Building the Docker containers
 
-Prepare the build directory:
-
-	cd .
-	gulp build
+## Prepare the build directory
 
 Start the VM:
 
@@ -47,39 +50,61 @@ Start the VM:
     vagrant ssh
     cd /vagrant
 
+    gulp build
+
 You may need to start docker:
 
 	sudo systemctl start docker
 
-Build the container:
+### Application server container
 
+The "torflow" app container will run the application, and connect to an external MySQL database.  The "config.js" configuration file build into the container will specify the connection parameters.
+
+Build the app container:
+
+    cd /deploy/app
     sudo docker build -t="docker.uncharted.software/torflow" .
 
-Run the container:
+Run the app container:
 
-    sudo docker run -ti --rm --name torflow -p 3000:3000 -p 9200:9200 -p 9300:9300 -v /vagrant/esdata:/usr/share/elasticsearch-1.7.0/data -v /vagrant/eslogs:/var/log/supervisor docker.uncharted.software/torflow
+    sudo docker run -ti --rm --name torflow -v /logs/:/var/log/supervisor/ -p 3000:3000 docker.uncharted.software/torflow
 
-Ingest the data:
+If your container config.js points at a MySQL server that can't be resolved, you can add a hosts entry at run-time using the Docker parameter `--add-host`.
 
-	cd ~
-	wget https://download.elastic.co/logstash/logstash/logstash-1.5.2.tar.gz ; tar xzf logstash-1.5.2.tar.gz
+### Ingest container
 
-This installs logstash in your vagrant home directory.  We will use logstash to ingest the data.  Copy the processed Tor csv files into the mounted vagrant data directory temporarily under the path:
+The "torflow-ingest" container will run the ingest program described above, ingesting whatever data is mounted at the command-line below.  It will use the "config.js" configuration file built into the container.
 
-	/vagrant/data/processed
+Build the ingest container:
 
-(We don't check these files into source control as they are several GB of data).  Invoke logstash to start the import process:
+    cd /deploy/ingest
+    sudo docker build -t="docker.uncharted.software/torflow-ingest" .
 
-	cd logstash-1.5.2/bin/
-	./logstash -f /vagrant/data/es_import_docker.conf
+Run the ingest container:
 
-The data will be stored in `esdata` and the logs are in `eslogs`.  If you have prebuilt esdata directories, you can skip the above step and copy them into your /vagrant/ directory as is.
+    sudo docker run -ti --rm --name torflow-ingest -v /torflow/data/sample/:/torflow/data docker.uncharted.software/torflow-ingest
 
-To push the image to the repository:
+This assumes you are importing the sample data in the /torflow/data/sample folder. If your container config.js points at a MySQL server that can't be resolved, you can add a hosts entry at run-time using the Docker parameter `--add-host`.
 
-	sudo docker login docker.uncharted.software
-	sudo docker push docker.uncharted.software/torflow
+### Demo container
 
-To run on another machine:
+The demo container is pre-configured to run against the demo MySQL database, and will automatically ingest the the sample data from the /torflow/data/sample folder.  The "config.js" for the demo app, and the "mysql.properties" for the MySQL server, are already configured to match each other. If you change one, you need to update the other.
 
-	sudo docker pull docker.uncharted.software/torflow
+Run the MySQL container:
+
+    sudo docker run -ti --rm --name torflow-mysql -p 3306:3306 --env-file mysql.properties mysql:5.7
+
+Build the demo container:
+
+    cd /deploy/demo
+    sudo docker build -t="docker.uncharted.software/torflow-demo" .
+
+Run the demo container:
+
+    sudo docker run -ti --rm --name torflow --link torflow-mysql:MYSQL -v /logs/:/var/log/supervisor/ -p 3000:3000 docker.uncharted.software/torflow-demo
+
+### Known issues with Docker
+
+The Docker containers run in UTC, but the app currently assumes you are running in EDT.  To workaround this, force the time zone of the Docker container to EDT. For example, add this to the docker run command:
+
+	-v /usr/share/zoneinfo/Canada/Eastern:/etc/localtime
