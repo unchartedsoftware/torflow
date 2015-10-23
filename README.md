@@ -49,7 +49,7 @@ Start the VM:
     vagrant up
     vagrant ssh
     cd /vagrant
-    
+
     gulp build
 
 You may need to start docker:
@@ -108,4 +108,3 @@ Run the demo container:
 The Docker containers run in UTC, but the app currently assumes you are running in EDT.  To workaround this, force the time zone of the Docker container to EDT. For example, add this to the docker run command:
 
 	-v /usr/share/zoneinfo/Canada/Eastern:/etc/localtime
-

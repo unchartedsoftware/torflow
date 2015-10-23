@@ -65,3 +65,15 @@ config.js
 .vagrant/
 map/
 data/relays/*
+
+# ----------------------------------------
+## Deploy
+# ----------------------------------------
+
+deploy/app/package.json
+deploy/demo/package.json
+deploy/ingest/package.json
+
+deploy/app/build/
+deploy/demo/build/
+deploy/ingest/build/

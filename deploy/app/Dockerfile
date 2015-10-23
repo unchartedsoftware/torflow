@@ -20,4 +20,5 @@ ADD supervisord.conf /etc/supervisor/conf.d/supervisord.conf
 COPY build /torflow/
 
 # Install app dependencies
-RUN cd /torflow; npm install
+RUN npm install -g bower gulp;
+RUN cd /torflow; npm install; cd public; bower install; gulp deploy;
