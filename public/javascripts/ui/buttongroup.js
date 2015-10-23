@@ -40,7 +40,7 @@ var ButtonGroup = function(spec) {
         var click = button.click || null;
         var className = ( index === spec.initialValue ) ? 'active' : '';
         var $button = $(
-            '<label class="btn btn-xs btn-primary hidden-filter-btn '+className+'">' +
+            '<label class="btn btn-xs btn-primary '+className+'">' +
                 '<input class="hidden-filter-input" type="radio" name="hidden-options">'+ label +
             '</label>');
         $button.click( function() {

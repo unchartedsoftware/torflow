@@ -76,6 +76,15 @@ var _setDateHash = function(dates, dateIndex) {
     }
 };
 
+var _setDateIndex = function(dateSlider, dateIndex) {
+    if ( dateSlider._dateIndex !== dateIndex ) {
+        dateSlider._dateIndex = dateIndex;
+        dateSlider._$slider.slider('setValue', dateIndex);
+        dateSlider._$container.find('.date-label').text(dateSlider.getDateString());
+        dateSlider._$slider.trigger('slideStop');
+    }
+};
+
 var DateSlider = function(spec) {
     var self = this;
     // parse inputs
@@ -85,16 +94,33 @@ var DateSlider = function(spec) {
     this._dateIndex = hashIndex !== undefined ? hashIndex : this._dates.length-1;
     // create container element
     this._$container = $(
-            '<div class="map-control-element">' +
+            '<div class="map-control-element" data-toggle="buttons">' +
+                '<label class="btn btn-xs btn-primary date-slider-button left">' +
+                    '<input class="hidden-filter-input" type="button" name="hidden-options">-' +
+                '</label>' +
                 '<input class="slider"' +
                     'data-slider-min="0" ' +
                     'data-slider-max="'+(this._dates.length-1)+'" ' +
                     'data-slider-step="1" ' +
                     'data-slider-value="'+this._dateIndex+'"/>' +
-                '<div class="padded-left date-label">'+this.getDateString()+'</div>' +
+                '<label class="btn btn-xs btn-primary date-slider-button right">' +
+                    '<input class="hidden-filter-input" type="button" name="hidden-options">+' +
+                '</label>' +
+                '<div class="padded-left padded-right date-label">'+this.getDateString()+'</div>' +
             '</div>');
     // create slider and attach callbacks
     this._$slider = this._$container.find('.slider');
+    // attach button callbacks
+    this._$left = this._$container.find('.date-slider-button.left');
+    this._$right = this._$container.find('.date-slider-button.right');
+
+    this._$left.click(function() {
+        _setDateIndex(self, Math.max(self._dateIndex-1, 0));
+    });
+    this._$right.click(function() {
+        _setDateIndex(self, Math.min(self._dateIndex+1, self._dates.length-1));
+    });
+
     this._$slider.slider({ tooltip: 'hide' });
     if ($.isFunction(spec.slideStart)) {
         this._$slider.on('slideStart', spec.slideStart);
@@ -120,10 +146,7 @@ var DateSlider = function(spec) {
     $(window).on('hashchange', function() {
         var hashIndex = _getDateIndexFromHash(self._dates);
         var dateIndex = hashIndex !== undefined ? hashIndex : self._dates.length-1;
-        if ( self._dateIndex !== dateIndex ) {
-            self._$slider.slider('setValue', dateIndex);
-            self._$container.find('.date-label').text(self.getDateString());
-        }
+        _setDateIndex(self,dateIndex);
     });
 };
 
