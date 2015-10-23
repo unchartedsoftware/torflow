@@ -43,6 +43,7 @@ CountryLayer.prototype = _.extend(CountryLayer.prototype, {
         this._map = map;
         this._geoJSONLayer.addTo(map);
         this._$pane = $('#map').find('.leaflet-overlay-pane');
+        this._$pane.css('pointer-events','none');
         this.setOpacity(this.getOpacity());
         return this;
     },
