@@ -353,8 +353,8 @@ a {
 }
 
 .sweet-alert {
-    background-color: rgba(0,0,0,0.3);
-    border: 1px solid #111;
+    background-color: rgba(0,0,0,0.5);
+    border: 1px solid rgb(20, 155, 223);
     padding: 17px 32px;
     width: 612px;
 }

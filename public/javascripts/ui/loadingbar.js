@@ -61,6 +61,8 @@ LoadingBar.prototype.update = function( percent ) {
 LoadingBar.prototype.cancel = function() {
     if ( this._$loader ) {
         this._$loader.finish();
+    }
+    if ( this._$loader ) {
         this._$loader.remove();
     }
 };
