@@ -337,7 +337,8 @@ a {
     width: 20px;
     height: 20px;
     line-height: 13px;
-    padding: 0;
+    padding: 0 5px;
+    text-align: center;
 }
 
 .icon {

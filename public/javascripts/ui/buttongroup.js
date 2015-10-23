@@ -25,32 +25,36 @@
 * SOFTWARE.
 */
 
+var ButtonGroupTemplate = require('../templates/buttongroup');
+
 var ButtonGroup = function(spec) {
     var self = this;
     // parse inputs
     spec = spec || {};
     spec.buttons = spec.buttons || [];
     spec.initialValue = spec.initialValue !== undefined ? spec.initialValue : 0;
-    // create container element
-    this._$container = $('<div style="text-align:center;">');
-    this._$group = $('<div class="btn-group services-btn-group" data-toggle="buttons"></div>');
     // create buttons
+    spec.buttons = spec.buttons.map( function( button, index ) {
+        return {
+            label: button.label || 'missing-label-' + index,
+            className: ( index === spec.initialValue ) ? 'active' : '',
+            click: button.click || null
+        };
+    });
+    // create container element
+    this._$container = $( ButtonGroupTemplate(spec) );
+    this._$group = this._$container.find('.services-btn-group');
+    this._$buttons = this._$group.find('.btn-primary');
+    // add click callbacks
     spec.buttons.forEach( function( button, index ) {
-        var label = button.label || 'missing-label-' + index;
         var click = button.click || null;
-        var className = ( index === spec.initialValue ) ? 'active' : '';
-        var $button = $(
-            '<label class="btn btn-xs btn-primary '+className+'">' +
-                '<input class="hidden-filter-input" type="radio" name="hidden-options">'+ label +
-            '</label>');
+        var $button = $( self._$buttons.get(index) );
         $button.click( function() {
             if ($.isFunction(click)) {
                 click();
             }
         });
-        self._$group.append($button);
     });
-    this._$container.append(this._$group);
 };
 
 ButtonGroup.prototype.getElement = function() {

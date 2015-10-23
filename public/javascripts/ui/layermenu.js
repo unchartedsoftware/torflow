@@ -25,23 +25,25 @@
 * SOFTWARE.
 */
 
+var LayerMenuTemplate = require('../templates/layermenu');
+
 var LayerMenu = function(spec) {
     var self = this;
     // parse inputs
     spec = spec || {};
     spec.label = spec.label !== undefined ? spec.label : 'missing-layer-name';
     spec.layer = spec.layer || null;
+    spec.isVisible = !spec.layer.isHidden();
     if ( !spec.layer ) {
         console.error('LayerMenu constructor must be passed a "layer" attribute');
     }
     // create elements
-    this._$menu = $('<div class="map-control-element"></div>');
-    this._$head = $('<div class="layer-control-head"></div>');
-    this._$body = $('<div class="layer-control-body"></div>');
-    this._$title = $('<div class="layer-title">'+spec.label+'</div>');
-    this._$toggleIcon = $( !spec.layer.isHidden() ? '<i class="fa fa-check-square-o">' : '<i class="fa fa-square-o">');
-    this._$toggle = $('<div class="layer-toggle"></div>');
-    this._$toggle.append( this._$toggleIcon );
+    this._$menu = $( LayerMenuTemplate(spec) );
+    this._$head = this._$menu.find('.layer-control-head');
+    this._$body = this._$menu.find('.layer-control-body');
+    this._$title = this._$menu.find('.layer-title');
+    this._$toggleIcon = this._$menu.find('i.fa');
+    this._$toggle = this._$menu.find('.layer-toggle');
     // attach callbacks
     var prevHeight;
     this._$head.click( function() {
@@ -70,8 +72,6 @@ var LayerMenu = function(spec) {
             });
         }
     });
-    this._$head.append( this._$toggle ).append( this._$title );
-    this._$menu.append( this._$head ).append( this._$body );
 };
 
 LayerMenu.prototype.getElement = function() {

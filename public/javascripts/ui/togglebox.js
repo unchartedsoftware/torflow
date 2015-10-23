@@ -25,6 +25,8 @@
 * SOFTWARE.
 */
 
+var ToggleBoxTemplate = require('../templates/togglebox');
+
 var ToggleBox = function(spec) {
     var self = this;
     // parse inputs
@@ -37,13 +39,9 @@ var ToggleBox = function(spec) {
     // set initial state
     this._enabled = spec.initialValue;
     // create elements
-    this._$toggleIcon = $( spec.initialValue ? '<i class="fa fa-check-square-o">' : '<i class="fa fa-square-o">');
-    this._$toggleBox = $('<div class="layer-toggle"></div>');
-    this._$container = $(
-        '<div class="layer-control">' +
-            '<Label style="float:left" class="layer-control-label">'+spec.label+'</Label>' +
-        '</div>');
-    this._$container.append(this._$toggleBox.append(this._$toggleIcon));
+    this._$container = $( ToggleBoxTemplate(spec) );
+    this._$toggleIcon = this._$container.find('i.fa');
+    this._$toggleBox = this._$container.find('.layer-toggle');
     // create and attach callbacks
     this._enable = function() {
         self._$toggleIcon.removeClass('fa-square-o');

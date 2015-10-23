@@ -25,6 +25,8 @@
 * SOFTWARE.
 */
 
+var SliderTemplate = require('../templates/slider');
+
 var Slider = function(spec) {
     var self = this;
     // parse inputs
@@ -37,17 +39,9 @@ var Slider = function(spec) {
     this.formatter = spec.formatter || function(value) {
         return value.toFixed(2);
     };
+    spec.intialFormattedValue = this.formatter(spec.initialValue);
     // create container element
-    this._$container = $(
-        '<div class="layer-control">' +
-            '<Label class="layer-control-label">'+spec.label+'</Label>' +
-            '<input class="slider" ' +
-                'data-slider-min="'+spec.min+'" ' +
-                'data-slider-max="'+spec.max+'" ' +
-                'data-slider-step="'+spec.step+'" ' +
-                'data-slider-value="'+spec.initialValue+'"/>'+
-            '<Label class="control-value-label">'+this.formatter(spec.initialValue)+'</Label>' +
-        '</div>');
+    this._$container = $( SliderTemplate(spec) );
     // create slider and attach callbacks
     this._$slider = this._$container.find('.slider');
     this._$slider.slider({ tooltip: 'hide' });

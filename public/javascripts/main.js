@@ -170,6 +170,16 @@ App.prototype = _.extend(App.prototype, {
                     }
                 }
             }),
+            scaleByZoomToggle = new ToggleBox({
+                label: 'Scale by Zoom',
+                initialValue: layer.scaleByZoom(),
+                enabled: function() {
+                    layer.scaleByZoom(true);
+                },
+                disabled: function() {
+                    layer.scaleByZoom(false);
+                }
+            }),
             servicesButtonGroup = new ButtonGroup({
                 intialValue: 0,
                 buttons: [
@@ -192,16 +202,6 @@ App.prototype = _.extend(App.prototype, {
                         }
                     }
                 ]
-            }),
-            scaleByZoomToggle = new ToggleBox({
-                label: 'Scale by Zoom',
-                initialValue: layer.scaleByZoom(),
-                enabled: function() {
-                    layer.scaleByZoom(true);
-                },
-                disabled: function() {
-                    layer.scaleByZoom(false);
-                }
             });
         $controlElement.find('.layer-control-body')
             .append( speedSlider.getElement() ).append('<div style="clear:both;"></div>')

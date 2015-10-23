@@ -209,7 +209,7 @@ var ParticleLayer = WebGLOverlay.extend({
             this._scaleByZoom = scaleByZoom;
             return this;
         }
-        return this._scaleByZoom !== undefined ? this._scaleByZoom : Config.particle_zoom_scale;
+        return this._scaleByZoom !== undefined ? this._scaleByZoom : false;
     },
 
     draw: function() {

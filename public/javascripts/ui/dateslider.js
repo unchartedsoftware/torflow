@@ -25,6 +25,8 @@
 * SOFTWARE.
 */
 
+var DateSliderTemplate = require('../templates/dateslider');
+
 var _getMoment = function(dates, index) {
     return moment(dates[index]);
 };
@@ -92,22 +94,11 @@ var DateSlider = function(spec) {
     this._dates = spec.dates;
     var hashIndex = _getDateIndexFromHash(this._dates);
     this._dateIndex = hashIndex !== undefined ? hashIndex : this._dates.length-1;
+    spec.numDates = spec.dates.length;
+    spec.initialIndex = this._dateIndex;
+    spec.initialDateString = this.getDateString();
     // create container element
-    this._$container = $(
-            '<div class="map-control-element" data-toggle="buttons">' +
-                '<label class="btn btn-xs btn-primary date-slider-button left">' +
-                    '<input class="hidden-filter-input" type="button" name="hidden-options">-' +
-                '</label>' +
-                '<input class="slider"' +
-                    'data-slider-min="0" ' +
-                    'data-slider-max="'+(this._dates.length-1)+'" ' +
-                    'data-slider-step="1" ' +
-                    'data-slider-value="'+this._dateIndex+'"/>' +
-                '<label class="btn btn-xs btn-primary date-slider-button right">' +
-                    '<input class="hidden-filter-input" type="button" name="hidden-options">+' +
-                '</label>' +
-                '<div class="padded-left padded-right date-label">'+this.getDateString()+'</div>' +
-            '</div>');
+    this._$container = $( DateSliderTemplate(spec) );
     // create slider and attach callbacks
     this._$slider = this._$container.find('.slider');
     // attach button callbacks
