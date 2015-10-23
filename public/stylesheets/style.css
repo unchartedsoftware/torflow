@@ -38,7 +38,7 @@ body {
 }
 
 .map-control-element {
-    background-color: rgba(0,0,0,0.3);
+    background-color: rgba(0,0,0,0.4);
     border-radius: 4px;
     border: 1px solid #000;
     padding: 4px;
@@ -52,12 +52,6 @@ body {
 }
 
 .layer-control-body {
-    /*
-    -webkit-transition: height 0.4s;
-       -moz-transition: height 0.4s;
-         -o-transition: height 0.4s;
-            transition: height 0.4s;
-    */
     border-top: 1px solid #000;
     overflow: hidden;
 }
@@ -145,6 +139,7 @@ body {
 .btn-primary.active,
 .btn-primary.active:hover,
 .summary-button,
+.drilldown-close,
 .leaflet-bar a,
 .leaflet-bar a.leaflet-disabled {
     border: 1px solid rgb(20, 155, 223);
@@ -163,7 +158,8 @@ body {
 }
 
 .leaflet-bar a:hover,
-.summary-button:hover {
+.summary-button:hover,
+.drilldown-close {
     background-color: rgb(40, 96, 144);
     color: #eee;
     line-height: 24px;
@@ -346,7 +342,6 @@ a {
     font-size: 14px;
     line-height: 24px;
     text-align: center;
-    color: #fff;
 }
 
 .date-label {
@@ -398,22 +393,70 @@ a {
     width: 0%;
 }
 
-.bar {
+.drilldown-container {
+    position: absolute;
+    bottom: 110px;
+    right: 10px;
+    height: 400px;
+    width: 612px;
+    background-color: rgba(0,0,0,0.4);
+    border-radius: 4px;
+    border: 1px solid #000;
+    padding: 4px;
+    z-index: 2;
+    display: none;
+}
 
+.drilldown-content {
+    position: relative;
+    height: 100%;
+    width: 100%;
+    z-index: 1;
+}
+
+.drilldown-close {
+    position: absolute;
+    cursor: pointer;
+    top: 10px;
+    right: 10px;
+    width: 26px;
+    height: 26px;
+    line-height: 26px;
+    z-index: 2;
+    box-sizing: border-box;
+    border-radius: 4px;
+}
+
+.chart-title {
+    font-size: 16px;
+    fill: #ccc;
+}
+
+.chart-title,
+.x-axis,
+.y-axis {
+    font: "Lucida Grande", Helvetica, Arial, sans-serif;
+}
+
+.bar {
+    cursor: pointer;
+    opacity: 0.8;
 }
 
 .bar:hover {
-    fill: white;
+    opacity: 1.0;
 }
 
 .axis {
-    font: 10px sans-serif;
+    font: "Lucida Grande", Helvetica, Arial, sans-serif;
+    font-size: 10px;
+    fill: #ccc;
 }
 
 .axis path,
 .axis line {
     fill: none;
-    stroke: #000;
+    stroke: #ccc;
     shape-rendering: crispEdges;
 }
 

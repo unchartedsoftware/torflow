@@ -234,15 +234,16 @@ App.prototype = _.extend(App.prototype, {
     },
 
     _initUI : function() {
-
         var self = this,
             $mapControls = $('.map-controls'),
-            $dateControls = $('.date-controls');
+            $dateControls = $('.date-controls'),
+            $drilldownContainer = $('.drilldown-container');
+        // create map controls
         $mapControls.append( this._addFlowControls( this._createLayerUI('Flow', this._particleLayer ), this._particleLayer ) );
         $mapControls.append( this._addMarkerControls( this._createLayerUI('Nodes', this._markerLayer ), this._markerLayer ) );
         $mapControls.append( this._createLayerUI('Labels', this._labelLayer ) );
         $mapControls.append( this._createLayerUI('Countries', this._countryLayer ) );
-
+        // create date slider
         this._dateSlider = new DateSlider({
             dates: this._dates,
             slideStop: function() {
@@ -251,7 +252,7 @@ App.prototype = _.extend(App.prototype, {
             }
         });
         $dateControls.append(this._dateSlider.getElement());
-
+        // add handlers to summary button
         this._summaryButton = this._element.find('.summary-button');
         this._summaryButton.click( function() {
             swal({
@@ -259,6 +260,10 @@ App.prototype = _.extend(App.prototype, {
                 text: Config.summary,
                 html: true
             });
+        });
+        // add handler to drilldown close buttons
+        $drilldownContainer.find('.drilldown-close').click(function() {
+            $drilldownContainer.hide();
         });
     },
 
@@ -292,7 +297,14 @@ App.prototype = _.extend(App.prototype, {
             });
         this._baseTileLayer.addTo(this._map);
         // Initialize the country layer
-        this._countryLayer = new CountryLayer();
+        this._countryLayer = new CountryLayer({
+            redirect: function( data ) {
+                var dateStr = data.date;
+                if (dateStr !== 'Avg') {
+                    self._dateSlider.setDate(dateStr);
+                }
+            }
+        });
         this._countryLayer.addTo(this._map);
         // Initialize markers layer
         this._markerLayer = new MarkerLayer();

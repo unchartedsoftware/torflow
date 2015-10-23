@@ -25,10 +25,14 @@
 * SOFTWARE.
 */
 
-var CountryLayer = function() {
+var OutlierBarChart = require('../ui/outlierbarchart');
+
+var CountryLayer = function(spec) {
     this._geoJSONLayer = L.geoJson(null,{
-        style : this._getFeatureStyle.bind(this)
+        style: this._getFeatureStyle.bind(this),
+        onEachFeature: this._bindClickEvent.bind(this)
     });
+    this._redirect = spec.redirect;
     this._opacity = 0.2;
     this._histogram = null;
     this._geoJSONMap = {};
@@ -43,7 +47,6 @@ CountryLayer.prototype = _.extend(CountryLayer.prototype, {
         this._map = map;
         this._geoJSONLayer.addTo(map);
         this._$pane = $('#map').find('.leaflet-overlay-pane');
-        this._$pane.css('pointer-events','none');
         this.setOpacity(this.getOpacity());
         return this;
     },
@@ -81,12 +84,12 @@ CountryLayer.prototype = _.extend(CountryLayer.prototype, {
                         async: true
                     };
                     $.ajax(request)
-                        .done(function (geoJSON) {
+                        .done(function(geoJSON) {
                             self._geoJSONMap[countryCode] = geoJSON;
                             self._render(countryCode);
                             done(self._requestTimestamp !== currentTimestamp);
                         })
-                        .fail(function (err) {
+                        .fail(function(err) {
                             console.log(err);
                             done(self._requestTimestamp !== currentTimestamp);
                         });
@@ -102,6 +105,39 @@ CountryLayer.prototype = _.extend(CountryLayer.prototype, {
         if (geoJSON) {
             this._geoJSONLayer.addData(geoJSON);
         }
+    },
+
+    _bindClickEvent : function(feature, layer) {
+        var OUTLIERS_COUNT = 20;
+        var self = this;
+        layer.on({
+            click: function(event) {
+                var feature = event.target.feature;
+                var cc = self._threeLetterToTwoLetter(feature.id || feature.properties.ISO_A3);
+                var request = {
+                    url: '/outliers/' + cc + '/' + OUTLIERS_COUNT,
+                    type: 'GET',
+                    contentType: 'application/json; charset=utf-8',
+                    async: true
+                };
+                $.ajax(request)
+                    .done(function(json) {
+                        var $container = $('.drilldown-container');
+                        $container.show();
+                        // create chart
+                        var chart = new OutlierBarChart( $container.find('.drilldown-content') )
+                            .data(json[cc])
+                            .colorStops(['rgb(25,75,153)','rgb(100,100,100)','rgb(153,25,75)'])
+                            .title('Relay Count Outliers by Date')
+                            .click(self._redirect);
+                        // draw
+                        chart.draw();
+                    })
+                    .fail(function(err) {
+                        console.log(err);
+                    });
+            }
+        });
     },
 
     _threeLetterToTwoLetter : function(cc_threeLetter) {

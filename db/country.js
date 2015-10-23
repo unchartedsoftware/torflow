@@ -16,19 +16,16 @@ var getCountryOutliers = function(cc,count,callback) {
                 callback(err);
             } else {
                 var i;
-
-                count = Math.max(count,MAX_COUNT);
-
+                var outliers = {};
                 if (rows.length === 0) {
-                    var res = {};
-                    res[cc] = [];
-                    return res;
+                    outliers[cc] = [];
+                    return callback(null,outliers);
                 }
+                count = Math.max(count,MAX_COUNT);
                 if (Math.floor(rows.length/2) < count) {
-                    count = Math.floor(rows.length/2)
+                    count = Math.floor(rows.length/2);
                 }
-
-
+                // Calculate average
                 var sum = 0;
                 rows.forEach(function(row) {
                     sum += row.count;
@@ -38,8 +35,7 @@ var getCountryOutliers = function(cc,count,callback) {
                     date : 'Avg',
                     client_count : sum/rows.length
                 }];
-
-
+                // Calculate top
                 var topN = [];
                 for (i = 0; i < count; i++) {
                     topN.push({
@@ -48,20 +44,18 @@ var getCountryOutliers = function(cc,count,callback) {
                         date : moment(rows[i].date).format('YYYY-MM-DD')
                     });
                 }
-
+                // Calculate bottom
                 rows = _(rows).reverse().value();
                 var bottomN = [];
                 for (i = 0; i < count; i++) {
                     bottomN.push({
-                        position : count-i,
+                        position : -i,
                         client_count : rows[i].count,
                         date : moment(rows[i].date).format('YYYY-MM-DD')
                     });
                 }
-
-                var res = {};
-                res[cc] = topN.concat(avg.concat(bottomN));
-                callback(null,res);
+                outliers[cc] = topN.concat(avg.concat(bottomN));
+                callback(null,outliers);
             }
         });
 };
