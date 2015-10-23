@@ -28,6 +28,7 @@
 var ParticleLayer = require('./layers/particlelayer');
 var CountryLayer = require('./layers/countrylayer');
 var MarkerLayer = require('./layers/markerlayer');
+var DateSlider = require('./ui/dateslider');
 var Slider = require('./ui/slider');
 var ToggleBox = require('./ui/togglebox');
 var ButtonGroup = require('./ui/buttongroup');
@@ -63,42 +64,9 @@ App.prototype = _.extend(App.prototype, {
         this._particleLayer.clear();
     },
 
-    _latLngToNormalizedCoord : function(latLng) {
-        var px = this._map.project( latLng ),
-            dim = Math.pow( 2, this._map.getZoom() ) * 256;
-        return {
-            x: px.x / dim,
-            y: ( dim - px.y ) / dim
-        };
-    },
-
-    _getMoment : function(index) {
-        return moment(this._dates[index]);
-    },
-
-    _getFriendlyDate : function(index) {
-        return this._getMoment(index).format('dddd, MMMM Do YYYY');
-    },
-
-    _getISODate : function(index) {
-        var m = this._getMoment(index)
-            .hours(0)
-            .minutes(0)
-            .seconds(0);
-        return m.format();
-    },
-
-    _update : function() {
-        var newDateIdx = this._dateSlider.slider('getValue');
-        var isoDate = this._getISODate(newDateIdx);
+    _update : function( isoDate ) {
         this._clear();
         this._fetch(isoDate);
-    },
-
-    _onBrightnessSlide : function() {
-        var newBrightness = this._brightnessSlider.slider('getValue');
-        var containerEl = this._baseTileLayer.getContainer();
-        $(containerEl).css('-webkit-filter','brightness(' + newBrightness + ')');
     },
 
     _fetch : function(isoDateStr) {
@@ -262,30 +230,27 @@ App.prototype = _.extend(App.prototype, {
     },
 
     _initIndex : function() {
-        var totalDays = this._dates.length;
-        var extendedConfig = _.extend(Config,{
-            maxIndex : totalDays-1,
-            defaultDate : this._getFriendlyDate(totalDays-1)
-        });
-        this._element = $(document.body).append(Template(extendedConfig));
+        this._element = $(document.body).append(Template(Config));
     },
 
     _initUI : function() {
 
         var self = this,
-            $map = $('.map-controls');
-        $map.append( this._addFlowControls( this._createLayerUI('Flow', this._particleLayer ), this._particleLayer ) );
-        $map.append( this._addMarkerControls( this._createLayerUI('Nodes', this._markerLayer ), this._markerLayer ) );
-        $map.append( this._createLayerUI('Labels', this._labelLayer ) );
-        $map.append( this._createLayerUI('Countries', this._countryLayer ) );
+            $mapControls = $('.map-controls'),
+            $dateControls = $('.date-controls');
+        $mapControls.append( this._addFlowControls( this._createLayerUI('Flow', this._particleLayer ), this._particleLayer ) );
+        $mapControls.append( this._addMarkerControls( this._createLayerUI('Nodes', this._markerLayer ), this._markerLayer ) );
+        $mapControls.append( this._createLayerUI('Labels', this._labelLayer ) );
+        $mapControls.append( this._createLayerUI('Countries', this._countryLayer ) );
 
-        this._dateSlider = this._element.find('.date-slider');
-        this._dateSlider.slider({ tooltip: 'hide' });
-        this._dateSlider.on('slideStop', this._update.bind(this));
-        this._dateSlider.on('slide', function( event ) {
-            var date = self._getFriendlyDate(event.value);
-            $('.date-label').text(date);
+        this._dateSlider = new DateSlider({
+            dates: this._dates,
+            slideStop: function() {
+                var isoDate = self._dateSlider.getISODate();
+                self._update(isoDate);
+            }
         });
+        $dateControls.append(this._dateSlider.getElement());
 
         this._summaryButton = this._element.find('.summary-button');
         this._summaryButton.click( function() {
@@ -369,7 +334,7 @@ App.prototype = _.extend(App.prototype, {
         this._initLayers();
         this._initUI();
         // begin
-        this._update();
+        this._update(this._dateSlider.getISODate());
     },
 
     start: function () {

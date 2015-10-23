@@ -42,7 +42,7 @@ var Slider = function(spec) {
         '<div class="layer-control">' +
             '<Label class="layer-control-label">'+spec.label+'</Label>' +
             '<input class="slider" ' +
-                'type="text" data-slider-min="'+spec.min+'" ' +
+                'data-slider-min="'+spec.min+'" ' +
                 'data-slider-max="'+spec.max+'" ' +
                 'data-slider-step="'+spec.step+'" ' +
                 'data-slider-value="'+spec.initialValue+'"/>'+
