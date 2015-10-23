@@ -297,7 +297,14 @@ App.prototype = _.extend(App.prototype, {
             });
         this._baseTileLayer.addTo(this._map);
         // Initialize the country layer
-        this._countryLayer = new CountryLayer();
+        this._countryLayer = new CountryLayer({
+            redirect: function( data ) {
+                var dateStr = data.date;
+                if (dateStr !== 'Avg') {
+                    self._dateSlider.setDate(dateStr);
+                }
+            }
+        });
         this._countryLayer.addTo(this._map);
         // Initialize markers layer
         this._markerLayer = new MarkerLayer();

@@ -27,11 +27,12 @@
 
 var OutlierBarChart = require('../ui/outlierbarchart');
 
-var CountryLayer = function() {
+var CountryLayer = function(spec) {
     this._geoJSONLayer = L.geoJson(null,{
         style: this._getFeatureStyle.bind(this),
         onEachFeature: this._bindClickEvent.bind(this)
     });
+    this._redirect = spec.redirect;
     this._opacity = 0.2;
     this._histogram = null;
     this._geoJSONMap = {};
@@ -107,9 +108,8 @@ CountryLayer.prototype = _.extend(CountryLayer.prototype, {
     },
 
     _bindClickEvent : function(feature, layer) {
-        //bind click
-        var self = this,
-            OUTLIERS_COUNT = 10;
+        var OUTLIERS_COUNT = 20;
+        var self = this;
         layer.on({
             click: function(event) {
                 var feature = event.target.feature;
@@ -124,11 +124,14 @@ CountryLayer.prototype = _.extend(CountryLayer.prototype, {
                     .done(function(json) {
                         var $container = $('.drilldown-container');
                         $container.show();
+                        // create chart
                         var chart = new OutlierBarChart( $container.find('.drilldown-content') )
-                            .colorStops(['#00f','#444','#f00'])
                             .data(json[cc])
-                            //.click(onClick)
-                            .draw();
+                            .colorStops(['rgb(25,75,153)','rgb(100,100,100)','rgb(153,25,75)'])
+                            .title('Relay Count Outliers by Date')
+                            .click(self._redirect);
+                        // draw
+                        chart.draw();
                     })
                     .fail(function(err) {
                         console.log(err);

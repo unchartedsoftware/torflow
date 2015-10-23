@@ -38,7 +38,7 @@ body {
 }
 
 .map-control-element {
-    background-color: rgba(0,0,0,0.3);
+    background-color: rgba(0,0,0,0.4);
     border-radius: 4px;
     border: 1px solid #000;
     padding: 4px;
@@ -52,12 +52,6 @@ body {
 }
 
 .layer-control-body {
-    /*
-    -webkit-transition: height 0.4s;
-       -moz-transition: height 0.4s;
-         -o-transition: height 0.4s;
-            transition: height 0.4s;
-    */
     border-top: 1px solid #000;
     overflow: hidden;
 }
@@ -145,6 +139,7 @@ body {
 .btn-primary.active,
 .btn-primary.active:hover,
 .summary-button,
+.drilldown-close,
 .leaflet-bar a,
 .leaflet-bar a.leaflet-disabled {
     border: 1px solid rgb(20, 155, 223);
@@ -163,7 +158,8 @@ body {
 }
 
 .leaflet-bar a:hover,
-.summary-button:hover {
+.summary-button:hover,
+.drilldown-close {
     background-color: rgb(40, 96, 144);
     color: #eee;
     line-height: 24px;
@@ -399,11 +395,11 @@ a {
 
 .drilldown-container {
     position: absolute;
-    top: 80px;
-    left: 10px;
+    bottom: 110px;
+    right: 10px;
     height: 400px;
     width: 612px;
-    background-color: rgba(0,0,0,0.3);
+    background-color: rgba(0,0,0,0.4);
     border-radius: 4px;
     border: 1px solid #000;
     padding: 4px;
@@ -420,29 +416,40 @@ a {
 
 .drilldown-close {
     position: absolute;
+    cursor: pointer;
     top: 10px;
     right: 10px;
-    cursor: pointer;
-    color: #fff;
-    height: 20px;
-    width: 20px;
-    text-align: center;
+    width: 26px;
+    height: 26px;
+    line-height: 26px;
     z-index: 2;
+    box-sizing: border-box;
+    border-radius: 4px;
 }
 
-.drilldown-close:hover {
-    color: rgb(20, 155, 223);
+.chart-title {
+    font-size: 16px;
+    fill: #ccc;
+}
+
+.chart-title,
+.x-axis,
+.y-axis {
+    font: "Lucida Grande", Helvetica, Arial, sans-serif;
 }
 
 .bar {
-
+    cursor: pointer;
+    opacity: 0.8;
 }
 
 .bar:hover {
+    opacity: 1.0;
 }
 
 .axis {
-    font: 10px sans-serif;
+    font: "Lucida Grande", Helvetica, Arial, sans-serif;
+    font-size: 10px;
     fill: #ccc;
 }
 

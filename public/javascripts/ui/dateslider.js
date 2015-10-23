@@ -145,6 +145,16 @@ DateSlider.prototype.getElement = function() {
     return this._$container;
 };
 
+DateSlider.prototype.setDate = function(dateString) {
+    var datePieces = dateString.split('-');
+    var year = datePieces[0];
+    var month = ('0' + datePieces[1]).slice(-2);
+    var day = ('0' + datePieces[2]).slice(-2);
+    var dateIndex = _getDateIndex(this._dates, day, month, year);
+    _setDateIndex(this, dateIndex);
+    _setDateHash(this._dates, dateIndex);
+};
+
 DateSlider.prototype.getDateString = function() {
     return _getFriendlyDate(this._dates, this._dateIndex);
 };

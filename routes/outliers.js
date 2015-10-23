@@ -35,7 +35,6 @@ var countryDB = require('../db/country');
 router.get('/:countrycode/:count', function(req, res) {
     var cc = req.params.countrycode.toLowerCase();
     var count = parseInt(req.params.count,10);
-
     countryDB.getCountryOutliers(cc,count,function(err,json) {
         if (err) {
             res.send(null);
