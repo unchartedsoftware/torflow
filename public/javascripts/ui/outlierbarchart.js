@@ -1,3 +1,30 @@
+/**
+* Copyright © 2015 Uncharted Software Inc.
+*
+* Property of Uncharted™, formerly Oculus Info Inc.
+* http://uncharted.software/
+*
+* Released under the MIT License.
+*
+* Permission is hereby granted, free of charge, to any person obtaining a copy of
+* this software and associated documentation files (the "Software"), to deal in
+* the Software without restriction, including without limitation the rights to
+* use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies
+* of the Software, and to permit persons to whom the Software is furnished to do
+* so, subject to the following conditions:
+*
+* The above copyright notice and this permission notice shall be included in all
+* copies or substantial portions of the Software.
+*
+* THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+* IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+* FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+* AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+* LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+* OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+* SOFTWARE.
+*/
+
 var OutlierBarChart = function(container) {
     this._container = container;
     this._data = null;
@@ -113,7 +140,6 @@ OutlierBarChart.prototype._update = function() {
         .style('text-anchor', 'end')
         .text('Frequency');
 
-
     var positiveInterpolator = d3.scale.linear()
         .domain([(this._data.length-1)/2,0])
         .interpolate(d3.interpolateRgb)
@@ -135,10 +161,16 @@ OutlierBarChart.prototype._update = function() {
                 return negativeInterpolator(d.position);
             }
         })
-        .attr('x', function(d) { return x(d.date); })
+        .attr('x', function(d) {
+            return x(d.date);
+        })
         .attr('width', x.rangeBand())
-        .attr('y', function(d) { return y(d.client_count); })
-        .attr('height', function(d) { return self._height - y(d.client_count); });
+        .attr('y', function(d) {
+            return y(d.client_count);
+        })
+        .attr('height', function(d) {
+            return self._height - y(d.client_count);
+        });
 
     if (this._onClick) {
         svg.selectAll('.bar').on('click', function () {
@@ -146,3 +178,5 @@ OutlierBarChart.prototype._update = function() {
         });
     }
 };
+
+module.exports = OutlierBarChart;
