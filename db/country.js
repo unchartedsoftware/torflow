@@ -43,7 +43,7 @@ var getCountryOutliers = function(cc,count,callback) {
                     topN.push({
                         position : count-i,
                         client_count : rows[i].count,
-                        date : moment(rows[i].date).format('MMM Do, YYYY')
+                        date : moment.utc(rows[i].date).format('MMM Do, YYYY')
                     });
                 }
                 // Calculate bottom
@@ -52,7 +52,7 @@ var getCountryOutliers = function(cc,count,callback) {
                     bottomN.push({
                         position : i-rows.length,
                         client_count : rows[i].count,
-                        date : moment(rows[i].date).format('MMM Do, YYYY')
+                        date : moment.utc(rows[i].date).format('MMM Do, YYYY')
                     });
                 }
                 outliers[cc] = topN.concat(avg.concat(bottomN));

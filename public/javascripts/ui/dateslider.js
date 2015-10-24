@@ -28,7 +28,7 @@
 var DateSliderTemplate = require('../templates/dateslider');
 
 var _getMoment = function(dates, index) {
-    return moment(dates[index]);
+    return moment.utc(dates[index]);
 };
 
 var _getFriendlyDate = function(dates,index) {

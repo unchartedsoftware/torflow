@@ -25,7 +25,6 @@
 * SOFTWARE.
 */
 
-var moment = require('moment');
 var _ = require('lodash');
 var relayDB = require('../db/relay');
 var DBUtil = require('../db/db_utils');
