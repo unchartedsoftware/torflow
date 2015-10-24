@@ -6,10 +6,10 @@ var moment = require('moment');
 
 function getMySQLDate(dateId) {
 	var date = moment.utc(dateId);
-    var day = date.date();    // date == day of month, day == day of week.
+    var day = date.date(); // date == day of month, day == day of week.
     var month = date.month() + 1; // indexed from 0?
     var year = date.year();
-	return year + '/' + month + '/' + day + ' 00:00:00';
+	return year + '-' + month + '-' + day + ' 00:00:00';
 }
 
 function tableExists(schema,tablename,callback) {

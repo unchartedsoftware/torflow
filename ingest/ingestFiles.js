@@ -33,15 +33,15 @@ var ingestFiles = function(resolvedPath,callback) {
 					done(err);
 				});
 		},
-		// update dates table
-		function(done) {
-			console.log('Updating dates table');
-			datesDB.updateDates(done);
-		},
 		// update relay_aggregates table
 		function(done) {
 			console.log('Updating relay_aggregates table');
 			relayDB.updateAggregates(done);
+		},
+		// update dates table
+		function(done) {
+			console.log('Updating dates table');
+			datesDB.updateDates(done);
 		},
 		// update country_counts table
 		function(done) {

@@ -58,7 +58,7 @@ var _getDateIndexFromHash = function(dates) {
     try {
         var hash = window.location.hash.replace('#/', '');
         if (hash !== '') {
-            var datePieces = hash.split('_');
+            var datePieces = hash.split('-');
             var year = datePieces[0];
             var month = ('0' + datePieces[1]).slice(-2);
             var day = ('0' + datePieces[2]).slice(-2);
@@ -74,7 +74,7 @@ var _setDateHash = function(dates, dateIndex) {
     var hashIndex = _getDateIndexFromHash(dates);
     if ( hashIndex !== dateIndex ) {
         var m = _getMoment(dates, dateIndex);
-        window.location.hash = '#/' + m.year() + '_' + (m.month()+1) + '_' + m.date();
+        window.location.hash = '#/' + m.year() + '-' + (m.month()+1) + '-' + m.date();
     }
 };
 

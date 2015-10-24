@@ -1,8 +1,25 @@
 var connectionPool = require('./connection');
 var config = require('../config');
-var datesDB = require('./dates');
 var async = require('async');
 var relayAggregator = require('../ingest/relayAggregator');
+
+var _getAggregateSummaryStats = function(nodes) {
+    var max = -Number.MAX_VALUE;
+    var min = Number.MAX_VALUE;
+    var sum = 0;
+    nodes.forEach(function(node) {
+        max = Math.max(max,node.bandwidth);
+        min = Math.min(min,node.bandwidth);
+        sum += node.bandwidth;
+    });
+    return {
+        minMax : {
+            min: min,
+            max: max
+        },
+        bandwidth: sum
+    };
+};
 
 var getRelays = function(date,callback) {
     connectionPool.query(
@@ -21,6 +38,21 @@ var getRelays = function(date,callback) {
         });
 };
 
+var getDates = function(callback) {
+    connectionPool.query(
+        'SELECT distinct date FROM ' + config.db.database + '.relays order by date asc',
+        function(err,rows) {
+            if (err) {
+                callback(err);
+            } else {
+                var dates = rows.map(function(row) {
+                    return row.date;
+                });
+                callback(null,dates);
+            }
+        });
+};
+
 var updateAggregates = function(callback) {
     async.waterfall([
         // truncate table if it exists
@@ -31,7 +63,7 @@ var updateAggregates = function(callback) {
         },
         // get all dates from dates table
         function(rows,done) {
-            datesDB.getDates(done);
+            getDates(done);
         },
         // aggregate and insert relays
         function(dates,done) {
@@ -63,13 +95,16 @@ var updateAggregates = function(callback) {
 var getAggregatedRelays = function(date,count,callback) {
     var limitStr = count ? 'LIMIT ' + count : '';
     connectionPool.query(
-        'SELECT * FROM ' + config.db.database + '.relay_aggregates WHERE date=? ORDER BY bandwidth DESC ' + limitStr,
+        'SELECT x,y,lat,lng,bandwidth,normalized_bandwidth,label FROM ' + config.db.database +
+            '.relay_aggregates WHERE date=? ORDER BY bandwidth DESC ' + limitStr,
         [date],
         function(err,rows) {
             if (err) {
                 callback(err);
             } else {
-                callback(null,rows);
+                var res = _getAggregateSummaryStats(rows);
+                res.nodes = rows;
+                callback(null,res);
             }
         });
 };
@@ -87,21 +122,6 @@ var getFingerprints = function(date,callback) {
                     fingerprintToId[row.fingerprint] = row.id;
                 });
                 callback(null,fingerprintToId);
-            }
-        });
-};
-
-var getDates = function(callback) {
-    connectionPool.query(
-        'SELECT distinct date FROM ' + config.db.database + '.relays order by date asc',
-        function(err,rows) {
-            if (err) {
-                callback(err);
-            } else {
-                var dates = rows.map(function(row) {
-                    return row.date;
-                });
-                callback(null,dates);
             }
         });
 };

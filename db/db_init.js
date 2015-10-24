@@ -67,8 +67,10 @@ var _getTableSpecs = function() {
 	var dates = {
 		name : 'dates',
 		columns : [
-			db_utils.createColumnString('date','datetime',nonNull)
-		]
+			db_utils.createColumnString('date','datetime',nonNull),
+			db_utils.createColumnString('bandwidth','float',nonNull)
+		],
+		indices: ['bandwidth']
 	};
 
 	tables.push(relays);
