@@ -43,7 +43,7 @@ var getCountryOutliers = function(cc,count,callback) {
                     topN.push({
                         position : count-i,
                         client_count : rows[i].count,
-                        date : moment(rows[i].date).format('MMM D, YYYY')
+                        date : moment(rows[i].date).format('MMM Do, YYYY')
                     });
                 }
                 // Calculate bottom
