@@ -28,7 +28,7 @@
 var OutlierBarChart = function(container) {
     this._container = container;
     this._data = null;
-    this._margin = {top: 40, right: 20, bottom: 80, left: 70};
+    this._margin = {top: 40, right: 20, bottom: 90, left: 70};
     this._width = $(container).width() - this._margin.left - this._margin.right;
     this._height = $(container).height() - this._margin.top - this._margin.bottom;
     this._colorStops = ['#0000ff','#898989','#ff0000'];
@@ -143,7 +143,7 @@ OutlierBarChart.prototype._update = function() {
         .call(xAxis);
 
     svgXAxis.selectAll('text')
-        .attr('transform', 'rotate(-45), translate(-35,0)');
+        .attr('transform', 'rotate(-45), translate(-38,0)');
 
     svgXAxis.append('text')
         .attr('class', 'x-axis-title')
@@ -213,15 +213,24 @@ OutlierBarChart.prototype._update = function() {
             if ($label) {
                 $label.remove();
             }
-            $label = $(
-                '<div class="hover-label">'+
-                    '<div style="float:left; width:50px">Date: </div>' +
-                    '<div style="float:right">' + d.date + '</div>' +
-                    '<div style="clear:both"></div>' +
-                    '<div style="float:left; width:80px">Count: </div>' +
-                    '<div style="float:right">' + d.client_count + '</div>' +
-                    '<div style="clear:both"></div>' +
-                '</div>' );
+            if (d.date === 'Average') {
+                $label = $(
+                    '<div class="hover-label">'+
+                        '<div style="float:left; width:100px">Average Count: </div>' +
+                        '<div style="float:right">' + d.client_count.toFixed(2) + '</div>' +
+                        '<div style="clear:both"></div>' +
+                    '</div>' );
+            } else {
+                $label = $(
+                    '<div class="hover-label">'+
+                        '<div style="float:left; width:50px">Date: </div>' +
+                        '<div style="float:right">' + d.date + '</div>' +
+                        '<div style="clear:both"></div>' +
+                        '<div style="float:left; width:80px">Count: </div>' +
+                        '<div style="float:right">' + d.client_count + '</div>' +
+                        '<div style="clear:both"></div>' +
+                    '</div>' );
+            }
             $( document.body ).append( $label );
             $label.css({
                 'left': d3.event.pageX - $label.outerWidth()/2,

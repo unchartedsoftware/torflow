@@ -301,7 +301,7 @@ App.prototype = _.extend(App.prototype, {
         this._countryLayer = new CountryLayer({
             redirect: function( data ) {
                 var dateStr = moment(data.date).format('YYYY-MM-DD');
-                if (dateStr !== 'Avg') {
+                if (dateStr !== 'Average') {
                     self._dateSlider.setDate(dateStr);
                 }
             }
