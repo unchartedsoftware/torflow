@@ -47,6 +47,7 @@ body {
 }
 
 .layer-control-head {
+    position: relative;
     cursor: pointer;
     line-height: 20px;
     padding-bottom: 4px;
@@ -92,6 +93,14 @@ body {
     padding-right: 8px;
     float: left;
     color: rgb(20, 155, 223);
+}
+
+.minimize-toggle {
+    cursor: pointer;
+    line-height: 20px;
+    font-size: 12px;
+    color: rgb(20, 155, 223);
+    pointer-events: none;
 }
 
 .layer-control .slider.slider-horizontal {

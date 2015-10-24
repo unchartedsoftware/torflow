@@ -34,44 +34,87 @@ var LayerMenu = function(spec) {
     spec.label = spec.label !== undefined ? spec.label : 'missing-layer-name';
     spec.layer = spec.layer || null;
     spec.isVisible = !spec.layer.isHidden();
+    spec.isMinimized = false;
     if ( !spec.layer ) {
         console.error('LayerMenu constructor must be passed a "layer" attribute');
     }
+    // set layer
+    this._layer = spec.layer;
+    // set minimized
+    this._minimized = spec.isMinimized;
     // create elements
     this._$menu = $( LayerMenuTemplate(spec) );
     this._$head = this._$menu.find('.layer-control-head');
     this._$body = this._$menu.find('.layer-control-body');
     this._$title = this._$menu.find('.layer-title');
-    this._$toggleIcon = this._$menu.find('i.fa');
+    this._$toggleIcon = this._$menu.find('.layer-toggle i');
     this._$toggle = this._$menu.find('.layer-toggle');
+    this._$minimizeIcon = this._$menu.find('.minimize-toggle i');
+    this._$minimize = this._$menu.find('.minimize-toggle');
     // attach callbacks
-    var prevHeight;
-    this._$head.click( function() {
-        if ( spec.layer.isHidden() ) {
-            spec.layer.show();
-            self._$toggleIcon.removeClass('fa-square-o');
-            self._$toggleIcon.addClass('fa-check-square-o');
-            self._$body.css({
-                height: prevHeight,
-                border: ''
-            });
-            self._$head.css({
-                padding: ''
-            });
-        } else {
-            spec.layer.hide();
-            self._$toggleIcon.removeClass('fa-check-square-o');
-            self._$toggleIcon.addClass('fa-square-o');
-            prevHeight = self._$body.outerHeight();
-            self._$body.css({
-                height: '0px',
-                border: 'none'
-            });
-            self._$head.css({
-                padding: 'initial'
-            });
-        }
+    this._$toggle.click( function() {
+        self.toggleEnabled();
     });
+    this._$title.click( function() {
+        self.toggleMinimized();
+    });
+};
+
+LayerMenu.prototype.toggleMinimized = function() {
+    if ( this._minimized ) {
+        this.maximize();
+    } else {
+        this.minimize();
+    }
+};
+
+LayerMenu.prototype.minimize = function() {
+    this._originalHeight = this._$body.outerHeight();
+    this._$minimizeIcon.removeClass('fa-minus');
+    this._$minimizeIcon.addClass('fa-plus');
+    this._$body.css({
+        height: '0px',
+        border: 'none'
+    });
+    this._$head.css({
+        padding: 'initial'
+    });
+    this._minimized = true;
+};
+
+LayerMenu.prototype.maximize = function() {
+    this._$minimizeIcon.removeClass('fa-plus');
+    this._$minimizeIcon.addClass('fa-minus');
+    this._$body.css({
+        height: this._originalHeight,
+        border: ''
+    });
+    this._$head.css({
+        padding: ''
+    });
+    this._minimized = false;
+};
+
+LayerMenu.prototype.toggleEnabled = function() {
+    if ( this._layer.isHidden() ) {
+        this.enable();
+    } else {
+        this.disable();
+    }
+};
+
+LayerMenu.prototype.disable = function() {
+    this._layer.hide();
+    this._$toggleIcon.removeClass('fa-check-square-o');
+    this._$toggleIcon.addClass('fa-square-o');
+    this._$body.css('opacity', '0.3');
+};
+
+LayerMenu.prototype.enable = function() {
+    this._layer.show();
+    this._$toggleIcon.removeClass('fa-square-o');
+    this._$toggleIcon.addClass('fa-check-square-o');
+    this._$body.css('opacity', '');
 };
 
 LayerMenu.prototype.getElement = function() {

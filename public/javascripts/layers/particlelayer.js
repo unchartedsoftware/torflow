@@ -181,10 +181,14 @@ var ParticleLayer = WebGLOverlay.extend({
         var MIN_SCALE = 0.1;
         if ( this.scaleCountByBandwidth() ) {
             var scale = ( this._currentBandwidth - this._minBandwidth ) / (this._maxBandwidth - this._minBandwidth);
-            return ( this._particleCount || PARTICLE_COUNT ) * Math.max(scale, MIN_SCALE);
+            return this.getUnscaledParticleCount() * Math.max(scale, MIN_SCALE);
         } else {
-            return this._particleCount || PARTICLE_COUNT;
+            return this.getUnscaledParticleCount();
         }
+    },
+
+    getUnscaledParticleCount: function() {
+        return this._particleCount || PARTICLE_COUNT;
     },
 
     getParticleCountMin: function() {

@@ -160,12 +160,12 @@ App.prototype = _.extend(App.prototype, {
                 min: layer.getParticleCountMin(),
                 max: layer.getParticleCountMax(),
                 step: (layer.getParticleCountMax() - layer.getParticleCountMin())/10,
-                initialValue: layer.getParticleCount(),
+                initialValue: layer.getUnscaledParticleCount(),
                 formatter: function( value ) {
                     return (value/1000) + 'K';
                 },
                 slideStop: function( event ) {
-                    if ( event.value !== layer.getParticleCount() ) {
+                    if ( event.value !== layer.getUnscaledParticleCount() ) {
                         layer.setParticleCount( event.value );
                     }
                 }
@@ -250,10 +250,10 @@ App.prototype = _.extend(App.prototype, {
             $dateControls = $('.date-controls'),
             $drilldownContainer = $('.drilldown-container');
         // create map controls
-        $mapControls.append( this._addFlowControls( this._createLayerUI('Flow', this._particleLayer ), this._particleLayer ) );
+        $mapControls.append( this._addFlowControls( this._createLayerUI('Particles', this._particleLayer ), this._particleLayer ) );
         $mapControls.append( this._addMarkerControls( this._createLayerUI('Nodes', this._markerLayer ), this._markerLayer ) );
         $mapControls.append( this._createLayerUI('Labels', this._labelLayer ) );
-        $mapControls.append( this._createLayerUI('Countries', this._countryLayer ) );
+        $mapControls.append( this._createLayerUI('Top Clients', this._countryLayer ) );
         // create date slider
         this._dateSlider = new DateSlider({
             dates: this._dates,
@@ -326,6 +326,7 @@ App.prototype = _.extend(App.prototype, {
         this._particleLayer.setBandwidthMinMax(
             this._min.bandwidth,
             this._max.bandwidth );
+        this._particleLayer.scaleCountByBandwidth(true);
         this._particleLayer.addTo(this._map);
         // Initialize the label layer
         this._labelLayer = L.tileLayer(
