@@ -29,6 +29,7 @@ body {
     font: 14px "Lucida Grande", Helvetica, Arial, sans-serif;
     font-size: 12px;
     color: #eee;
+    overflow: hidden;
     -webkit-touch-callout: none;
       -webkit-user-select: none;
        -khtml-user-select: none;
