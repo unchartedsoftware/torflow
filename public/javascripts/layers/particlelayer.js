@@ -112,7 +112,7 @@ var ParticleLayer = WebGLOverlay.extend({
             type: 'start',
             spec: {
                 offset: Config.particle_offset,
-                count: this.getParticleCount()
+                count: this.getUnscaledParticleCount()
             },
             nodes: this._nodes
         });
@@ -122,14 +122,21 @@ var ParticleLayer = WebGLOverlay.extend({
         var gl = this._gl,
             hiddenServicesCount = Math.floor(Config.hiddenServiceProbability * this.getParticleCount());
         this._shader.setUniform( 'uColor', [ 0.6, 0.1, 0.3 ] );
-        gl.drawArrays( gl.POINTS, 0, hiddenServicesCount );
+        gl.drawArrays(
+            gl.POINTS, // primitive type
+            0, // offset
+            hiddenServicesCount ); // count
     },
 
     _drawGeneralServices: function() {
         var gl = this._gl,
-            hiddenServicesCount = Math.floor(Config.hiddenServiceProbability * this.getParticleCount());
+            hiddenServicesCount = Math.floor(Config.hiddenServiceProbability * this.getParticleCount()),
+            generalServicesCount = this.getParticleCount() - hiddenServicesCount;
         this._shader.setUniform( 'uColor', [ 0.1, 0.3, 0.6 ] );
-        gl.drawArrays( gl.POINTS, hiddenServicesCount, this.getParticleCount() - hiddenServicesCount );
+        gl.drawArrays(
+            gl.POINTS, // primitive type
+            hiddenServicesCount, // offset
+            generalServicesCount ); // count
     },
 
     showTraffic: function(state) {
@@ -182,9 +189,8 @@ var ParticleLayer = WebGLOverlay.extend({
         if ( this.scaleCountByBandwidth() ) {
             var scale = ( this._currentBandwidth - this._minBandwidth ) / (this._maxBandwidth - this._minBandwidth);
             return this.getUnscaledParticleCount() * Math.max(scale, MIN_SCALE);
-        } else {
-            return this.getUnscaledParticleCount();
         }
+        return this.getUnscaledParticleCount();
     },
 
     getUnscaledParticleCount: function() {
