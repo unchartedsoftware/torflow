@@ -34,11 +34,11 @@ var handlebars      = require('gulp-handlebars');
 var defineModule    = require('gulp-define-module');
 var jshint          = require('gulp-jshint');
 var wait            = require('gulp-wait');
-var runSequence     = require('gulp-run-sequence');
 var minifyCss       = require('gulp-minify-css');
 var filter          = require('gulp-filter');
 var bower           = require('main-bower-files');
 var concat          = require('gulp-concat');
+var runSequence     = require('run-sequence');
 
 var config = {
     src: './javascripts/',
