@@ -56,7 +56,6 @@ var getCountryOutliers = function(cc,count,callback) {
                     });
                 }
                 outliers[cc] = topN.concat(avg.concat(bottomN));
-                console.log(outliers[cc].length);
                 callback(null,outliers);
             }
         });
