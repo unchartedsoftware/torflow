@@ -300,7 +300,12 @@ App.prototype = _.extend(App.prototype, {
         // Initialize the country layer
         this._countryLayer = new CountryLayer({
             redirect: function( data ) {
-                var dateStr = moment(data.date).format('YYYY-MM-DD');
+                var date = data.date
+                    .replace(/st/gi,'')
+                    .replace(/nd/gi,'')
+                    .replace(/rd/gi,'')
+                    .replace(/th/gi,'');
+                var dateStr = moment(date).format('YYYY-MM-DD');
                 if (dateStr !== 'Invalid date') {
                     self._dateSlider.setDate(dateStr);
                 }
