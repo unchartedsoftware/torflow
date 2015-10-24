@@ -23,14 +23,12 @@ var updateDates = function(callback) {
     async.waterfall([
         // truncate table if it exists
         function(done) {
-            console.log('truncate');
             connectionPool.query(
                 'TRUNCATE ' + config.db.database + '.dates',
                 done);
         },
         // get all dates from relay table
         function(rows,done) {
-            console.log('get dates');
             relayDB.getDates(done);
         },
         // for each date, get the min, max, and total bandwidth, and insert into table
