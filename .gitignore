@@ -62,6 +62,7 @@ config.js
 **/templates/*.js
 **/extern.js
 **/extern.css
+!**/extern/fonts/
 .vagrant/
 map/
 data/relays/*
