@@ -25,69 +25,69 @@
 * SOFTWARE.
 */
 
-var ParticleLayer = require('./layers/particlelayer');
-var CountryLayer = require('./layers/countrylayer');
-var MarkerLayer = require('./layers/markerlayer');
-var DateSlider = require('./ui/dateslider');
-var Slider = require('./ui/slider');
-var ToggleBox = require('./ui/togglebox');
-var ButtonGroup = require('./ui/buttongroup');
-var LayerMenu = require('./ui/layermenu');
-var Config = require('./config');
-var Template = require('./templates/main');
+(function() {
 
-/**
- * Creates the TorFlow front-end app
- * @constructor
- */
-var App = function() {};
+    'use strict';
 
-App.prototype = _.extend(App.prototype, {
+    var ParticleLayer = require('./layers/particlelayer');
+    var CountryLayer = require('./layers/countrylayer');
+    var MarkerLayer = require('./layers/markerlayer');
+    var LabelLayer = require('./layers/labellayer');
+    var DateSlider = require('./ui/dateslider');
+    var Slider = require('./ui/slider');
+    var ToggleBox = require('./ui/togglebox');
+    var ButtonGroup = require('./ui/buttongroup');
+    var LayerMenu = require('./ui/layermenu');
+    var Config = require('./config');
+    var MainTemplate = require('./templates/main');
 
-    _particleLayer : null,
-    _markerLayer : null,
-    _countryLayer : null,
-    _map : null,
-    _element : null,
-    _currentNodeData : null,
-    _currentHistogram : null,
+    // Map elements
+    var _map = null;
+    var _particleLayer = null;
+    var _markerLayer = null;
+    var _countryLayer = null;
+    var _labelLayer = null;
+    var _baseLayer = null;
 
-    _update : function() {
-        this._updateNodes();
-        this._updateCountries();
-    },
+    // Date slider which controls which date is currently being visualized.
+    var _dateSlider = null;
 
-    _updateNodes : function() {
-        var self = this;
-        var isoDate = this._dateSlider.getISODate();
-        var nodeCount = self._markerLayer.getNodeCount();
+    // Date information object containing all dates and the dates with the
+    // min and max bandwidths.
+    var _dateInfo = null;
+
+    var _updateNodes = function() {
+        var isoDate = _dateSlider.getISODate();
+        var nodeCount = _markerLayer.getNodeCount();
         // clear existing data
-        this._markerLayer.clear();
-        this._particleLayer.clear();
+        _markerLayer.clear();
+        _particleLayer.clear();
         // request node data
         d3.json('/nodes/' + encodeURI(isoDate) + '?count=' + nodeCount, function(data) {
-            self._currentNodeData = data;
             // Create markers
-            self._markerLayer.set(data);
+            _markerLayer.set(data);
             // Update particles, if they are different
-            self._particleLayer.updateNodes(data.nodes, data.bandwidth);
+            _particleLayer.updateNodes(data.nodes, data.bandwidth);
         });
-    },
+    };
 
-    _updateCountries : function() {
-        var self = this;
-        var isoDate = this._dateSlider.getISODate();
-        var countryCount = self._countryLayer.getCountryCount();
+    var _updateCountries = function() {
+        var isoDate = _dateSlider.getISODate();
+        var countryCount = _countryLayer.getCountryCount();
         // clear existing data
-        this._countryLayer.clear();
+        _countryLayer.clear();
         // request client country count data
         d3.json('/country/' + encodeURI(isoDate) + '?count=' + countryCount, function(histogram) {
-            self._currentHistogram = histogram;
-            self._countryLayer.set(histogram);
+            _countryLayer.set(histogram);
         });
-    },
+    };
 
-    _createLayerUI : function(layerName,layer) {
+    var _update = function() {
+        _updateNodes();
+        _updateCountries();
+    };
+
+    var _createLayerUI = function(layerName,layer) {
         var layerMenu = new LayerMenu({
                 layer: layer,
                 label: layerName
@@ -104,9 +104,9 @@ App.prototype = _.extend(App.prototype, {
             });
         layerMenu.getBody().append( opacitySlider.getElement() ).append('<div style="clear:both;"></div>');
         return layerMenu.getElement();
-    },
+    };
 
-    _addFlowControls : function($controlElement, layer) {
+    var _addFlowControls = function($controlElement, layer) {
         var speedSlider = new Slider({
                 label: 'Particle Speed',
                 min: Config.particle_speed_min_factor,
@@ -204,10 +204,9 @@ App.prototype = _.extend(App.prototype, {
             .append( scaleByBandwidthToggle.getElement() ).append('<div style="clear:both;"></div>')
             .append( servicesButtonGroup.getElement() ).append('<div style="clear:both;"></div>');
         return $controlElement;
-    },
+    };
 
-    _addMarkerControls : function($controlElement, layer) {
-        var self = this;
+    var _addMarkerControls = function($controlElement, layer) {
         var nodeCountSlider = new Slider({
                 label: 'Node Count (top n)',
                 min: layer.getNodeCountMin(),
@@ -220,7 +219,7 @@ App.prototype = _.extend(App.prototype, {
                 slideStop: function( event ) {
                     if ( event.value !== layer.getNodeCount() ) {
                         layer.setNodeCount( event.value );
-                        self._updateNodes();
+                        _updateNodes();
                     }
                 }
             }),
@@ -238,10 +237,9 @@ App.prototype = _.extend(App.prototype, {
             .append( nodeCountSlider.getElement() ).append('<div style="clear:both;"></div>')
             .append( scaleByBandwidthToggle.getElement() ).append('<div style="clear:both;"></div>');
         return $controlElement;
-    },
+    };
 
-    _addCountryControls : function($controlElement, layer) {
-        var self = this;
+    var _addCountryControls = function($controlElement, layer) {
         var countryCountSlider = new Slider({
                 label: 'Country Count (top n)',
                 min: layer.getCountryCountMin(),
@@ -254,104 +252,107 @@ App.prototype = _.extend(App.prototype, {
                 slideStop: function( event ) {
                     if ( event.value !== layer.getCountryCount() ) {
                         layer.setCountryCount( event.value );
-                        self._updateCountries();
+                        _updateCountries();
                     }
                 }
             });
         $controlElement.find('.layer-control-body')
             .append( countryCountSlider.getElement() ).append('<div style="clear:both;"></div>');
         return $controlElement;
-    },
+    };
 
-    _initIndex : function() {
-        this._element = $(document.body).append(Template(Config));
-    },
+    var _initMain = function() {
+        // Create and append the main tempalte
+        $(document.body).append( MainTemplate(Config) );
+    };
 
-    _initUI : function() {
-        var self = this,
-            $mapControls = $('.map-controls'),
-            $dateControls = $('.date-controls'),
-            $drilldownContainer = $('.drilldown-container');
-        // create map controls
-        $mapControls.append( this._addFlowControls( this._createLayerUI('Particles', this._particleLayer ), this._particleLayer ) );
-        $mapControls.append( this._addMarkerControls( this._createLayerUI('Nodes', this._markerLayer ), this._markerLayer ) );
-        $mapControls.append( this._createLayerUI('Labels', this._labelLayer ) );
-        $mapControls.append( this._addCountryControls( this._createLayerUI('Top Client Connections', this._countryLayer ), this._countryLayer ) );
-        // create date slider
-        this._dateSlider = new DateSlider({
-            dates: this._dates,
+    var _initUI = function() {
+        // Grab all relevant elements
+        var $mapControls = $('.map-controls');
+        var $dateControls = $('.date-controls');
+        var $summaryButton = $('.summary-button');
+        var $drilldownContainer = $('.drilldown-container');
+        // Create map controls
+        $mapControls.append(_addFlowControls( _createLayerUI('Particles', _particleLayer ), _particleLayer ));
+        $mapControls.append(_addMarkerControls( _createLayerUI('Nodes', _markerLayer ), _markerLayer ));
+        $mapControls.append(_createLayerUI('Labels', _labelLayer ));
+        $mapControls.append(_addCountryControls( _createLayerUI('Top Client Connections', _countryLayer ), _countryLayer ));
+        // Create date slider
+        _dateSlider = new DateSlider({
+            dates: _dateInfo.dates,
             slideStop: function() {
-                self._update();
+                _update();
             }
         });
-        $dateControls.append(this._dateSlider.getElement());
-        // add handlers to summary button
-        this._summaryButton = this._element.find('.summary-button');
-        this._summaryButton.click( function() {
+        $dateControls.append(_dateSlider.getElement());
+        // Add handlers to summary button
+        $summaryButton.click( function() {
             swal({
                 title: null,
                 text: Config.summary,
                 html: true
             });
         });
-        // add handler to drilldown close buttons
+        // Add handler to drilldown close buttons
         $drilldownContainer.draggabilly();
         $drilldownContainer.find('.drilldown-close-button').click(function() {
             $drilldownContainer.hide();
         });
-    },
+    };
 
-    _initMap : function() {
+    var _initMap = function() {
         // Initialize the map object
-        this._map = L.map('map', {
+        _map = L.map('map', {
             inertia: false,
             zoomControl: false,
             minZoom: 3,
             maxZoom: Config.maxZoom || 18
         });
-        this._map.setView([40, -42], 4);
+        _map.setView([40, -42], 4);
         // Initialize zoom controls
-        this._zoomControls = new L.Control.Zoom({ position: 'topright' });
-        this._zoomControls.addTo(this._map);
-    },
+        var zoomControls = new L.Control.Zoom({ position: 'topright' });
+        zoomControls.addTo(_map);
+    };
 
-    _initLayers : function() {
-        // Initialize the baselayer
-        var self = this;
-        var mapUrlBase = 'http://{s}.basemaps.cartocdn.com/';
+    var _initLayers = function() {
+        // Determine map server
+        var mapUrlBase;
         if (Config.localMapServer) {
             mapUrlBase = 'http://' + window.location.host + '/map/';
+        } else {
+            mapUrlBase ='http://{s}.basemaps.cartocdn.com/';
         }
-        this._baseTileLayer = L.tileLayer(
+        // Initialize the baselayer
+        _baseLayer = L.tileLayer(
             mapUrlBase + 'dark_nolabels/{z}/{x}/{y}.png',
             {
                 attribution: Config.mapAttribution,
                 maxZoom: Config.maxZoom || 18,
                 noWrap: true
             });
-        this._baseTileLayer.addTo(this._map);
+        _baseLayer.addTo(_map);
         // Initialize the country layer
-        this._countryLayer = new CountryLayer({
+        _countryLayer = new CountryLayer({
             redirect: function( data ) {
                 var dateStr = moment.utc(data.date, 'MMM Do, YYYY').format('YYYY-MM-DD');
                 if (dateStr !== 'Invalid date') {
-                    self._dateSlider.setDate(dateStr);
+                    _dateSlider.setDate(dateStr);
                 }
             }
         });
-        this._countryLayer.addTo(this._map);
+        _countryLayer.addTo(_map);
         // Initialize markers layer
-        this._markerLayer = new MarkerLayer();
-        this._markerLayer.addTo(this._map);
+        _markerLayer = new MarkerLayer();
+        _markerLayer.addTo(_map);
         // Initialize particle layer
-        this._particleLayer = new ParticleLayer();
-        this._particleLayer.setBandwidthMinMax(
-            this._min.bandwidth,
-            this._max.bandwidth );
-        this._particleLayer.scaleCountByBandwidth(true);
-        this._particleLayer.addTo(this._map);
+        _particleLayer = new ParticleLayer();
+        _particleLayer.setBandwidthMinMax(
+            _dateInfo.min.bandwidth,
+            _dateInfo.max.bandwidth );
+        _particleLayer.scaleCountByBandwidth(true);
+        _particleLayer.addTo(_map);
         // Initialize the label layer
-        this._labelLayer = L.tileLayer(
+        _labelLayer = new LabelLayer(
             mapUrlBase + 'dark_only_labels/{z}/{x}/{y}.png',
             {
                 maxZoom: Config.maxZoom || 18,
@@ -359,43 +360,26 @@ App.prototype = _.extend(App.prototype, {
                 zIndex: 10,
                 opacity: 0.65
             });
-        this._labelLayer.addTo(this._map);
-        this._labelLayer.getOpacity = function() {
-            return this.options.opacity;
-        };
-        this._labelLayer.show = function() {
-            this._hidden = false;
-            self._map.addLayer(this);
-        };
-        this._labelLayer.hide = function() {
-            this._hidden = true;
-            self._map.removeLayer(this);
-        };
-        this._labelLayer.isHidden = function() {
-            return this._hidden;
-        };
-    },
+        _labelLayer.addTo(_map);
+    };
 
-    _init : function(dates, min, max) {
-        this._dates = dates;
-        this._min = min;
-        this._max = max;
-        // init app
-        this._initIndex();
-        this._initMap();
-        this._initLayers();
-        this._initUI();
-        // begin
-        this._update();
-    },
+    var _init = function(dateInfo) {
+        // Store date info
+        _dateInfo = dateInfo;
+        // Init app
+        _initMain();
+        _initMap();
+        _initLayers();
+        _initUI();
+        // Fetch the data for the current date
+        _update();
+    };
 
-    start: function () {
-        var self = this;
-        $.get('/dates', function(res) {
-            self._init(res.dates, res.min, res.max);
-        });
-    }
+    window.torflow = {
+        start: function() {
+            // Request dates and intialize the app
+            $.get('/dates', _init );
+        }
+    };
 
-});
-
-exports.App = App;
+}());

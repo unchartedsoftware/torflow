@@ -64,7 +64,7 @@ MarkerLayer.prototype = _.extend(MarkerLayer.prototype, {
     },
 
     setNodeCount: function(count) {
-        this._nodeCount = count;
+        this._nodeCount = Math.round(count);
     },
 
     set : function(nodeData) {

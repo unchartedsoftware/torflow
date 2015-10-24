@@ -35,7 +35,7 @@ var COUNTRY_COUNT_MIN = IS_MOBILE ? Config.country_count_min * Config.country_mo
 var COUNTRY_COUNT_MAX = IS_MOBILE ? Config.country_count_max * Config.country_mobile_factor : Config.country_count_max;
 
 var CountryLayer = function(spec) {
-    this._geoJSONLayer = L.geoJson(null,{
+    this._geoJSONLayer = L.geoJson(null, {
         style: this._getFeatureStyle.bind(this),
         onEachFeature: this._bindClickEvent.bind(this)
     });
@@ -71,7 +71,7 @@ CountryLayer.prototype = _.extend(CountryLayer.prototype, {
     },
 
     setCountryCount: function(count) {
-        this._countryCount = count;
+        this._countryCount = Math.round(count);
     },
 
     set : function(histogram) {

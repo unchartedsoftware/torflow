@@ -5,5 +5,4 @@ html
     script(src='/torflow.js')
     body
         script.
-            var app = new TorFlow.App();
-            app.start();
+            window.onload = torflow.start;
