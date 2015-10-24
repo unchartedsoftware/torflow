@@ -129,7 +129,7 @@ CountryLayer.prototype = _.extend(CountryLayer.prototype, {
                         var chart = new OutlierBarChart( $container.find('.drilldown-content') )
                             .data(json[cc])
                             .colorStops(['rgb(25,75,153)','rgb(100,100,100)','rgb(153,25,75)'])
-                            .title('Relay Count Outliers by Date (' + cc3.toUpperCase() + ')')
+                            .title('Guard Client Connection Outliers by Date (' + cc3.toUpperCase() + ')')
                             .click(self._redirect);
                         // draw
                         chart.draw();

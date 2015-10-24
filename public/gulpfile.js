@@ -33,7 +33,6 @@ var uglify          = require('gulp-uglify');
 var handlebars      = require('gulp-handlebars');
 var defineModule    = require('gulp-define-module');
 var jshint          = require('gulp-jshint');
-var wait            = require('gulp-wait');
 var minifyCss       = require('gulp-minify-css');
 var filter          = require('gulp-filter');
 var bower           = require('main-bower-files');
@@ -80,8 +79,7 @@ gulp.task('templates',function() {
     return gulp.src('templates/**/*.hbs')
         .pipe(handlebars())
         .pipe(defineModule('node'))
-        .pipe(gulp.dest('javascripts/templates/'))
-        .pipe(wait(1000));
+        .pipe(gulp.dest('javascripts/templates/'));
 });
 
 gulp.task('lint',function() {

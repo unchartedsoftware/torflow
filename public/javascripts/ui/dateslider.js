@@ -102,16 +102,14 @@ var DateSlider = function(spec) {
     // create slider and attach callbacks
     this._$slider = this._$container.find('.slider');
     // attach button callbacks
-    this._$left = this._$container.find('.date-slider-button.left');
-    this._$right = this._$container.find('.date-slider-button.right');
-
+    this._$left = this._$container.find('.small-button.left');
+    this._$right = this._$container.find('.small-button.right');
     this._$left.click(function() {
         _setDateIndex(self, Math.max(self._dateIndex-1, 0));
     });
     this._$right.click(function() {
         _setDateIndex(self, Math.min(self._dateIndex+1, self._dates.length-1));
     });
-
     this._$slider.slider({ tooltip: 'hide' });
     if ($.isFunction(spec.slideStart)) {
         this._$slider.on('slideStart', spec.slideStart);

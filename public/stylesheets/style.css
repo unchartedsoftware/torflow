@@ -143,8 +143,28 @@ body {
     background-color: rgba(20, 155, 223, 0.5);
 }
 
-.summary-button,
-.drilldown-close,
+.small-button,
+.large-button {
+    border-radius: 4px;
+    cursor: pointer;
+    z-index: 2;
+    text-align: center;
+}
+
+.small-button {
+    height: 20px;
+    width: 20px;
+    line-height: 20px;
+}
+
+.large-button {
+    height: 26px;
+    width: 26px;
+    line-height: 26px;
+}
+
+.small-button,
+.large-button,
 .leaflet-bar a,
 .leaflet-bar a.leaflet-disabled {
     border: 1px solid rgb(20, 155, 223);
@@ -162,25 +182,21 @@ body {
     line-height: 24px;
 }
 
-.leaflet-bar a:hover,
-.summary-button:hover,
-.drilldown-close:hover {
+.leaflet-bar a:hover {
+    line-height: 24px;
+}
+
+.small-button:hover,
+.large-button:hover,
+.leaflet-bar a:hover {
     background-color: rgb(40, 96, 144);
     color: #eee;
-    line-height: 24px;
 }
 
 .summary-button {
     position: absolute;
     top: 10px;
     right: 44px;
-    width: 26px;
-    height: 26px;
-    line-height: 26px;
-    z-index: 2;
-    box-sizing: border-box;
-    border-radius: 4px;
-    cursor: pointer;
 }
 
 .services-btn-group {
@@ -311,22 +327,22 @@ a {
     box-sizing: border-box;
 }
 
-.hover-label {
+.hover-label,
+.chart-hover-label {
     position: absolute;
     background-color: rgba(0,0,0,0.7);
     border: 1px solid rgb(20, 155, 223);
     line-height: 18px;
     color: #ddd;
     border-radius: 7px;
-    display: inline-block;
     padding: 6px 10px;
     z-index: 2;
     opacity: 1;
     pointer-events: none;
 }
 
-.hover-label a {
-    font-weight: bold;
+.chart-hover-label {
+    width: 160px;
 }
 
 .map-controls {
@@ -430,17 +446,10 @@ a {
     z-index: 1;
 }
 
-.drilldown-close {
+.drilldown-close-button {
     position: absolute;
-    cursor: pointer;
     top: 10px;
     right: 10px;
-    width: 26px;
-    height: 26px;
-    line-height: 26px;
-    z-index: 2;
-    box-sizing: border-box;
-    border-radius: 4px;
 }
 
 .chart-title {

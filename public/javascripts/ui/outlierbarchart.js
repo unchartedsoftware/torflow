@@ -178,6 +178,10 @@ OutlierBarChart.prototype._update = function() {
 
     var $label;
 
+    var numberWithCommas = function (x) {
+        return x.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+    };
+
     svg.selectAll('.bar')
         .data(this._data)
         .enter()
@@ -215,19 +219,19 @@ OutlierBarChart.prototype._update = function() {
             }
             if (d.date === 'Average') {
                 $label = $(
-                    '<div class="hover-label">'+
-                        '<div style="float:left; width:100px">Average Count: </div>' +
-                        '<div style="float:right">' + d.client_count.toFixed(2) + '</div>' +
+                    '<div class="chart-hover-label">'+
+                        '<div style="float:left;">Average Count: </div>' +
+                        '<div style="float:right">' + numberWithCommas(d.client_count.toFixed(2)) + '</div>' +
                         '<div style="clear:both"></div>' +
                     '</div>' );
             } else {
                 $label = $(
-                    '<div class="hover-label">'+
-                        '<div style="float:left; width:50px">Date: </div>' +
+                    '<div class="chart-hover-label">'+
+                        '<div style="float:left;">Date: </div>' +
                         '<div style="float:right">' + d.date + '</div>' +
                         '<div style="clear:both"></div>' +
-                        '<div style="float:left; width:80px">Count: </div>' +
-                        '<div style="float:right">' + d.client_count + '</div>' +
+                        '<div style="float:left;">Count: </div>' +
+                        '<div style="float:right">' + numberWithCommas(d.client_count) + '</div>' +
                         '<div style="clear:both"></div>' +
                     '</div>' );
             }

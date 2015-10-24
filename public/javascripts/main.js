@@ -263,7 +263,7 @@ App.prototype = _.extend(App.prototype, {
         });
         // add handler to drilldown close buttons
         $drilldownContainer.draggabilly();
-        $drilldownContainer.find('.drilldown-close').click(function() {
+        $drilldownContainer.find('.drilldown-close-button').click(function() {
             $drilldownContainer.hide();
         });
     },
