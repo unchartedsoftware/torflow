@@ -262,6 +262,7 @@ App.prototype = _.extend(App.prototype, {
             });
         });
         // add handler to drilldown close buttons
+        $drilldownContainer.draggabilly();
         $drilldownContainer.find('.drilldown-close').click(function() {
             $drilldownContainer.hide();
         });
@@ -299,7 +300,7 @@ App.prototype = _.extend(App.prototype, {
         // Initialize the country layer
         this._countryLayer = new CountryLayer({
             redirect: function( data ) {
-                var dateStr = data.date;
+                var dateStr = moment(data.date).format('YYYY-MM-DD');
                 if (dateStr !== 'Avg') {
                     self._dateSlider.setDate(dateStr);
                 }
