@@ -27,17 +27,23 @@
 var express = require('express');
 var datesDB = require('../db/dates');
 var router = express.Router();
+var async = require('async');
 
 /**
  * GET /dates
  */
 router.get('/', function(req, res) {
-    datesDB.getDates(
-        function(err,dates) {
+    async.parallel({
+            dates: datesDB.getDates,
+            min: datesDB.getMinBandwidth,
+            max: datesDB.getMaxBandwidth
+        },
+        function(err, data) {
             if (err) {
+                console.log(err.message);
                 res.status(500).send('Dates data could not be retrieved.');
             } else {
-                res.send(dates);
+                res.send(data);
             }
         });
 });

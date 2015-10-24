@@ -41,7 +41,6 @@ var map = require('./routes/map');
 var geo = require('./routes/geo');
 var country = require('./routes/country');
 var outliers = require('./routes/outliers');
-var bandwidth = require('./routes/bandwidth');
 
 var app = express();
 
@@ -66,8 +65,6 @@ app.use('/map',map);
 app.use('/geo',geo);
 app.use('/country',country);
 app.use('/outliers',outliers);
-app.use('/bandwidth',bandwidth);
-
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
@@ -81,7 +78,7 @@ app.use(function(req, res, next) {
 // development error handler
 // will print stacktrace
 if (app.get('env') === 'development') {
-  app.use(function(err, req, res, next) {
+  app.use(function(err, req, res) {
     res.status(err.status || 500);
     res.render('error', {
       message: err.message,
@@ -92,7 +89,7 @@ if (app.get('env') === 'development') {
 
 // production error handler
 // no stacktraces leaked to user
-app.use(function(err, req, res, next) {
+app.use(function(err, req, res) {
   res.status(err.status || 500);
   res.render('error', {
     message: err.message,

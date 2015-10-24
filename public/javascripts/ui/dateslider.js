@@ -94,7 +94,7 @@ var DateSlider = function(spec) {
     this._dates = spec.dates;
     var hashIndex = _getDateIndexFromHash(this._dates);
     this._dateIndex = hashIndex !== undefined ? hashIndex : this._dates.length-1;
-    spec.numDates = spec.dates.length;
+    spec.maxIndex = spec.dates.length-1;
     spec.initialIndex = this._dateIndex;
     spec.initialDateString = this.getDateString();
     // create container element

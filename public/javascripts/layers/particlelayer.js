@@ -71,10 +71,13 @@ var ParticleLayer = WebGLOverlay.extend({
         done();
     },
 
-    updateNodes: function(nodes) {
+    updateNodes: function(nodes, bandwidth) {
         var self = this;
         if (nodes) {
             this._nodes = nodes;
+        }
+        if (bandwidth) {
+            this._currentBandwidth = bandwidth;
         }
         // prepare loading bar
         if ( this._loadingBar ) {
@@ -163,7 +166,7 @@ var ParticleLayer = WebGLOverlay.extend({
     },
 
     getParticleSize: function() {
-        if ( this.scaleByZoom() ) {
+        if ( this.scaleSizeByZoom() ) {
             return Config.particle_zoom_scale( this._map.getZoom(), this._particleSize || Config.particle_size );
         }
         return this._particleSize || Config.particle_size;
@@ -175,7 +178,13 @@ var ParticleLayer = WebGLOverlay.extend({
     },
 
     getParticleCount: function() {
-        return this._particleCount || PARTICLE_COUNT;
+        var MIN_SCALE = 0.1;
+        if ( this.scaleCountByBandwidth() ) {
+            var scale = ( this._currentBandwidth - this._minBandwidth ) / (this._maxBandwidth - this._minBandwidth);
+            return ( this._particleCount || PARTICLE_COUNT ) * Math.max(scale, MIN_SCALE);
+        } else {
+            return this._particleCount || PARTICLE_COUNT;
+        }
     },
 
     getParticleCountMin: function() {
@@ -204,12 +213,25 @@ var ParticleLayer = WebGLOverlay.extend({
         return this._opacity !== undefined ? this._opacity : 1.0;
     },
 
-    scaleByZoom: function(scaleByZoom) {
-        if ( scaleByZoom !== undefined ) {
-            this._scaleByZoom = scaleByZoom;
+    scaleSizeByZoom: function(scaleSizeByZoom) {
+        if ( scaleSizeByZoom !== undefined ) {
+            this._scaleSizeByZoom = scaleSizeByZoom;
             return this;
         }
-        return this._scaleByZoom !== undefined ? this._scaleByZoom : false;
+        return this._scaleSizeByZoom !== undefined ? this._scaleSizeByZoom : false;
+    },
+
+    setBandwidthMinMax: function(min, max) {
+        this._minBandwidth = min;
+        this._maxBandwidth = max;
+    },
+
+    scaleCountByBandwidth: function(scaleCountByBandwidth) {
+        if ( scaleCountByBandwidth !== undefined ) {
+            this._scaleCountByBandwidth = scaleCountByBandwidth;
+            return this;
+        }
+        return this._scaleCountByBandwidth !== undefined ? this._scaleCountByBandwidth : false;
     },
 
     draw: function() {

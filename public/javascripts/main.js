@@ -76,7 +76,7 @@ App.prototype = _.extend(App.prototype, {
             self._markerLayer.set(data);
             // Update particles, if they are different
             if ( oldNodes !== self._currentNodeData ) {
-                self._particleLayer.updateNodes(data.nodes);
+                self._particleLayer.updateNodes(data.nodes, data.bandwidth);
             }
         }
 
@@ -171,20 +171,30 @@ App.prototype = _.extend(App.prototype, {
                 }
             }),
             scaleByZoomToggle = new ToggleBox({
-                label: 'Scale by Zoom',
-                initialValue: layer.scaleByZoom(),
+                label: 'Scale Size by Zoom',
+                initialValue: layer.scaleSizeByZoom(),
                 enabled: function() {
-                    layer.scaleByZoom(true);
+                    layer.scaleSizeByZoom(true);
                 },
                 disabled: function() {
-                    layer.scaleByZoom(false);
+                    layer.scaleSizeByZoom(false);
+                }
+            }),
+            scaleByBandwidthToggle = new ToggleBox({
+                label: 'Scale Count by Bandwidth',
+                initialValue: layer.scaleCountByBandwidth(),
+                enabled: function() {
+                    layer.scaleCountByBandwidth(true);
+                },
+                disabled: function() {
+                    layer.scaleCountByBandwidth(false);
                 }
             }),
             servicesButtonGroup = new ButtonGroup({
                 intialValue: 0,
                 buttons: [
                     {
-                        label: 'All',
+                        label: 'All Services',
                         click: function() {
                             layer.showTraffic('all');
                         }
@@ -196,7 +206,7 @@ App.prototype = _.extend(App.prototype, {
                         }
                     },
                     {
-                        label: 'General Purpose',
+                        label: 'General Services',
                         click: function() {
                             layer.showTraffic('general');
                         }
@@ -209,6 +219,7 @@ App.prototype = _.extend(App.prototype, {
             .append( particleSizeSlider.getElement() ).append('<div style="clear:both;"></div>')
             .append( particleCountSlider.getElement() ).append('<div style="clear:both;"></div>')
             .append( scaleByZoomToggle.getElement() ).append('<div style="clear:both;"></div>')
+            .append( scaleByBandwidthToggle.getElement() ).append('<div style="clear:both;"></div>')
             .append( servicesButtonGroup.getElement() ).append('<div style="clear:both;"></div>');
         return $controlElement;
     },
@@ -312,6 +323,9 @@ App.prototype = _.extend(App.prototype, {
         this._markerLayer.addTo(this._map);
         // Initialize particle layer
         this._particleLayer = new ParticleLayer();
+        this._particleLayer.setBandwidthMinMax(
+            this._min.bandwidth,
+            this._max.bandwidth );
         this._particleLayer.addTo(this._map);
         // Initialize the label layer
         this._labelLayer = L.tileLayer(
@@ -339,8 +353,10 @@ App.prototype = _.extend(App.prototype, {
         };
     },
 
-    _init : function(dates) {
+    _init : function(dates, min, max) {
         this._dates = dates;
+        this._min = min;
+        this._max = max;
         // init app
         this._initIndex();
         this._initMap();
@@ -351,8 +367,10 @@ App.prototype = _.extend(App.prototype, {
     },
 
     start: function () {
-        // Fetch the dates available + relay count for each date
-        $.get('/dates',this._init.bind(this));
+        var self = this;
+        $.get('/dates', function(res) {
+            self._init(res.dates, res.min, res.max);
+        });
     }
 
 });
