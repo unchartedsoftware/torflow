@@ -17,8 +17,9 @@
 atlassian-ide-plugin.xml
 
 # ----------------------------------------
-## NodeJS Express Gitignore
+## OS Specific Gitignore
 # ----------------------------------------
+
 # OS X
 .DS_Store*
 Icon?
@@ -33,18 +34,10 @@ Desktop.ini
 .directory
 *~
 
-
 # npm
 node_modules
 *.log
 *.gz
-
-
-# Coveralls
-coverage
-
-# Benchmarking
-benchmarks/graphs
 
 # ----------------------------------------
 ## Bower Gitignore
@@ -59,10 +52,12 @@ public/extern/**/*
 
 config.js
 **/torflow.js
+**/torflow.css
 **/templates/*.js
 **/extern.js
 **/extern.css
 !**/extern/fonts/
+!**/extern/css/
 .vagrant/
 map/
 data/relays/*

@@ -25,19 +25,19 @@
 * SOFTWARE.
 */
 
-var gulp            = require('gulp');
-var browserify      = require('browserify');
-var source          = require('vinyl-source-stream');
-var buffer          = require('vinyl-buffer');
-var uglify          = require('gulp-uglify');
-var handlebars      = require('gulp-handlebars');
-var defineModule    = require('gulp-define-module');
-var jshint          = require('gulp-jshint');
-var minifyCss       = require('gulp-minify-css');
-var filter          = require('gulp-filter');
-var bower           = require('main-bower-files');
-var concat          = require('gulp-concat');
-var runSequence     = require('run-sequence');
+var gulp = require('gulp');
+var browserify = require('browserify');
+var source = require('vinyl-source-stream');
+var buffer = require('vinyl-buffer');
+var uglify = require('gulp-uglify');
+var handlebars = require('gulp-handlebars');
+var defineModule = require('gulp-define-module');
+var jshint = require('gulp-jshint');
+var minifyCss = require('gulp-minify-css');
+var filter = require('gulp-filter');
+var bower = require('main-bower-files');
+var concat = require('gulp-concat');
+var runSequence = require('run-sequence');
 
 var config = {
     src: './javascripts/',
@@ -57,7 +57,6 @@ function doBuild(shouldMinify) {
             this.emit('end');
         })
         .pipe( source( 'torflow.js' ) );
-
     if (shouldMinify) {
        build = build
            .pipe(buffer())
@@ -69,32 +68,39 @@ function doBuild(shouldMinify) {
     return build;
 }
 
-gulp.task('minifyCss', function() {
-    return gulp.src(config.style + '/style.css')
-        .pipe(minifyCss({compatibility: 'ie8'}))
-        .pipe(gulp.dest(config.style));
-});
-
-gulp.task('templates',function() {
-    return gulp.src('templates/**/*.hbs')
-        .pipe(handlebars())
-        .pipe(defineModule('node'))
-        .pipe(gulp.dest('javascripts/templates/'));
-});
-
 gulp.task('lint',function() {
     return gulp.src([
-            '!' + config.src + '/extern.js',
-            '!' + config.styles + '/extern.css',
             config.src + '**/*.js',
-            '!' + config.src + 'templates/**/*.js'
+            '!' + config.src + '/extern.js',
+            '!' + config.src + '/templates/**/*.js'
         ])
         .pipe(jshint())
         .pipe(jshint.reporter('default'));
 });
 
-gulp.task('build', function () {
+gulp.task('build-js', function () {
     return doBuild(false);
+});
+
+gulp.task('minify-js',function() {
+    return doBuild(true);
+});
+
+gulp.task('build-css', function () {
+    return gulp.src([
+            config.style + '/**/*.css',
+            '!' + config.style + '/extern.css',
+            '!' + config.style + '/extern/**/*.css'
+        ])
+        .pipe( minifyCss() )
+        .pipe( concat('torflow.css') )
+        .pipe( gulp.dest( config.dist ) );
+});
+
+gulp.task('build', ['build-js', 'build-css'], function () {
+});
+
+gulp.task('minify', ['minify-js', 'build-css'], function () {
 });
 
 gulp.task('build-extern-js', function() {
@@ -108,26 +114,30 @@ gulp.task('build-extern-js', function() {
 gulp.task('build-extern-css', function() {
     return gulp.src( bower() )
         .pipe( filter('**/*.css') ) // filter css files
-        .pipe( minifyCss({compatibility: 'ie8'}) )
+        .pipe( minifyCss() )
         .pipe( concat('extern.css') )
         .pipe( gulp.dest( './stylesheets/' ) );
 });
 
-gulp.task('minify',function() {
-    return doBuild(true);
+gulp.task('build-templates',function() {
+    return gulp.src('templates/**/*.hbs')
+        .pipe(handlebars())
+        .pipe(defineModule('node'))
+        .pipe(gulp.dest('javascripts/templates/'));
 });
 
 gulp.task('watch',function () {
-    gulp.watch(config.src + '**/*.js', ['lint','build']);
-    gulp.watch(config.templates + '**/*.hbs', ['templates']);
+    gulp.watch(config.src + '**/*.js', ['lint','build-js']);
+    gulp.watch(config.style + '**/*.css', ['build-css']);
+    gulp.watch(config.templates + '**/*.hbs', ['build-templates']);
 });
 
 gulp.task('install',function(done) {
-    runSequence('templates',['lint'],['build','build-extern-js','build-extern-css'], done);
+    runSequence('build-templates', ['lint'], ['build','build-extern-js','build-extern-css'], done);
 });
 gulp.task('deploy',function(done) {
-    runSequence('templates',['minifyCss','lint'],['minify','build-extern-js','build-extern-css'], done);
+    runSequence('build-templates', ['lint'], ['minify','build-extern-js','build-extern-css'], done);
 });
 gulp.task('default', function(done) {
-    runSequence('templates',['lint'],['build','build-extern-js','build-extern-css'],'watch', done);
+    runSequence('build-templates', ['lint'], ['build','build-extern-js','build-extern-css'], 'watch', done);
 });

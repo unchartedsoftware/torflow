@@ -88,7 +88,7 @@ MarkerLayer.prototype = _.extend(MarkerLayer.prototype, {
                     lng: node.lng
                 }, {
                 icon: L.divIcon({
-                    className: 'relay-cluster',
+                    className: 'leaflet-marker-cluster',
                     iconSize: L.point(pointRadius,pointRadius)
                 })
             });
