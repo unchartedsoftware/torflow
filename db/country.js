@@ -7,7 +7,7 @@ var _ = require('lodash');
 var moment = require('moment');
 
 var getCountryOutliers = function(cc,count,callback) {
-    var MAX_COUNT = 10;
+    var MAX_COUNT = 50;
     connectionPool.query(
         'SELECT * FROM ' + config.db.database + '.country_counts WHERE cc=? ORDER BY count DESC',
         [cc],
@@ -21,7 +21,9 @@ var getCountryOutliers = function(cc,count,callback) {
                     outliers[cc] = [];
                     return callback(null,outliers);
                 }
-                count = Math.max(count,MAX_COUNT);
+                // Bound the outlier count
+                count = Math.min(count, MAX_COUNT);
+                // ensure equal numbers on either side
                 if (Math.floor(rows.length/2) < count) {
                     count = Math.floor(rows.length/2);
                 }
@@ -32,29 +34,29 @@ var getCountryOutliers = function(cc,count,callback) {
                 });
                 var avg = [{
                     position : 0,
-                    date : 'Avg',
+                    date : 'Average',
                     client_count : sum/rows.length
                 }];
                 // Calculate top
                 var topN = [];
-                for (i = 0; i < count; i++) {
+                for (i=0; i<count; i++) {
                     topN.push({
                         position : count-i,
                         client_count : rows[i].count,
-                        date : moment(rows[i].date).format('YYYY-MM-DD')
+                        date : moment(rows[i].date).format('MMM D, YYYY')
                     });
                 }
                 // Calculate bottom
-                rows = _(rows).reverse().value();
                 var bottomN = [];
-                for (i = 0; i < count; i++) {
+                for (i=rows.length-1; i>=rows.length-count; i--) {
                     bottomN.push({
-                        position : -i,
+                        position : i-rows.length,
                         client_count : rows[i].count,
-                        date : moment(rows[i].date).format('YYYY-MM-DD')
+                        date : moment(rows[i].date).format('MMM Do, YYYY')
                     });
                 }
                 outliers[cc] = topN.concat(avg.concat(bottomN));
+                console.log(outliers[cc].length);
                 callback(null,outliers);
             }
         });

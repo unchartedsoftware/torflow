@@ -155,13 +155,13 @@ MarkerLayer.prototype = _.extend(MarkerLayer.prototype, {
                 self._$label.remove();
             }
             self._$label = $(
-                '<div class="relay-cluster-label">'+
-                    '<a>' + label + '</a>' +
+                '<div class="hover-label">'+
+                    label +
                 '</div>' );
             $( document.body ).append( self._$label );
             self._$label.css({
                 'left': -self._$label.outerWidth()/2 + relativeX + 'px',
-                'top': -self._$label.outerHeight()*1.5 + relativeY + 'px'
+                'top': -self._$label.outerHeight()*1.25 + relativeY + 'px'
             });
         });
         // on mouse out destroy label

@@ -108,12 +108,13 @@ CountryLayer.prototype = _.extend(CountryLayer.prototype, {
     },
 
     _bindClickEvent : function(feature, layer) {
-        var OUTLIERS_COUNT = 20;
+        var OUTLIERS_COUNT = 10;
         var self = this;
         layer.on({
             click: function(event) {
                 var feature = event.target.feature;
-                var cc = self._threeLetterToTwoLetter(feature.id || feature.properties.ISO_A3);
+                var cc3 = feature.id || feature.properties.ISO_A3;
+                var cc = self._threeLetterToTwoLetter(cc3);
                 var request = {
                     url: '/outliers/' + cc + '/' + OUTLIERS_COUNT,
                     type: 'GET',
@@ -128,7 +129,7 @@ CountryLayer.prototype = _.extend(CountryLayer.prototype, {
                         var chart = new OutlierBarChart( $container.find('.drilldown-content') )
                             .data(json[cc])
                             .colorStops(['rgb(25,75,153)','rgb(100,100,100)','rgb(153,25,75)'])
-                            .title('Relay Count Outliers by Date')
+                            .title('Relay Count Outliers by Date (' + cc3.toUpperCase() + ')')
                             .click(self._redirect);
                         // draw
                         chart.draw();
@@ -136,6 +137,13 @@ CountryLayer.prototype = _.extend(CountryLayer.prototype, {
                     .fail(function(err) {
                         console.log(err);
                     });
+            },
+            mouseover: function() {
+                layer.setStyle(self._getFeatureHoverStyle());
+            },
+            mouseout: function(event) {
+                var feature = event.target.feature;
+                layer.setStyle(self._getFeatureStyle(feature));
             }
         });
     },
@@ -157,9 +165,17 @@ CountryLayer.prototype = _.extend(CountryLayer.prototype, {
         var relativePercentage = this._histogram[cc] / this._maxClientCount;
         var fillColor = this._colorScale(relativePercentage);
         return {
-            color : fillColor,
+            fillColor: fillColor,
             weight : 0,
-            'fill-opacity': 1.0
+            fillOpacity: 1
+        };
+    },
+
+    _getFeatureHoverStyle : function() {
+        return {
+            fillColor: '#fff',
+            weight : 0,
+            fillOpacity: 1
         };
     },
 

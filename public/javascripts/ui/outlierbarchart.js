@@ -28,7 +28,7 @@
 var OutlierBarChart = function(container) {
     this._container = container;
     this._data = null;
-    this._margin = {top: 40, right: 20, bottom: 50, left: 80};
+    this._margin = {top: 40, right: 20, bottom: 80, left: 70};
     this._width = $(container).width() - this._margin.left - this._margin.right;
     this._height = $(container).height() - this._margin.top - this._margin.bottom;
     this._colorStops = ['#0000ff','#898989','#ff0000'];
@@ -110,16 +110,13 @@ OutlierBarChart.prototype._update = function() {
     this._container.empty();
 
     var x = d3.scale.ordinal()
-        .rangeRoundBands([0, this.width()], 0.1);
+        .rangeRoundBands([0, this.width()], 0.3, 0.2);
 
     var y = d3.scale.sqrt()
         .range([this.height(), 0]);
 
-    var xAxisDates = ['Avg' ];
-
     var xAxis = d3.svg.axis()
         .scale(x)
-        .tickValues(xAxisDates)
         .orient('bottom');
 
     var yAxis = d3.svg.axis()
@@ -140,15 +137,19 @@ OutlierBarChart.prototype._update = function() {
         return d.client_count;
     })]);
 
-    svg.append('g')
+    var svgXAxis = svg.append('g')
         .attr('class', 'x axis')
         .attr('transform', 'translate(0,' + this._height + ')')
-        .call(xAxis)
-        .append('text')
-        .attr('class', 'x-axis')
+        .call(xAxis);
+
+    svgXAxis.selectAll('text')
+        .attr('transform', 'rotate(-45), translate(-35,0)');
+
+    svgXAxis.append('text')
+        .attr('class', 'x-axis-title')
         .attr('x', this.width() / 2 )
         .style('text-anchor', 'middle')
-        .attr('y', this._margin.bottom * 0.75 )
+        .attr('y', this._margin.bottom * 0.95 )
         .attr('font-size', '14px')
         .text('Outlier Days');
 
@@ -156,7 +157,7 @@ OutlierBarChart.prototype._update = function() {
         .attr('class', 'y axis')
         .call(yAxis)
         .append('text')
-        .attr('class', 'y-axis')
+        .attr('class', 'y-axis-title')
         .attr('transform', 'rotate(-90)')
         .attr('x', -(this.height() / 2))
         .attr('y', -this._margin.left)
@@ -175,9 +176,12 @@ OutlierBarChart.prototype._update = function() {
         .interpolate(d3.interpolateRgb)
         .range([this._colorStops[1], this._colorStops[2]]);
 
+    var $label;
+
     svg.selectAll('.bar')
         .data(this._data)
-        .enter().append('rect')
+        .enter()
+        .append('rect')
         .attr('class', 'bar')
         .attr('fill', function(d) {
             if (d.position > 0) {
@@ -186,6 +190,15 @@ OutlierBarChart.prototype._update = function() {
                 return negativeInterpolator(d.position);
             }
         })
+        .attr('fill-opacity', 0.6)
+        .attr('stroke', function(d) {
+            if (d.position > 0) {
+                return positiveInterpolator(d.position);
+            } else if (d.position <= 0) {
+                return negativeInterpolator(d.position);
+            }
+        })
+        .attr('stroke-opacity', 1.0)
         .attr('x', function(d) {
             return x(d.date);
         })
@@ -195,6 +208,31 @@ OutlierBarChart.prototype._update = function() {
         })
         .attr('height', function(d) {
             return self._height - y(d.client_count);
+        })
+        .on('mousemove', function(d) {
+            if ($label) {
+                $label.remove();
+            }
+            $label = $(
+                '<div class="hover-label">'+
+                    '<div style="float:left; width:50px">Date: </div>' +
+                    '<div style="float:right">' + d.date + '</div>' +
+                    '<div style="clear:both"></div>' +
+                    '<div style="float:left; width:80px">Count: </div>' +
+                    '<div style="float:right">' + d.client_count + '</div>' +
+                    '<div style="clear:both"></div>' +
+                '</div>' );
+            $( document.body ).append( $label );
+            $label.css({
+                'left': d3.event.pageX - $label.outerWidth()/2,
+                'top': d3.event.pageY - $label.outerHeight()*1.25
+            });
+        })
+        .on('mouseout', function() {
+            if ( $label ) {
+                $label.remove();
+                $label = null;
+            }
         });
 
     svg.append('text')

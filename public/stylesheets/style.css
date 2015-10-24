@@ -137,13 +137,17 @@ body {
 
 .btn-primary:hover,
 .btn-primary.active,
-.btn-primary.active:hover,
+.btn-primary.active:hover {
+    border: 1px solid rgb(20, 155, 223);
+    background-color: rgba(20, 155, 223, 0.5);
+}
+
 .summary-button,
 .drilldown-close,
 .leaflet-bar a,
 .leaflet-bar a.leaflet-disabled {
     border: 1px solid rgb(20, 155, 223);
-    background-color: rgba(20, 155, 223, 0.5);
+    background-color: rgba(0, 0, 0, 0.4);
 }
 
 .leaflet-bar a:last-child {
@@ -159,7 +163,7 @@ body {
 
 .leaflet-bar a:hover,
 .summary-button:hover,
-.drilldown-close {
+.drilldown-close:hover {
     background-color: rgb(40, 96, 144);
     color: #eee;
     line-height: 24px;
@@ -245,6 +249,11 @@ a {
     fill-opacity: 1;
 }
 
+.leaflet-webgl-layer {
+    pointer-events: none;
+    z-index: 5;
+}
+
 @keyframes fadein {
     from { opacity: 0; }
     to   { opacity: 1; }
@@ -301,16 +310,22 @@ a {
     box-sizing: border-box;
 }
 
-.relay-cluster-label {
+.hover-label {
     position: absolute;
-    border: 1px solid #111;
-    background-color: #222;
-    font-weight: bold;
+    background-color: rgba(0,0,0,0.7);
+    border: 1px solid rgb(20, 155, 223);
+    line-height: 18px;
+    color: #ddd;
     border-radius: 7px;
     display: inline-block;
-    padding: 10px;
+    padding: 6px 10px;
     z-index: 2;
     opacity: 1;
+    pointer-events: none;
+}
+
+.hover-label a {
+    font-weight: bold;
 }
 
 .map-controls {
@@ -395,13 +410,13 @@ a {
 
 .drilldown-container {
     position: absolute;
-    bottom: 110px;
-    right: 10px;
+    top: calc(100% - 510px); /* use left for draggabilly */
+    left: calc(100% - 622px); /* use top for draggabilly */
     height: 400px;
     width: 612px;
     background-color: rgba(0,0,0,0.4);
     border-radius: 4px;
-    border: 1px solid #000;
+    border: 1px solid rgb(20, 155, 223);
     padding: 4px;
     z-index: 2;
     display: none;
@@ -429,34 +444,27 @@ a {
 
 .chart-title {
     font-size: 16px;
-    fill: #ccc;
-}
-
-.chart-title,
-.x-axis,
-.y-axis {
-    font: "Lucida Grande", Helvetica, Arial, sans-serif;
+    fill: #ddd;
 }
 
 .bar {
     cursor: pointer;
-    opacity: 0.8;
 }
 
 .bar:hover {
-    opacity: 1.0;
+    fill-opacity: 0.8;
 }
 
 .axis {
     font: "Lucida Grande", Helvetica, Arial, sans-serif;
     font-size: 10px;
-    fill: #ccc;
+    fill: #ddd;
 }
 
 .axis path,
 .axis line {
     fill: none;
-    stroke: #ccc;
+    stroke: #ddd;
     shape-rendering: crispEdges;
 }
 
