@@ -26,7 +26,13 @@
 */
 
 var lerp = require('../util/lerp');
-var config = require('../config');
+var Config = require('../Config');
+
+// Reduce counts if on mobile device
+var IS_MOBILE = require('../util/mobile').IS_MOBILE;
+var NODE_COUNT = IS_MOBILE ? Config.node_count * Config.node_mobile_factor : Config.node_count;
+var NODE_COUNT_MIN = IS_MOBILE ? Config.node_count_min * Config.node_mobile_factor : Config.node_count_min;
+var NODE_COUNT_MAX = IS_MOBILE ? Config.node_count_max * Config.node_mobile_factor : Config.node_count_max;
 
 var MarkerLayer = function() {
     this._markerLayer = L.layerGroup();
@@ -45,6 +51,22 @@ MarkerLayer.prototype = _.extend(MarkerLayer.prototype, {
         return this;
     },
 
+    getNodeCountMin: function() {
+        return NODE_COUNT_MIN;
+    },
+
+    getNodeCountMax: function() {
+        return NODE_COUNT_MAX;
+    },
+
+    getNodeCount: function() {
+        return this._nodeCount || NODE_COUNT;
+    },
+
+    setNodeCount: function(count) {
+        this._nodeCount = count;
+    },
+
     set : function(nodeData) {
         var self = this;
         this._nodes = nodeData.nodes;
@@ -55,11 +77,11 @@ MarkerLayer.prototype = _.extend(MarkerLayer.prototype, {
             if (self._scaleByBandwidth) {
                 var nodeBW = node.bandwidth;
                 pointRadius = lerp(
-                    config.node_radius.min,
-                    config.node_radius.max,
+                    Config.node_radius.min,
+                    Config.node_radius.max,
                     nodeBW / (self._minMax.max-self._minMax.min));
             } else {
-                pointRadius = config.node_radius.min;
+                pointRadius = Config.node_radius.min;
             }
             var marker = L.marker({
                     lat: node.lat,

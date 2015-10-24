@@ -26,16 +26,22 @@
 */
 
 var config = {
-    // relay node config
+    // node count config
     node_count: 1000,
-    node_count_mobile: 500,
+    node_count_min: 100,
+    node_count_max : 2000,
+    // node mobile factor
+    node_mobile_factor: 0.5,
     node_radius : {
         min : 5,
         max : 40
     },
     // country geo json
     country_count: 50,
-    country_count_mobile: 10,
+    country_count_min: 5,
+    country_count_max : 200,
+    // country mobile factor
+    country_mobile_factor: 0.1,
     // particle count config
     particle_count : 200000,
     particle_count_min : 100000,
@@ -68,7 +74,8 @@ var config = {
         ' rather than making a direct connection, thus allowing both organizations and individuals to share information ' +
         'over public networks without compromising their privacy.<a href="https://www.torproject.org/about/overview.html.en"><sup>[1]</sup></a></p>' +
         '<p>The following visualization shows information flow between the ~6500 relay servers.  General purpose Tor traffic is shown in blue.  Traffic to hidden services is shown in red.</p>' +
-        '<p>Each circle below represents the aggregated bandwidth of relay servers grouped by proximity.  Hover over a circle to see information about that group.  Click on a circle to zoom the map to the contents of the group.</p>' +
+        '<p>Each circle below represents the aggregated bandwidth of relay servers grouped by proximity. Hover over a circle to see information about that group.</p>' +
+        '<p>Each colored country represents a country that is responsible for the top N client connections. Click on the country to display the outlier counts.</p>' +
         '<p>Use the slider below to select the simulation date.  Checkboxes can be used to configure the display.</p>',
     // base layer config
     localMapServer : false,

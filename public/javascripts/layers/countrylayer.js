@@ -26,6 +26,13 @@
 */
 
 var OutlierBarChart = require('../ui/outlierbarchart');
+var Config = require('../Config');
+
+// Reduce counts if on mobile device
+var IS_MOBILE = require('../util/mobile').IS_MOBILE;
+var COUNTRY_COUNT = IS_MOBILE ? Config.country_count * Config.country_mobile_factor : Config.country_count;
+var COUNTRY_COUNT_MIN = IS_MOBILE ? Config.country_count_min * Config.country_mobile_factor : Config.country_count_min;
+var COUNTRY_COUNT_MAX = IS_MOBILE ? Config.country_count_max * Config.country_mobile_factor : Config.country_count_max;
 
 var CountryLayer = function(spec) {
     this._geoJSONLayer = L.geoJson(null,{
@@ -49,6 +56,22 @@ CountryLayer.prototype = _.extend(CountryLayer.prototype, {
         this._$pane = $('#map').find('.leaflet-overlay-pane');
         this.setOpacity(this.getOpacity());
         return this;
+    },
+
+    getCountryCountMin: function() {
+        return COUNTRY_COUNT_MIN;
+    },
+
+    getCountryCountMax: function() {
+        return COUNTRY_COUNT_MAX;
+    },
+
+    getCountryCount: function() {
+        return this._countryCount || COUNTRY_COUNT;
+    },
+
+    setCountryCount: function(count) {
+        this._countryCount = count;
     },
 
     set : function(histogram) {

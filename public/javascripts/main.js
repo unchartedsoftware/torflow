@@ -36,11 +36,6 @@ var LayerMenu = require('./ui/layermenu');
 var Config = require('./config');
 var Template = require('./templates/main');
 
-// Reduce counts if on mobile device
-var IS_MOBILE = require('./util/mobile').IS_MOBILE;
-var NODE_COUNT = IS_MOBILE ? Config.node_count_mobile : Config.node_count;
-var COUNTRY_COUNT = IS_MOBILE ? Config.country_count_mobile : Config.country_count;
-
 /**
  * Creates the TorFlow front-end app
  * @constructor
@@ -55,54 +50,41 @@ App.prototype = _.extend(App.prototype, {
     _map : null,
     _element : null,
     _currentNodeData : null,
-    _currentDate : null,
     _currentHistogram : null,
 
-    _clear : function() {
+    _update : function() {
+        this._updateNodes();
+        this._updateCountries();
+    },
+
+    _updateNodes : function() {
+        var self = this;
+        var isoDate = this._dateSlider.getISODate();
+        var nodeCount = self._markerLayer.getNodeCount();
+        // clear existing data
         this._markerLayer.clear();
-        this._countryLayer.clear();
         this._particleLayer.clear();
-    },
-
-    _update : function( isoDate ) {
-        this._clear();
-        this._fetch(isoDate);
-    },
-
-    _fetch : function(isoDateStr) {
-
-        function handleNodes(data) {
+        // request node data
+        d3.json('/nodes/' + encodeURI(isoDate) + '?count=' + nodeCount, function(data) {
+            self._currentNodeData = data;
             // Create markers
             self._markerLayer.set(data);
             // Update particles, if they are different
-            if ( oldNodes !== self._currentNodeData ) {
-                self._particleLayer.updateNodes(data.nodes, data.bandwidth);
-            }
-        }
+            self._particleLayer.updateNodes(data.nodes, data.bandwidth);
+        });
+    },
 
-        function handleHistogram(histogram) {
+    _updateCountries : function() {
+        var self = this;
+        var isoDate = this._dateSlider.getISODate();
+        var countryCount = self._countryLayer.getCountryCount();
+        // clear existing data
+        this._countryLayer.clear();
+        // request client country count data
+        d3.json('/country/' + encodeURI(isoDate) + '?count=' + countryCount, function(histogram) {
+            self._currentHistogram = histogram;
             self._countryLayer.set(histogram);
-        }
-
-        var oldNodes = this._currentNodeData,
-            self = this;
-
-        if (this._currentDate === isoDateStr) {
-            // selected current date, simply refresh layers
-            handleNodes(this._currentNodeData);
-            handleHistogram(this._currentHistogram);
-        } else {
-            // new date, request new information
-            d3.json('/nodes/' + encodeURI(isoDateStr) + '?count=' + NODE_COUNT, function (data) {
-                self._currentNodeData = data;
-                handleNodes(data);
-            });
-            d3.json('/country/' + encodeURI(isoDateStr) + '?count=' + COUNTRY_COUNT,function(histogram) {
-                self._currentHistogram = histogram;
-                handleHistogram(histogram);
-            });
-            self._currentDate = isoDateStr;
-        }
+        });
     },
 
     _createLayerUI : function(layerName,layer) {
@@ -159,7 +141,7 @@ App.prototype = _.extend(App.prototype, {
                 label: 'Particle Count',
                 min: layer.getParticleCountMin(),
                 max: layer.getParticleCountMax(),
-                step: (layer.getParticleCountMax() - layer.getParticleCountMin())/10,
+                step: (layer.getParticleCountMax() - layer.getParticleCountMin()) / 100,
                 initialValue: layer.getUnscaledParticleCount(),
                 formatter: function( value ) {
                     return (value/1000) + 'K';
@@ -224,19 +206,60 @@ App.prototype = _.extend(App.prototype, {
         return $controlElement;
     },
 
-    _addMarkerControls : function($controlElement,layer) {
-        var scaleByBandwidthToggle = new ToggleBox({
-            label: 'Scale by Bandwidth',
-            initialValue: layer.scaleByBandwidth(),
-            enabled: function() {
-                layer.scaleByBandwidth(true);
-            },
-            disabled: function() {
-                layer.scaleByBandwidth(false);
-            }
-        });
+    _addMarkerControls : function($controlElement, layer) {
+        var self = this;
+        var nodeCountSlider = new Slider({
+                label: 'Node Count (top n)',
+                min: layer.getNodeCountMin(),
+                max: layer.getNodeCountMax(),
+                step: (layer.getNodeCountMax() - layer.getNodeCountMin()) / 100,
+                initialValue: layer.getNodeCount(),
+                formatter: function( value ) {
+                    return Math.round(value);
+                },
+                slideStop: function( event ) {
+                    if ( event.value !== layer.getNodeCount() ) {
+                        layer.setNodeCount( event.value );
+                        self._updateNodes();
+                    }
+                }
+            }),
+            scaleByBandwidthToggle = new ToggleBox({
+                label: 'Scale by Bandwidth',
+                initialValue: layer.scaleByBandwidth(),
+                enabled: function() {
+                    layer.scaleByBandwidth(true);
+                },
+                disabled: function() {
+                    layer.scaleByBandwidth(false);
+                }
+            });
         $controlElement.find('.layer-control-body')
+            .append( nodeCountSlider.getElement() ).append('<div style="clear:both;"></div>')
             .append( scaleByBandwidthToggle.getElement() ).append('<div style="clear:both;"></div>');
+        return $controlElement;
+    },
+
+    _addCountryControls : function($controlElement, layer) {
+        var self = this;
+        var countryCountSlider = new Slider({
+                label: 'Country Count (top n)',
+                min: layer.getCountryCountMin(),
+                max: layer.getCountryCountMax(),
+                step: (layer.getCountryCountMax() - layer.getCountryCountMin()) / 100,
+                initialValue: layer.getCountryCount(),
+                formatter: function( value ) {
+                    return Math.round(value);
+                },
+                slideStop: function( event ) {
+                    if ( event.value !== layer.getCountryCount() ) {
+                        layer.setCountryCount( event.value );
+                        self._updateCountries();
+                    }
+                }
+            });
+        $controlElement.find('.layer-control-body')
+            .append( countryCountSlider.getElement() ).append('<div style="clear:both;"></div>');
         return $controlElement;
     },
 
@@ -253,13 +276,12 @@ App.prototype = _.extend(App.prototype, {
         $mapControls.append( this._addFlowControls( this._createLayerUI('Particles', this._particleLayer ), this._particleLayer ) );
         $mapControls.append( this._addMarkerControls( this._createLayerUI('Nodes', this._markerLayer ), this._markerLayer ) );
         $mapControls.append( this._createLayerUI('Labels', this._labelLayer ) );
-        $mapControls.append( this._createLayerUI('Top Clients', this._countryLayer ) );
+        $mapControls.append( this._addCountryControls( this._createLayerUI('Top Client Connections', this._countryLayer ), this._countryLayer ) );
         // create date slider
         this._dateSlider = new DateSlider({
             dates: this._dates,
             slideStop: function() {
-                var isoDate = self._dateSlider.getISODate();
-                self._update(isoDate);
+                self._update();
             }
         });
         $dateControls.append(this._dateSlider.getElement());
@@ -364,7 +386,7 @@ App.prototype = _.extend(App.prototype, {
         this._initLayers();
         this._initUI();
         // begin
-        this._update(this._dateSlider.getISODate());
+        this._update();
     },
 
     start: function () {
