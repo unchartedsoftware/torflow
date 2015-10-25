@@ -27,7 +27,7 @@
 
 var config = {
     // node count config
-    node_count: 1000,
+    node_count: 500,
     node_count_min: 100,
     node_count_max : 2000,
     // node mobile factor
@@ -37,7 +37,7 @@ var config = {
         max : 40
     },
     // country geo json
-    country_count: 50,
+    country_count: 25,
     country_count_min: 5,
     country_count_max : 200,
     // country mobile factor

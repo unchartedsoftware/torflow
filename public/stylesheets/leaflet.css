@@ -94,5 +94,8 @@
     border-radius: 100%;
     background-color: rgba(255,255,255,0.3);
     border: 1px solid #000;
-    box-sizing: border-box;
+}
+
+.leaflet-marker-cluster:hover {
+    background-color: rgba(255,255,255,0.8);
 }

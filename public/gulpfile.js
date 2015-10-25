@@ -92,7 +92,7 @@ gulp.task('build-css', function () {
             '!' + config.style + '/extern.css',
             '!' + config.style + '/extern/**/*.css'
         ])
-        .pipe( minifyCss() )
+        .pipe( minifyCss({ keepSpecialComments: 0 }) )
         .pipe( concat('torflow.css') )
         .pipe( gulp.dest( config.dist ) );
 });
@@ -114,7 +114,7 @@ gulp.task('build-extern-js', function() {
 gulp.task('build-extern-css', function() {
     return gulp.src( bower() )
         .pipe( filter('**/*.css') ) // filter css files
-        .pipe( minifyCss() )
+        .pipe( minifyCss({ keepSpecialComments: 0 }) )
         .pipe( concat('extern.css') )
         .pipe( gulp.dest( './stylesheets/' ) );
 });

@@ -68,6 +68,7 @@
 
 .leaflet-bar a:hover {
     line-height: 24px;
+    border-bottom: 1px solid rgb(20, 155, 223);
 }
 
 .small-button:hover,
