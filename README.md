@@ -2,6 +2,8 @@
 
 > Data flow in the Tor network
 
+![Image of TorFlow](https://github.com/unchartedsoftware/torflow/sample.png)
+
 ## Building
 
 Requires [node](http://nodejs.org/), [bower](http://bower.io/), and [gulp](http://http://gulpjs.com/).
