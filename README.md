@@ -1,6 +1,6 @@
 # TorFlow
 
-Data Flow in the Tor Network.
+> Data flow in the Tor network
 
 ## Building
 
