@@ -39,6 +39,26 @@
     display: none;
 }
 
+.bar {
+    cursor: pointer;
+    fill-opacity: 0.8;
+    stroke-opacity: 0.8;
+    shape-rendering: crispEdges;
+}
+
+.bar:hover .foreground-bar {
+    stroke-opacity: 1.0;
+    fill-opacity: 1.0;
+}
+
+.background-bar {
+    fill-opacity: 0;
+}
+
+.bar:hover .background-bar {
+    fill-opacity: 0.3;
+}
+
 .chart-content {
     position: relative;
     height: 100%;
@@ -52,20 +72,22 @@
     right: 10px;
 }
 
+.axis,
 .chart-title {
-    font-size: 14px;
     fill: #ddd;
 }
 
+.chart-title {
+    font-size: 14px;
+}
+
 .axis {
-    font: "Lucida Grande", Helvetica, Arial, sans-serif;
     font-size: 10px;
-    fill: #ddd;
 }
 
 .axis path,
 .axis line {
     fill: none;
-    stroke: #333;
+    stroke: #666;
     shape-rendering: crispEdges;
 }

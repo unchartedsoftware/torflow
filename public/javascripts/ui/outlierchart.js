@@ -114,103 +114,118 @@ OutlierBarChart.prototype._update = function() {
     if (!this._container || !this._data) {
         return;
     }
-
+    // Clear container
     this._container.empty();
-
+    // Set local scope vars
+    var height = this._height;
+    var width = this._width;
+    var margin = this._margin;
+    var colorStops = this._colorStops;
+    // Set value ranges
     var x = d3.scale.ordinal()
-        .rangeRoundBands([0, this.width()], 0.3, 0.2);
-
+        .rangeRoundBands([0, width], 0, 0.01);
     var y = d3.scale.sqrt()
-        .range([this.height(), 0]);
-
+        .range([height, 0]);
+    // Set value domains
+    x.domain(this._data.map(function(d) {
+        return d.x;
+    }));
+    y.domain([0, d3.max(this._data, function(d) {
+        return d.y;
+    })]);
+    // Create axes
     var xAxis = d3.svg.axis()
         .scale(x)
         .orient('bottom');
-
     var yAxis = d3.svg.axis()
         .scale(y)
         .ticks(5)
         .orient('left');
-
+    // Create chart container
     var svg = d3.select($(this._container)[0]).append('svg')
-        .attr('width', this._width + this._margin.left + this._margin.right)
-        .attr('height', this._height + this._margin.top + this._margin.bottom)
+        .attr('width', width + margin.left + margin.right)
+        .attr('height', height + margin.top + margin.bottom)
         .append('g')
-        .attr('transform', 'translate(' + this._margin.left + ',' + this._margin.top + ')');
-
-    x.domain(this._data.map(function(d) {
-        return d.x;
-    }));
-
-    y.domain([0, d3.max(this._data, function(d) {
-        return d.y;
-    })]);
-
+        .attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
+    // Create title
+    svg.append('text')
+        .attr('x', width / 2)
+        .attr('y', -margin.top / 3)
+        .attr('text-anchor', 'middle')
+        .attr('class', 'chart-title')
+        .text(this.title());
+    // Create x-axis
     var svgXAxis = svg.append('g')
         .attr('class', 'x axis')
-        .attr('transform', 'translate(0,' + (this._height+1) + ')')
+        .attr('transform', 'translate(0,' + (height+1) + ')')
         .call(xAxis);
-
     svgXAxis.selectAll('text')
         .attr('transform', 'rotate(-45), translate(-38,0)');
-
     svgXAxis.append('text')
         .attr('class', 'x-axis-title')
-        .attr('x', this.width() / 2 )
+        .attr('x', width / 2 )
         .style('text-anchor', 'middle')
-        .attr('y', this._margin.bottom * 0.95 )
+        .attr('y', margin.bottom * 0.95 )
         .attr('font-size', '14px')
         .text('Outlier Dates');
-
+    // Create y-axis
     svg.append('g')
         .attr('class', 'y axis')
         .call(yAxis)
         .append('text')
         .attr('class', 'y-axis-title')
         .attr('transform', 'rotate(-90)')
-        .attr('x', -(this.height() / 2))
-        .attr('y', -this._margin.left)
+        .attr('x', -(height / 2))
+        .attr('y', -margin.left)
         .attr('font-size', '14px')
         .attr('dy', '14px')
         .style('text-anchor', 'middle')
-        .text('Client Connections');
-
+        .text('Connections');
+    // Create color interpolators
+    var halfLength = (this._data.length-1) / 2;
     var positiveInterpolator = d3.scale.sqrt()
-        .domain([(this._data.length-1)/2,0])
+        .domain([halfLength,0])
         .interpolate(d3.interpolateRgb)
-        .range([this._colorStops[0], this._colorStops[1]]);
-
+        .range([colorStops[0], colorStops[1]]);
     var negativeInterpolator = d3.scale.sqrt()
-        .domain([0,-(this._data.length-1)/2])
+        .domain([0,-halfLength])
         .interpolate(d3.interpolateRgb)
-        .range([this._colorStops[1], this._colorStops[2]]);
-
-    svg.selectAll('.bar')
+        .range([colorStops[1], colorStops[2]]);
+    // Create bars
+    var bars = svg.selectAll('.bar')
         .data(this._data)
         .enter()
-        .append('rect')
-        .attr('class', 'bar outlier-bar')
+        .append('g')
+        .attr('class', 'bar')
+        .attr('transform', function(d) {
+            return 'translate(' + x(d.x) + ', 0)';
+        })
+        .attr('width', x.rangeBand())
+        .attr('height', height);
+    // Create background bars
+    bars.append('rect')
+        .attr('class', 'background-bar')
+        .attr('width', x.rangeBand()+1)
+        .attr('height', height+1);
+    // Create foreground bars
+    bars.append('rect')
+        .attr('class', 'foreground-bar')
         .attr('fill', function(d) {
             if (d.position > 0) {
                 return positiveInterpolator(d.position);
-            } else if (d.position <= 0) {
+            } else {
                 return negativeInterpolator(d.position);
             }
         })
-        .attr('fill-opacity', 0.6)
         .attr('stroke', '#000')
-        .attr('stroke-opacity', 0.6)
-        .attr('x', function(d) {
-            return x(d.x);
-        })
         .attr('width', x.rangeBand())
+        .attr('height', function(d) {
+            return height - y(d.y);
+        })
         .attr('y', function(d) {
             return y(d.y);
-        })
-        .attr('height', function(d) {
-            return self._height - y(d.y);
         });
-
+    // Add hover over tooltips
     chartLabel.addLabels({
         svg: svg,
         selector: '.bar',
@@ -233,14 +248,7 @@ OutlierBarChart.prototype._update = function() {
             }
         }
     });
-
-    svg.append('text')
-        .attr('x', (this.width() / 2))
-        .attr('y', -this._margin.top / 3)
-        .attr('text-anchor', 'middle')
-        .attr('class', 'chart-title')
-        .text(this.title());
-
+    // Set click event handler
     if (this._onClick) {
         svg.selectAll('.bar').on('click', function () {
             self._onClick(this.__data__);

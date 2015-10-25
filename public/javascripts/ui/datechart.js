@@ -31,7 +31,7 @@ var chartLabel = require('./chartlabel');
 var DateChart = function(container) {
     this._container = container;
     this._data = null;
-    this._margin = {top: 10, right: 10, bottom: 50, left: 10};
+    this._margin = {top: 10, right: 10, bottom: 55, left: 10};
     this._width = $(container).width() - this._margin.left - this._margin.right;
     this._height = $(container).height() - this._margin.top - this._margin.bottom;
     this._colorStops = d3.scale.sqrt()
@@ -123,48 +123,61 @@ DateChart.prototype._update = function() {
     if (!this._container || !this._data) {
         return;
     }
-
+    // Clear container
     this._container.empty();
-
+    // Set local scope vars
+    var MIN_HEIGHT = 5;
+    var height = this._height;
+    var width = this._width;
+    var margin = this._margin;
+    var barWidth = width / (this._data.length - 1);
+    var colorStops = this._colorStops;
+    // Set value ranges
     var x = d3.scale.linear()
         .range([0, this.width()]);
-
     var y = d3.scale.linear()
         .range([this.height(), 0]);
-
-    var svg = d3.select($(this._container)[0]).append('svg')
-        .attr('width', this._width + this._margin.left + this._margin.right)
-        .attr('height', this._height + this._margin.top + this._margin.bottom)
-        .append('g')
-        .attr('transform', 'translate(' + this._margin.left + ',' + this._margin.top + ')');
-
-    x.domain([ 0, this._data.length -1 ]);
-
+    // Set value domains
+    x.domain([ 0, this._data.length ]);
     y.domain([ 0, this._max ]);
-
-    svg.selectAll('.bar')
+    // Create chart container
+    var svg = d3.select($(this._container)[0]).append('svg')
+        .attr('width', width + margin.left + margin.right)
+        .attr('height', height + margin.top + margin.bottom)
+        .append('g')
+        .attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
+    // Create bars
+    var bars = svg.selectAll('.bar')
         .data(this._data)
         .enter()
-        .append('rect')
-        .attr('class', function(d,index) {
-            return (index === self._dateIndex) ? 'bar date-bar active' : 'bar date-bar';
+        .append('g')
+        .attr('class', function(d, index) {
+            return (index === self._dateIndex) ? 'bar active' : 'bar';
         })
+        .attr('transform', function(d, index) {
+            return 'translate(' + x(index) + ', 0)';
+        })
+        .attr('width', barWidth)
+        .attr('height', height);
+    bars.append('rect')
+        .attr('class', 'background-bar')
+        .attr('width', barWidth)
+        .attr('height', height);
+    // Create foreground bars
+    bars.append('rect')
+        .attr('class', 'foreground-bar')
         .attr('fill', function(d) {
-            return self._colorStops((d.y - self._min) / self._range);
+            return colorStops((d.y - self._min) / self._range);
         })
         .attr('stroke', '#000')
-        .attr('stroke-opacity', 0.8)
-        .attr('x', function(d,i) {
-            return x(i);
+        .attr('width', barWidth)
+        .attr('height', function(d) {
+            return height - y(d.y) + MIN_HEIGHT;
         })
-        .attr('width', this.width() / (this._data.length - 1) )
         .attr('y', function(d) {
             return y(d.y);
-        })
-        .attr('height', function(d) {
-            return self._height - y(d.y);
         });
-
+    // Add hover over tooltips
     chartLabel.addLabels({
         svg: svg,
         selector: '.bar',
@@ -179,7 +192,7 @@ DateChart.prototype._update = function() {
             '</div>';
         }
     });
-
+    // Set click event handler
     if (this._onClick) {
         svg.selectAll('.bar').on('click', function () {
             self._onClick(this.__data__);

@@ -132,93 +132,110 @@ DateHistogram.prototype._update = function() {
     if (!this._container || !this._data) {
         return;
     }
-
+    // Clear container
     this._container.empty();
-
+    // Set local scope vars
+    var height = this._height;
+    var width = this._width;
+    var margin = this._margin;
+    var barWidth = width / (this._data.length - 1);
+    var colorStops = this._colorStops;
+    // Set value ranges
     var x = d3.scale.ordinal()
-        .rangeRoundBands([0, this.width()]);
-
+        .rangeRoundBands([0, this.width()], 0, 0.01);
     var y = d3.scale.sqrt()
-        .range([this.height(), 0], 0.1, 0.0);
-
+        .range([this.height(), 0]);
+    // Set value domains
+    x.domain(this._data.map(function(d) {
+        return d.x;
+    }));
+    y.domain([ 0, this._max ]);
+    // Filter dates
     var modFilter = Math.floor(this._data.length / 6);
-
     var xAxisDates = this._data.filter(function(d,i) {
             return i % modFilter === 0;
         })
         .map(function(d) {
             return d.x;
         });
-
+    // Create axes
     var xAxis = d3.svg.axis()
         .scale(x)
         .tickValues(xAxisDates)
         .orient('bottom');
-
     var yAxis = d3.svg.axis()
         .scale(y)
         .ticks(5)
         .orient('left');
-
+    // Create chart container
     var svg = d3.select($(this._container)[0]).append('svg')
-        .attr('width', this._width + this._margin.left + this._margin.right)
-        .attr('height', this._height + this._margin.top + this._margin.bottom)
+        .attr('width', width + margin.left + margin.right)
+        .attr('height', height + margin.top + margin.bottom)
         .append('g')
-        .attr('transform', 'translate(' + this._margin.left + ',' + this._margin.top + ')');
-
-    x.domain(this._data.map(function(d) {
-        return d.x;
-    }));
-
-    y.domain([ 0, this._max ]);
-
+        .attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
+    // Create title
+    svg.append('text')
+        .attr('x', width / 2)
+        .attr('y', -margin.top / 3)
+        .attr('text-anchor', 'middle')
+        .attr('class', 'chart-title')
+        .text(this.title());
+    // Create x-axis
     var svgXAxis = svg.append('g')
         .attr('class', 'x axis')
-        .attr('transform', 'translate(0,' + (this._height+1) + ')')
+        .attr('transform', 'translate(0,' + (height+1) + ')')
         .call(xAxis);
-
     svgXAxis.append('text')
         .attr('class', 'x-axis-title')
-        .attr('x', this.width() / 2 )
+        .attr('x', width / 2 )
         .style('text-anchor', 'middle')
-        .attr('y', this._margin.bottom * 0.95 )
+        .attr('y', margin.bottom * 0.95 )
         .attr('font-size', '14px')
         .text('Dates');
-
+    // Create y-axis
     svg.append('g')
         .attr('class', 'y axis')
         .call(yAxis)
         .append('text')
         .attr('class', 'y-axis-title')
         .attr('transform', 'rotate(-90)')
-        .attr('x', -(this.height() / 2))
-        .attr('y', -this._margin.left)
+        .attr('x', -(height / 2))
+        .attr('y', -margin.left)
         .attr('font-size', '14px')
         .attr('dy', '14px')
         .style('text-anchor', 'middle')
-        .text('Client Connections');
-
-    svg.selectAll('.bar')
+        .text('Connections');
+    // Create bars
+    var bars = svg.selectAll('.bar')
         .data(this._data)
         .enter()
-        .append('rect')
-        .attr('class', 'bar date-bar')
+        .append('g')
+        .attr('class', 'bar')
+        .attr('transform', function(d) {
+            return 'translate(' + x(d.x) + ', 0)';
+        })
+        .attr('width', barWidth)
+        .attr('height', height);
+    // Create background bars
+    bars.append('rect')
+        .attr('class', 'background-bar')
+        .attr('width', barWidth+1)
+        .attr('height', height+1);
+    // Create foreground bars
+    bars.append('rect')
+        .attr('class', 'foreground-bar')
         .attr('fill', function(d) {
-            return self._colorStops((d.y - self._min) / self._range);
+            return colorStops((d.y - self._min) / self._range);
         })
         .attr('stroke', '#000')
-        .attr('stroke-opacity', 0.6)
-        .attr('x', function(d) {
-            return x(d.x);
+        .attr('width', barWidth)
+        .attr('height', function(d) {
+            return height - y(d.y);
         })
-        .attr('width', this.width() / (this._data.length - 1) )
         .attr('y', function(d) {
             return y(d.y);
-        })
-        .attr('height', function(d) {
-            return self._height - y(d.y);
         });
-
+    // Add hover over tooltips
     chartLabel.addLabels({
         svg: svg,
         selector: '.bar',
@@ -233,14 +250,7 @@ DateHistogram.prototype._update = function() {
             '</div>';
         }
     });
-
-    svg.append('text')
-        .attr('x', (this.width() / 2))
-        .attr('y', -this._margin.top / 3)
-        .attr('text-anchor', 'middle')
-        .attr('class', 'chart-title')
-        .text(this.title());
-
+    // Set click event handler
     if (this._onClick) {
         svg.selectAll('.bar').on('click', function () {
             self._onClick(this.__data__);

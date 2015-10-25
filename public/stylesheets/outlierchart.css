@@ -31,14 +31,3 @@
     height: 250px;
     width: 612px;
 }
-
-.outlier-bar {
-    fill-opacity: 0.8;
-    cursor: pointer;
-    shape-rendering: crispEdges;
-}
-
-.outlier-bar:hover {
-    stroke-opacity: 1.0;
-    fill-opacity: 1.0;
-}

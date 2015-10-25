@@ -96,9 +96,9 @@ a {
 .date-controls {
     position: absolute;
     bottom: 0;
-    width: calc(100% - 1000px);
-    height: 100px;
-    left: 530px;
+    width: calc(100% - 800px);
+    height: 120px;
+    left: 430px;
     z-index: 2;
     line-height: 20px;
     text-align: center;
