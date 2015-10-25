@@ -2,7 +2,7 @@
 
 > Data flow in the Tor network
 
-![Image of TorFlow](https://github.com/unchartedsoftware/torflow/sample.png)
+![Image of TorFlow](https://github.com/unchartedsoftware/torflow/raw/master/sample.png)
 
 ## Building
 
