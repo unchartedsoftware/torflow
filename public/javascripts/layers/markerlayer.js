@@ -99,14 +99,20 @@ MarkerLayer.prototype = _.extend(MarkerLayer.prototype, {
         // entire series operation, preventing stale additions
         var currentTimestamp = Date.now();
         this._requestTimestamp = currentTimestamp;
+        // Leaflet only let you add markers 1 at a time, or requires you to
+        // recreate the layer and add all markers. This causes a noticible
+        // jitter so here we throttle it in batches.
         var CHUNK_SIZE = 20;
+        var TIMEOUT = 200;
         var chunks = _.chunk(markers, CHUNK_SIZE);
-        var additions = _.map( chunks, function(chunk) {
+        var additions = _.map(chunks, function(chunk) {
             return function(done) {
-                chunk.forEach(function(marker) {
-                    self._markerLayer.addLayer(marker);
-                });
-                done(self._requestTimestamp !== currentTimestamp);
+                setTimeout(function() {
+                    chunk.forEach(function(marker) {
+                        self._markerLayer.addLayer(marker);
+                    });
+                    done(self._requestTimestamp !== currentTimestamp);
+                }, TIMEOUT);
             };
         });
         // execute the additions in chunks to prevent browser from locking
@@ -169,10 +175,11 @@ MarkerLayer.prototype = _.extend(MarkerLayer.prototype, {
         }
         // on mouse over create label
         marker.on( 'mouseover', function( leafletEvent ) {
-            var event = leafletEvent.originalEvent,
-                offset = $(document.body).offset(),
-                relativeX = event.pageX - offset.left,
-                relativeY = event.pageY - offset.top;
+            var event = leafletEvent.originalEvent;
+            var $marker = $(event.target);
+            var offset = $marker.offset();
+            var posY = offset.top - $(window).scrollTop();
+            var posX = offset.left - $(window).scrollLeft() + $marker.outerWidth()/2;
             if ( self._$label ) {
                 self._$label.remove();
             }
@@ -182,8 +189,8 @@ MarkerLayer.prototype = _.extend(MarkerLayer.prototype, {
                 '</div>' );
             $( document.body ).append( self._$label );
             self._$label.css({
-                'left': -self._$label.outerWidth()/2 + relativeX + 'px',
-                'top': -self._$label.outerHeight()*1.25 + relativeY + 'px'
+                'left': -self._$label.outerWidth()/2 + posX + 'px',
+                'top': -self._$label.outerHeight()*1.25 + posY + 'px'
             });
         });
         // on mouse out destroy label

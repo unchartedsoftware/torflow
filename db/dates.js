@@ -6,7 +6,7 @@ var async = require('async');
 
 var getDates = function(callback) {
     connectionPool.query(
-        'SELECT date FROM ' + config.db.database + '.dates order by date asc',
+        'SELECT * FROM ' + config.db.database + '.dates order by date asc',
         function(err,rows) {
             if (err) {
                 callback(err);
@@ -14,7 +14,13 @@ var getDates = function(callback) {
                 var dates = rows.map(function(row) {
                     return row.date;
                 });
-                callback(null,dates);
+                var bandwidths = rows.map(function(row) {
+                    return row.bandwidth;
+                });
+                callback(null,{
+                    dates: dates,
+                    bandwidths: bandwidths
+                });
             }
         });
 };

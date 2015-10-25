@@ -25,26 +25,19 @@
 * SOFTWARE.
 */
 
-.date-slider-container {
-    position: absolute;
-    left: calc(50% - 250px);
-    bottom: 0;
+.outlier-chart-container {
+    top: calc(100% - 350px - 250px - 10px); /* use left for draggabilly */
+    left: calc(100% - 612px - 10px); /* use top for draggabilly */
+    height: 250px;
+    width: 612px;
 }
 
-.date-slider-container .slider.slider-horizontal {
-    width: 300px;
+.outlier-bar {
+    fill-opacity: 0.6;
+    cursor: pointer;
+    shape-rendering: crispEdges;
 }
 
-.date-slider-button {
-    margin: 0 10px;
-    width: 20px;
-    height: 20px;
-    line-height: 13px;
-    padding: 0 5px;
-    text-align: center;
-}
-
-.date-label {
-    display: inline-block;
-    padding: 0 10px;
+.outlier-bar:hover {
+    fill-opacity: 0.8;
 }

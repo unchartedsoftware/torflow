@@ -43,7 +43,12 @@ router.get('/', function(req, res) {
                 console.log(err.message);
                 res.status(500).send('Dates data could not be retrieved.');
             } else {
-                res.send(data);
+                res.send({
+                    dates: data.dates.dates,
+                    bandwidths: data.dates.bandwidths,
+                    min: data.min,
+                    max: data.max
+                });
             }
         });
 });

@@ -96,36 +96,12 @@ a {
 .date-controls {
     position: absolute;
     bottom: 0;
-    left: calc(50% - 200px);
+    width: calc(100% - 1000px);
+    height: 100px;
+    left: 530px;
     z-index: 2;
     line-height: 20px;
-}
-
-.drilldown-container {
-    position: absolute;
-    top: calc(100% - 510px); /* use left for draggabilly */
-    left: calc(100% - 622px); /* use top for draggabilly */
-    height: 400px;
-    width: 612px;
-    background-color: rgba(0,0,0,0.4);
-    border-radius: 4px;
-    border: 1px solid rgb(20, 155, 223);
-    padding: 4px;
-    z-index: 2;
-    display: none;
-}
-
-.drilldown-content {
-    position: relative;
-    height: 100%;
-    width: 100%;
-    z-index: 1;
-}
-
-.drilldown-close-button {
-    position: absolute;
-    top: 10px;
-    right: 10px;
+    text-align: center;
 }
 
 .hover-label,

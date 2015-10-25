@@ -25,26 +25,49 @@
 * SOFTWARE.
 */
 
-var OutlierBarChart = function(container) {
+var bucket = require('../util/bucket');
+
+var DateHistogram = function(container) {
     this._container = container;
     this._data = null;
-    this._margin = {top: 40, right: 20, bottom: 90, left: 70};
+    this._margin = {top: 30, right: 10, bottom: 40, left: 70};
     this._width = $(container).width() - this._margin.left - this._margin.right;
     this._height = $(container).height() - this._margin.top - this._margin.bottom;
-    this._colorStops = ['#0000ff','#898989','#ff0000'];
+    this._colorStops = d3.scale.sqrt()
+        .range(['#ff0000','#0000ff'])
+        .domain([0,1]);
     this._title = '';
     this._onClick = null;
 };
 
-OutlierBarChart.prototype.data = function(data) {
+DateHistogram.prototype.data = function(data) {
     if (arguments.length === 0) {
         return this._data;
     }
-    this._data = data;
+    var res = bucket({
+        data: data,
+        xExtractor: function(value) {
+            return moment.utc(value.date).valueOf();
+        },
+        yExtractor: function(value) {
+            return value.count;
+        },
+        threshold: 0.15,
+        maxBucketSize: 20
+    });
+    this._min = res.min;
+    this._max = res.max;
+    this._range = res.max - res.min;
+    this._data = res.buckets.map( function(d) {
+        return {
+            x: moment.utc(d.x).format('MMM Do, YYYY'),
+            y: d.y
+        };
+    });
     return this;
 };
 
-OutlierBarChart.prototype.title = function(title) {
+DateHistogram.prototype.title = function(title) {
     if (arguments.length === 0) {
         return this._title;
     }
@@ -52,7 +75,7 @@ OutlierBarChart.prototype.title = function(title) {
     return this;
 };
 
-OutlierBarChart.prototype.margin = function(margin) {
+DateHistogram.prototype.margin = function(margin) {
     if (arguments.length === 0) {
         return this._margin;
     }
@@ -60,7 +83,7 @@ OutlierBarChart.prototype.margin = function(margin) {
     return this;
 };
 
-OutlierBarChart.prototype.width = function(width) {
+DateHistogram.prototype.width = function(width) {
     if (arguments.length === 0) {
         return this._width;
     }
@@ -69,7 +92,7 @@ OutlierBarChart.prototype.width = function(width) {
     return this;
 };
 
-OutlierBarChart.prototype.height = function(height) {
+DateHistogram.prototype.height = function(height) {
     if (arguments.length === 0) {
         return this._height;
     }
@@ -78,21 +101,23 @@ OutlierBarChart.prototype.height = function(height) {
     return this;
 };
 
-OutlierBarChart.prototype.colorStops = function(colorStops) {
+DateHistogram.prototype.colorStops = function(colorStops) {
     if (arguments.length === 0) {
         return this._colorStops;
     }
-    this._colorStops = colorStops;
+    this._colorStops = d3.scale.sqrt()
+        .range(colorStops)
+        .domain([0, 1]);
     this._update();
     return this;
 };
 
-OutlierBarChart.prototype.draw = function() {
+DateHistogram.prototype.draw = function() {
     this._update();
     return this;
 };
 
-OutlierBarChart.prototype.click = function(onClick) {
+DateHistogram.prototype.click = function(onClick) {
     if (arguments.length === 0) {
         return this._onClick;
     }
@@ -101,7 +126,7 @@ OutlierBarChart.prototype.click = function(onClick) {
     return this;
 };
 
-OutlierBarChart.prototype._update = function() {
+DateHistogram.prototype._update = function() {
     var self = this;
     if (!this._container || !this._data) {
         return;
@@ -110,17 +135,28 @@ OutlierBarChart.prototype._update = function() {
     this._container.empty();
 
     var x = d3.scale.ordinal()
-        .rangeRoundBands([0, this.width()], 0.3, 0.2);
+        .rangeRoundBands([0, this.width()]);
 
     var y = d3.scale.sqrt()
-        .range([this.height(), 0]);
+        .range([this.height(), 0], 0.1, 0.0);
+
+    var modFilter = Math.floor(this._data.length / 8);
+
+    var xAxisDates = this._data.filter(function(d,i) {
+            return i % modFilter === 0;
+        })
+        .map(function(d) {
+            return d.x;
+        });
 
     var xAxis = d3.svg.axis()
         .scale(x)
+        .tickValues(xAxisDates)
         .orient('bottom');
 
     var yAxis = d3.svg.axis()
         .scale(y)
+        .ticks(5)
         .orient('left');
 
     var svg = d3.select($(this._container)[0]).append('svg')
@@ -130,20 +166,15 @@ OutlierBarChart.prototype._update = function() {
         .attr('transform', 'translate(' + this._margin.left + ',' + this._margin.top + ')');
 
     x.domain(this._data.map(function(d) {
-        return d.date;
+        return d.x;
     }));
 
-    y.domain([1, d3.max(this._data, function(d) {
-        return d.client_count;
-    })]);
+    y.domain([ 0, this._max ]);
 
     var svgXAxis = svg.append('g')
         .attr('class', 'x axis')
-        .attr('transform', 'translate(0,' + this._height + ')')
+        .attr('transform', 'translate(0,' + (this._height+1) + ')')
         .call(xAxis);
-
-    svgXAxis.selectAll('text')
-        .attr('transform', 'rotate(-45), translate(-38,0)');
 
     svgXAxis.append('text')
         .attr('class', 'x-axis-title')
@@ -151,7 +182,7 @@ OutlierBarChart.prototype._update = function() {
         .style('text-anchor', 'middle')
         .attr('y', this._margin.bottom * 0.95 )
         .attr('font-size', '14px')
-        .text('Outlier Days');
+        .text('Dates');
 
     svg.append('g')
         .attr('class', 'y axis')
@@ -164,88 +195,27 @@ OutlierBarChart.prototype._update = function() {
         .attr('font-size', '14px')
         .attr('dy', '14px')
         .style('text-anchor', 'middle')
-        .text('Frequency');
-
-    var positiveInterpolator = d3.scale.sqrt()
-        .domain([(this._data.length-1)/2,0])
-        .interpolate(d3.interpolateRgb)
-        .range([this._colorStops[0], this._colorStops[1]]);
-
-    var negativeInterpolator = d3.scale.sqrt()
-        .domain([0,-(this._data.length-1)/2])
-        .interpolate(d3.interpolateRgb)
-        .range([this._colorStops[1], this._colorStops[2]]);
-
-    var $label;
-
-    var numberWithCommas = function (x) {
-        return x.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',');
-    };
+        .text('Client Connections');
 
     svg.selectAll('.bar')
         .data(this._data)
         .enter()
         .append('rect')
-        .attr('class', 'bar')
+        .attr('class', 'bar date-bar')
         .attr('fill', function(d) {
-            if (d.position > 0) {
-                return positiveInterpolator(d.position);
-            } else if (d.position <= 0) {
-                return negativeInterpolator(d.position);
-            }
+            return self._colorStops((d.y - self._min) / self._range);
         })
-        .attr('fill-opacity', 0.6)
-        .attr('stroke', function(d) {
-            if (d.position > 0) {
-                return positiveInterpolator(d.position);
-            } else if (d.position <= 0) {
-                return negativeInterpolator(d.position);
-            }
-        })
-        .attr('stroke-opacity', 1.0)
+        .attr('stroke', '#000')
+        .attr('stroke-opacity', 0.6)
         .attr('x', function(d) {
-            return x(d.date);
+            return x(d.x);
         })
-        .attr('width', x.rangeBand())
+        .attr('width', this.width() / (this._data.length - 1) )
         .attr('y', function(d) {
-            return y(d.client_count);
+            return y(d.y);
         })
         .attr('height', function(d) {
-            return self._height - y(d.client_count);
-        })
-        .on('mousemove', function(d) {
-            if ($label) {
-                $label.remove();
-            }
-            if (d.date === 'Average') {
-                $label = $(
-                    '<div class="chart-hover-label">'+
-                        '<div style="float:left;">Average Count: </div>' +
-                        '<div style="float:right">' + numberWithCommas(d.client_count.toFixed(2)) + '</div>' +
-                        '<div style="clear:both"></div>' +
-                    '</div>' );
-            } else {
-                $label = $(
-                    '<div class="chart-hover-label">'+
-                        '<div style="float:left;">Date: </div>' +
-                        '<div style="float:right">' + d.date + '</div>' +
-                        '<div style="clear:both"></div>' +
-                        '<div style="float:left;">Count: </div>' +
-                        '<div style="float:right">' + numberWithCommas(d.client_count) + '</div>' +
-                        '<div style="clear:both"></div>' +
-                    '</div>' );
-            }
-            $( document.body ).append( $label );
-            $label.css({
-                'left': d3.event.pageX - $label.outerWidth()/2,
-                'top': d3.event.pageY - $label.outerHeight()*1.25
-            });
-        })
-        .on('mouseout', function() {
-            if ( $label ) {
-                $label.remove();
-                $label = null;
-            }
+            return self._height - y(d.y);
         });
 
     svg.append('text')
@@ -262,4 +232,4 @@ OutlierBarChart.prototype._update = function() {
     }
 };
 
-module.exports = OutlierBarChart;
+module.exports = DateHistogram;

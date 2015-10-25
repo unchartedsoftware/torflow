@@ -25,7 +25,8 @@
 * SOFTWARE.
 */
 
-var OutlierBarChart = require('../ui/outlierbarchart');
+var OutlierChart = require('../ui/outlierchart');
+var DateHistogram = require('../ui/datehistogram');
 var Config = require('../Config');
 
 // Reduce counts if on mobile device
@@ -130,36 +131,69 @@ CountryLayer.prototype = _.extend(CountryLayer.prototype, {
         }
     },
 
-    _bindClickEvent : function(feature, layer) {
+    _createOutlierChart : function(cc2, cc3) {
         var OUTLIERS_COUNT = 10;
+        var self = this;
+        var request = {
+            url: '/outliers/' + cc2 + '/' + OUTLIERS_COUNT,
+            type: 'GET',
+            contentType: 'application/json; charset=utf-8',
+            async: true
+        };
+        $.ajax(request)
+            .done(function(json) {
+                var $container = $('.outlier-chart-container');
+                $container.show();
+                // create chart
+                var chart = new OutlierChart( $container.find('.chart-content') )
+                    .data(json[cc2])
+                    .colorStops(['rgb(25,75,153)','rgb(100,100,100)','rgb(153,25,75)'])
+                    .title('Guard Client Connection Outliers by Date (' + cc3.toUpperCase() + ')')
+                    .click(self._redirect);
+                // draw
+                chart.draw();
+            })
+            .fail(function(err) {
+                console.log(err);
+            });
+    },
+
+    _createDateHistogram : function(cc2, cc3) {
+        var self = this;
+        var request = {
+            url: '/histogram/' + cc2,
+            type: 'GET',
+            contentType: 'application/json; charset=utf-8',
+            async: true
+        };
+        $.ajax(request)
+            .done(function(histogram) {
+                var $container = $('.date-histogram-container');
+                $container.show();
+                // create chart
+                var chart = new DateHistogram( $container.find('.chart-content') )
+                    .data(histogram)
+                    .colorStops(['rgb(153,25,75)','rgb(25,75,153)'])
+                    .title('Guard Client Connections by Date (' + cc3.toUpperCase() + ')')
+                    .click(self._redirect);
+                // draw
+                chart.draw();
+            })
+            .fail(function(err) {
+                console.log(err);
+            });
+    },
+
+    _bindClickEvent : function(feature, layer) {
+
         var self = this;
         layer.on({
             click: function(event) {
                 var feature = event.target.feature;
                 var cc3 = feature.id || feature.properties.ISO_A3;
-                var cc = self._threeLetterToTwoLetter(cc3);
-                var request = {
-                    url: '/outliers/' + cc + '/' + OUTLIERS_COUNT,
-                    type: 'GET',
-                    contentType: 'application/json; charset=utf-8',
-                    async: true
-                };
-                $.ajax(request)
-                    .done(function(json) {
-                        var $container = $('.drilldown-container');
-                        $container.show();
-                        // create chart
-                        var chart = new OutlierBarChart( $container.find('.drilldown-content') )
-                            .data(json[cc])
-                            .colorStops(['rgb(25,75,153)','rgb(100,100,100)','rgb(153,25,75)'])
-                            .title('Guard Client Connection Outliers by Date (' + cc3.toUpperCase() + ')')
-                            .click(self._redirect);
-                        // draw
-                        chart.draw();
-                    })
-                    .fail(function(err) {
-                        console.log(err);
-                    });
+                var cc2 = self._threeLetterToTwoLetter(cc3);
+                self._createOutlierChart(cc2, cc3);
+                self._createDateHistogram(cc2, cc3);
             },
             mouseover: function() {
                 layer.setStyle(self._getFeatureHoverStyle());

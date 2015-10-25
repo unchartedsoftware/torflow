@@ -79,6 +79,19 @@ var getCountryHistogram = function(date,count,callback) {
         });
 };
 
+var getDateHistogram = function(countrycode,callback) {
+    connectionPool.query(
+        'SELECT date,count FROM ' + config.db.database + '.country_counts WHERE cc=? ORDER BY date',
+        [countrycode],
+        function(err,rows) {
+            if (err) {
+                callback(err);
+            } else {
+                callback(null,rows);
+            }
+        });
+};
+
 var updateCountries = function(callback) {
     async.waterfall([
         // truncate table if it exists
@@ -139,4 +152,5 @@ var updateCountries = function(callback) {
 
 module.exports.getCountryOutliers = getCountryOutliers;
 module.exports.getCountryHistogram = getCountryHistogram;
+module.exports.getDateHistogram = getDateHistogram;
 module.exports.updateCountries = updateCountries;

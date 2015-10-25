@@ -25,17 +25,36 @@
 * SOFTWARE.
 */
 
+.chart-container {
+    position: absolute;
+    cursor: move; /* fallback if grab cursor is unsupported */
+    cursor: grab;
+    cursor: -moz-grab;
+    cursor: -webkit-grab;
+    background-color: rgba(0,0,0,0.4);
+    border-radius: 4px;
+    border: 1px solid rgb(20, 155, 223);
+    padding: 4px;
+    z-index: 2;
+    display: none;
+}
+
+.chart-content {
+    position: relative;
+    height: 100%;
+    width: 100%;
+    z-index: 1;
+}
+
+.chart-close-button {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+}
+
 .chart-title {
-    font-size: 16px;
+    font-size: 14px;
     fill: #ddd;
-}
-
-.bar {
-    cursor: pointer;
-}
-
-.bar:hover {
-    fill-opacity: 0.8;
 }
 
 .axis {
@@ -47,10 +66,6 @@
 .axis path,
 .axis line {
     fill: none;
-    stroke: #ddd;
+    stroke: #333;
     shape-rendering: crispEdges;
-}
-
-.x.axis path {
-    display: none;
 }

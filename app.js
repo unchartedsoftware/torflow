@@ -41,6 +41,7 @@ var map = require('./routes/map');
 var geo = require('./routes/geo');
 var country = require('./routes/country');
 var outliers = require('./routes/outliers');
+var histogram = require('./routes/histogram');
 
 var app = express();
 
@@ -65,6 +66,7 @@ app.use('/map',map);
 app.use('/geo',geo);
 app.use('/country',country);
 app.use('/outliers',outliers);
+app.use('/histogram',histogram);
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {

@@ -33,12 +33,16 @@
     var CountryLayer = require('./layers/countrylayer');
     var MarkerLayer = require('./layers/markerlayer');
     var LabelLayer = require('./layers/labellayer');
+
     var DateSlider = require('./ui/dateslider');
+    var DateChart = require('./ui/datechart');
     var Slider = require('./ui/slider');
     var ToggleBox = require('./ui/togglebox');
     var ButtonGroup = require('./ui/buttongroup');
     var LayerMenu = require('./ui/layermenu');
     var Config = require('./config');
+
+    var ChartTemplate = require('./templates/chart');
     var MainTemplate = require('./templates/main');
 
     // Map elements
@@ -271,12 +275,19 @@
         var $mapControls = $('.map-controls');
         var $dateControls = $('.date-controls');
         var $summaryButton = $('.summary-button');
-        var $drilldownContainer = $('.drilldown-container');
         // Create map controls
         $mapControls.append(_addFlowControls( _createLayerUI('Particles', _particleLayer ), _particleLayer ));
         $mapControls.append(_addMarkerControls( _createLayerUI('Nodes', _markerLayer ), _markerLayer ));
         $mapControls.append(_createLayerUI('Labels', _labelLayer ));
         $mapControls.append(_addCountryControls( _createLayerUI('Top Client Connections', _countryLayer ), _countryLayer ));
+
+        var chart = new DateChart( $dateControls )
+            .data(_dateInfo)
+            .colorStops(['rgb(153,25,75)','rgb(25,75,153)']);
+            //.click(self._redirect);
+        // draw
+        chart.draw();
+
         // Create date slider
         _dateSlider = new DateSlider({
             dates: _dateInfo.dates,
@@ -285,6 +296,7 @@
             }
         });
         $dateControls.append(_dateSlider.getElement());
+
         // Add handlers to summary button
         $summaryButton.click( function() {
             swal({
@@ -293,10 +305,21 @@
                 html: true
             });
         });
-        // Add handler to drilldown close buttons
-        $drilldownContainer.draggabilly();
-        $drilldownContainer.find('.drilldown-close-button').click(function() {
-            $drilldownContainer.hide();
+
+        var $outlierContainer = $( ChartTemplate() )
+            .addClass('outlier-chart-container');
+        $outlierContainer.appendTo('#main');
+        $outlierContainer.draggabilly();
+        $outlierContainer.find('.chart-close-button').click(function() {
+            $outlierContainer.hide();
+        });
+
+        var $histogramContainer = $( ChartTemplate() )
+            .addClass('date-histogram-container');
+        $histogramContainer.appendTo('#main');
+        $histogramContainer.draggabilly();
+        $histogramContainer.find('.chart-close-button').click(function() {
+            $histogramContainer.hide();
         });
     };
 
@@ -333,8 +356,8 @@
         _baseLayer.addTo(_map);
         // Initialize the country layer
         _countryLayer = new CountryLayer({
-            redirect: function( data ) {
-                var dateStr = moment.utc(data.date, 'MMM Do, YYYY').format('YYYY-MM-DD');
+            redirect: function(data) {
+                var dateStr = moment.utc(data.x, 'MMM Do, YYYY').format('YYYY-MM-DD');
                 if (dateStr !== 'Invalid date') {
                     _dateSlider.setDate(dateStr);
                 }

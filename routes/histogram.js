@@ -30,12 +30,11 @@ var router = express.Router();
 var countryDB = require('../db/country');
 
 /**
- * GET /outliers/:countrycode/:count
+ * GET /histogram/:countrycode
  */
-router.get('/:countrycode/:count', function(req, res) {
+router.get('/:countrycode', function(req, res) {
     var cc = req.params.countrycode.toLowerCase();
-    var count = parseInt(req.params.count,10);
-    countryDB.getCountryOutliers(cc,count,function(err,json) {
+    countryDB.getDateHistogram(cc,function(err,json) {
         if (err) {
             res.send(null);
         } else {
