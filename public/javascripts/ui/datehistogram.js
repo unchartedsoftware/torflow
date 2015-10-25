@@ -65,6 +65,7 @@ DateHistogram.prototype.data = function(data) {
             y: d.y
         };
     });
+    this._update();
     return this;
 };
 
@@ -73,6 +74,7 @@ DateHistogram.prototype.title = function(title) {
         return this._title;
     }
     this._title = title;
+    this._update();
     return this;
 };
 
@@ -81,6 +83,7 @@ DateHistogram.prototype.margin = function(margin) {
         return this._margin;
     }
     this._margin = margin;
+    this._update();
     return this;
 };
 
@@ -133,7 +136,7 @@ DateHistogram.prototype._update = function() {
         return;
     }
     // Clear container
-    this._container.empty();
+    this._container.find('svg').remove();
     // Set local scope vars
     var height = this._height;
     var width = this._width;

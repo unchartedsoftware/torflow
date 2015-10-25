@@ -145,13 +145,11 @@ CountryLayer.prototype = _.extend(CountryLayer.prototype, {
                 var $container = $('.outlier-chart-container');
                 $container.show();
                 // create chart
-                var chart = new OutlierChart( $container.find('.chart-content') )
-                    .data(json[cc2])
+                self._chart = new OutlierChart( $container.find('.chart-content') )
                     .colorStops(['rgb(25,75,153)','rgb(100,100,100)','rgb(153,25,75)'])
                     .title('Guard Client Connection Outliers by Date (' + cc3.toUpperCase() + ')')
-                    .click(self._redirect);
-                // draw
-                chart.draw();
+                    .click(self._redirect)
+                    .data(json[cc2]);
             })
             .fail(function(err) {
                 console.log(err);
@@ -171,13 +169,11 @@ CountryLayer.prototype = _.extend(CountryLayer.prototype, {
                 var $container = $('.date-histogram-container');
                 $container.show();
                 // create chart
-                var chart = new DateHistogram( $container.find('.chart-content') )
-                    .data(histogram)
+                self._chart  = new DateHistogram( $container.find('.chart-content') )
                     .colorStops(['rgb(153,25,75)','rgb(25,75,153)'])
                     .title('Guard Client Connections by Date (' + cc3.toUpperCase() + ')')
-                    .click(self._redirect);
-                // draw
-                chart.draw();
+                    .click(self._redirect)
+                    .data(histogram);
             })
             .fail(function(err) {
                 console.log(err);

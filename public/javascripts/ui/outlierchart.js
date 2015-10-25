@@ -49,6 +49,7 @@ OutlierBarChart.prototype.data = function(data) {
             position: value.position
         };
     });
+    this._update();
     return this;
 };
 
@@ -57,6 +58,7 @@ OutlierBarChart.prototype.title = function(title) {
         return this._title;
     }
     this._title = title;
+    this._update();
     return this;
 };
 
@@ -65,6 +67,7 @@ OutlierBarChart.prototype.margin = function(margin) {
         return this._margin;
     }
     this._margin = margin;
+    this._update();
     return this;
 };
 
@@ -115,7 +118,7 @@ OutlierBarChart.prototype._update = function() {
         return;
     }
     // Clear container
-    this._container.empty();
+    this._container.find('svg').remove();
     // Set local scope vars
     var height = this._height;
     var width = this._width;

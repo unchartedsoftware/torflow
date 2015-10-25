@@ -55,6 +55,7 @@
 
     // Date slider which controls which date is currently being visualized.
     var _dateSlider = null;
+    var _dateChart = null;
 
     // Date information object containing all dates and the dates with the
     // min and max bandwidths.
@@ -281,12 +282,12 @@
         $mapControls.append(_createLayerUI('Labels', _labelLayer ));
         $mapControls.append(_addCountryControls( _createLayerUI('Top Client Connections', _countryLayer ), _countryLayer ));
 
-        var chart = new DateChart( $dateControls )
-            .data(_dateInfo)
-            .colorStops(['rgb(153,25,75)','rgb(25,75,153)']);
-            //.click(self._redirect);
-        // draw
-        chart.draw();
+        _dateChart = new DateChart( $dateControls )
+            .colorStops(['rgb(153,25,75)','rgb(25,75,153)'])
+            .click(function() {
+                _update();
+            })
+            .data(_dateInfo);
 
         // Create date slider
         _dateSlider = new DateSlider({

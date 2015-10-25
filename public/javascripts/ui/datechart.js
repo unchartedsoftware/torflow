@@ -29,15 +29,17 @@ var bucket = require('../util/bucket');
 var chartLabel = require('./chartlabel');
 
 var DateChart = function(container) {
+    var self = this;
     this._container = container;
     this._data = null;
     this._margin = {top: 10, right: 10, bottom: 55, left: 10};
-    this._width = $(container).width() - this._margin.left - this._margin.right;
-    this._height = $(container).height() - this._margin.top - this._margin.bottom;
     this._colorStops = d3.scale.sqrt()
         .range(['#ff0000','#0000ff'])
         .domain([0,1]);
     this._onClick = null;
+    $(window).on('resize', function() {
+        self._update();
+    });
 };
 
 DateChart.prototype.data = function(data) {
@@ -64,6 +66,7 @@ DateChart.prototype.data = function(data) {
             y: d.y
         };
     });
+    this._update();
     return this;
 };
 
@@ -72,25 +75,16 @@ DateChart.prototype.margin = function(margin) {
         return this._margin;
     }
     this._margin = margin;
-    return this;
-};
-
-DateChart.prototype.width = function(width) {
-    if (arguments.length === 0) {
-        return this._width;
-    }
-    this._width = width;
     this._update();
     return this;
 };
 
-DateChart.prototype.height = function(height) {
-    if (arguments.length === 0) {
-        return this._height;
-    }
-    this._height = height;
-    this._update();
-    return this;
+DateChart.prototype.width = function() {
+    return $(this._container).width() - this._margin.left - this._margin.right;
+};
+
+DateChart.prototype.height = function() {
+    return $(this._container).height() - this._margin.top - this._margin.bottom;
 };
 
 DateChart.prototype.colorStops = function(colorStops) {
@@ -124,11 +118,11 @@ DateChart.prototype._update = function() {
         return;
     }
     // Clear container
-    this._container.empty();
+    this._container.find('svg').remove();
     // Set local scope vars
     var MIN_HEIGHT = 5;
-    var height = this._height;
-    var width = this._width;
+    var height = this.height();
+    var width = this.width();
     var margin = this._margin;
     var barWidth = width / (this._data.length - 1);
     var colorStops = this._colorStops;
