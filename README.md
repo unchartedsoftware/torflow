@@ -6,26 +6,23 @@ Data Flow in the Tor Network.
 
 Requires [node](http://nodejs.org/), [bower](http://bower.io/), and [gulp](http://http://gulpjs.com/).
 
-```bash
-npm install
-```
-
-Install server-side modules (from $PROJECT_ROOT directory):
+Install server-side modules:
 
 ```bash
 npm install
 ```
 
-Install client-side modules (from $PROJECT_ROOT/public directory):
+Install client-side modules:
 
 ```bash
+cd public
 bower install
 gulp install
 ```
 
 ## Ingesting Data
 
-Ingest data into MySQL via the bin/ingest node script. There is a set of sample data in the $PROJECT_ROOT/data/sample folder. To import this into your database (from the $PROJECT_ROOT directory):
+Ingest data into MySQL via the bin/ingest node script. There is a set of sample data in the ./data/sample folder. To import this into your database:
 
 ```bash
 node bin/ingest data/sample
@@ -33,7 +30,7 @@ node bin/ingest data/sample
 
 ## Running
 
-Create a config file (from $PROJECT_ROOT directory):
+Create a config file:
 
 ```bash
 cp config.template.js config.js
@@ -41,7 +38,7 @@ cp config.template.js config.js
 
 Edit config.js to point to your MySQL database.
 
-Start the server (from $PROJECT_ROOT directory):
+Start the server:
 
 ```bash
 npm start
@@ -53,7 +50,7 @@ The application will be available in your browser at http://localhost:3000/
 
 ### Prepare the build directory
 
-Start the VM (from $PROJECT_ROOT directory):
+Start the VM:
 
 ```bash
 vagrant up
