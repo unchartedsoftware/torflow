@@ -26,6 +26,7 @@
 */
 
 var bucket = require('../util/bucket');
+var chartLabel = require('./chartlabel');
 
 var DateHistogram = function(container) {
     this._container = container;
@@ -53,7 +54,7 @@ DateHistogram.prototype.data = function(data) {
             return value.count;
         },
         threshold: 0.15,
-        maxBucketSize: 20
+        maxBucketSize: 30
     });
     this._min = res.min;
     this._max = res.max;
@@ -140,7 +141,7 @@ DateHistogram.prototype._update = function() {
     var y = d3.scale.sqrt()
         .range([this.height(), 0], 0.1, 0.0);
 
-    var modFilter = Math.floor(this._data.length / 8);
+    var modFilter = Math.floor(this._data.length / 6);
 
     var xAxisDates = this._data.filter(function(d,i) {
             return i % modFilter === 0;
@@ -217,6 +218,21 @@ DateHistogram.prototype._update = function() {
         .attr('height', function(d) {
             return self._height - y(d.y);
         });
+
+    chartLabel.addLabels({
+        svg: svg,
+        selector: '.bar',
+        label: function(x,y) {
+            return '<div class="chart-hover-label">'+
+                '<div style="float:left;">Date: </div>' +
+                '<div style="float:right">' + x + '</div>' +
+                '<div style="clear:both"></div>' +
+                '<div style="float:left;">Avg Count: </div>' +
+                '<div style="float:right">' + y + '</div>' +
+                '<div style="clear:both"></div>' +
+            '</div>';
+        }
+    });
 
     svg.append('text')
         .attr('x', (this.width() / 2))

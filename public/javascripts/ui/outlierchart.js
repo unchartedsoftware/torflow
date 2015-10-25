@@ -25,6 +25,8 @@
 * SOFTWARE.
 */
 
+var chartLabel = require('./chartlabel');
+
 var OutlierBarChart = function(container) {
     this._container = container;
     this._data = null;
@@ -183,12 +185,6 @@ OutlierBarChart.prototype._update = function() {
         .interpolate(d3.interpolateRgb)
         .range([this._colorStops[1], this._colorStops[2]]);
 
-    var $label;
-
-    var numberWithCommas = function (x) {
-        return x.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',');
-    };
-
     svg.selectAll('.bar')
         .data(this._data)
         .enter()
@@ -213,41 +209,30 @@ OutlierBarChart.prototype._update = function() {
         })
         .attr('height', function(d) {
             return self._height - y(d.y);
-        })
-        .on('mousemove', function(d) {
-            if ($label) {
-                $label.remove();
-            }
-            if (d.x === 'Average') {
-                $label = $(
-                    '<div class="chart-hover-label">'+
-                        '<div style="float:left;">Average Count: </div>' +
-                        '<div style="float:right">' + numberWithCommas(d.y.toFixed(2)) + '</div>' +
-                        '<div style="clear:both"></div>' +
-                    '</div>' );
-            } else {
-                $label = $(
-                    '<div class="chart-hover-label">'+
-                        '<div style="float:left;">Date: </div>' +
-                        '<div style="float:right">' + d.x + '</div>' +
-                        '<div style="clear:both"></div>' +
-                        '<div style="float:left;">Count: </div>' +
-                        '<div style="float:right">' + numberWithCommas(d.y) + '</div>' +
-                        '<div style="clear:both"></div>' +
-                    '</div>' );
-            }
-            $( document.body ).append( $label );
-            $label.css({
-                'left': d3.event.pageX - $label.outerWidth()/2,
-                'top': d3.event.pageY - $label.outerHeight()*1.25
-            });
-        })
-        .on('mouseout', function() {
-            if ( $label ) {
-                $label.remove();
-                $label = null;
-            }
         });
+
+    chartLabel.addLabels({
+        svg: svg,
+        selector: '.bar',
+        label: function(x,y) {
+            if (x === 'Average') {
+                return '<div class="chart-hover-label">'+
+                    '<div style="float:left;">Average Count: </div>' +
+                    '<div style="float:right">' + y + '</div>' +
+                    '<div style="clear:both"></div>' +
+                '</div>';
+            } else {
+                return '<div class="chart-hover-label">'+
+                    '<div style="float:left;">Date: </div>' +
+                    '<div style="float:right">' + x + '</div>' +
+                    '<div style="clear:both"></div>' +
+                    '<div style="float:left;">Count: </div>' +
+                    '<div style="float:right">' + y + '</div>' +
+                    '<div style="clear:both"></div>' +
+                '</div>';
+            }
+        }
+    });
 
     svg.append('text')
         .attr('x', (this.width() / 2))

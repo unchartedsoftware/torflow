@@ -26,6 +26,7 @@
 */
 
 var bucket = require('../util/bucket');
+var chartLabel = require('./chartlabel');
 
 var DateChart = function(container) {
     this._container = container;
@@ -44,12 +45,12 @@ DateChart.prototype.data = function(data) {
         return this._data;
     }
     var res = bucket({
-        data: data.bandwidths,
-        xExtractor: function(value,index) {
-            return index;
+        data: _.zip(data.dates,data.bandwidths),
+        xExtractor: function(value) {
+            return moment.utc(value[0]).valueOf();
         },
         yExtractor: function(value) {
-            return value;
+            return value[1];
         },
         threshold: 0.015,
         maxBucketSize: 20
@@ -57,7 +58,12 @@ DateChart.prototype.data = function(data) {
     this._min = res.min;
     this._max = res.max;
     this._range = res.max - res.min;
-    this._data = res.buckets;
+    this._data = res.buckets.map( function(d) {
+        return {
+            x: moment.utc(d.x).format('MMM Do, YYYY'),
+            y: d.y
+        };
+    });
     return this;
 };
 
@@ -158,6 +164,21 @@ DateChart.prototype._update = function() {
         .attr('height', function(d) {
             return self._height - y(d.y);
         });
+
+    chartLabel.addLabels({
+        svg: svg,
+        selector: '.bar',
+        label: function(x,y) {
+            return '<div class="chart-hover-label">'+
+                '<div style="float:left;">Date: </div>' +
+                '<div style="float:right">' + x + '</div>' +
+                '<div style="clear:both"></div>' +
+                '<div style="float:left;">Avg Count: </div>' +
+                '<div style="float:right">' + y + '</div>' +
+                '<div style="clear:both"></div>' +
+            '</div>';
+        }
+    });
 
     if (this._onClick) {
         svg.selectAll('.bar').on('click', function () {
