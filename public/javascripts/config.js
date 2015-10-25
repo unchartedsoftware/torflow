@@ -74,9 +74,9 @@ var config = {
         ' rather than making a direct connection, thus allowing both organizations and individuals to share information ' +
         'over public networks without compromising their privacy.<a href="https://www.torproject.org/about/overview.html.en"><sup>[1]</sup></a></p>' +
         '<p>The following visualization shows information flow between the ~6500 relay servers.  General purpose Tor traffic is shown in blue.  Traffic to hidden services is shown in red.</p>' +
-        '<p>Each circle below represents the aggregated bandwidth of relay servers grouped by proximity. Hover over a circle to see information about that group.</p>' +
-        '<p>Each colored country represents a country that is responsible for the top N client connections. Click on the country to display the outlier counts.</p>' +
-        '<p>Use the slider below to select the simulation date.  Checkboxes can be used to configure the display.</p>',
+        '<p>Each circle represents the aggregated bandwidth of relay servers grouped by proximity. Hover over a circle to see information about that group.</p>' +
+        '<p>Each colored country represents a country that is responsible for the top N client connections. Click on the country to display the distribution by time and the outlier counts.</p>' +
+        '<p>Use the date slider to select the simulation date.</p>',
     // base layer config
     localMapServer : false,
     mapAttribution:

@@ -51,6 +51,7 @@ public/extern/**/*
 # ----------------------------------------
 
 config.js
+!public/javascripts/config.js
 **/torflow.js
 **/torflow.css
 **/templates/*.js

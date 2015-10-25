@@ -1,110 +1,130 @@
 # TorFlow
 
+Data Flow in the Tor Network.
+
 ## Building
 
-NodeJS and NPM are required for building and running. Once NPM is installed, install the gulp and bower plugins globally to build the Javascript source:
+Requires [node](http://nodejs.org/), [bower](http://bower.io/), and [gulp](http://http://gulpjs.com/).
 
-	npm install -g gulp bower
+```bash
+npm install
+```
 
-Install modules (from root project directory):
+Install server-side modules (from $PROJECT_ROOT directory):
 
-    npm install
+```bash
+npm install
+```
 
-To connect to the data, copy the config.template.js file to config.js and enter your database credentials in there.
+Install client-side modules (from $PROJECT_ROOT/public directory):
 
-Build:
+```bash
+bower install
+gulp install
+```
 
-    cd public
-	bower install
-    gulp install
+## Ingesting Data
+
+Ingest data into MySQL via the bin/ingest node script. There is a set of sample data in the $PROJECT_ROOT/data/sample folder. To import this into your database (from the $PROJECT_ROOT directory):
+
+```bash
+node bin/ingest data/sample
+```
 
 ## Running
 
-Create a config file:
+Create a config file (from $PROJECT_ROOT directory):
 
-	cp config.template.js config.js
+```bash
+cp config.template.js config.js
+```
 
 Edit config.js to point to your MySQL database.
 
-Run the server:
+Start the server (from $PROJECT_ROOT directory):
 
-	npm start
+```bash
+npm start
+```
 
-In your browser:
+The application will be available in your browser at http://localhost:3000/
 
-	http://localhost:3000
+## Building the Docker Containers
 
-## Ingest Data
+### Prepare the build directory
 
-Ingest data into MySQL via the bin/ingest node script.  There is a set of sample data in the $PROJECT_ROOT/data/sample folder.  To import this into your database (from the root project directory):
+Start the VM (from $PROJECT_ROOT directory):
 
-	node bin/ingest data/sample
-
-# Building the Docker containers
-
-## Prepare the build directory
-
-Start the VM:
-
-    vagrant up
-    vagrant ssh
-    cd /vagrant
-
-    gulp build
+```bash
+vagrant up
+vagrant ssh
+cd /vagrant
+gulp build
+```
 
 You may need to start docker:
 
-	sudo systemctl start docker
+```bash
+sudo systemctl start docker
+```
 
-### Application server container
+### Application Server Container
 
-The "torflow" app container will run the application, and connect to an external MySQL database.  The "config.js" configuration file build into the container will specify the connection parameters.
+The "torflow" app container will run the application, and connect to an external MySQL database. The "config.js" configuration file build into the container will specify the connection parameters.
 
 Build the app container:
 
-    cd /deploy/app
-    sudo docker build -t="docker.uncharted.software/torflow" .
+```bash
+cd /deploy/app
+sudo docker build -t="docker.uncharted.software/torflow" .
+```
 
 Run the app container:
 
-    sudo docker run -ti --rm --name torflow -v /logs/:/var/log/supervisor/ -p 3000:3000 docker.uncharted.software/torflow
+```bash
+sudo docker run -ti --rm --name torflow -v /logs/:/var/log/supervisor/ -p 3000:3000 docker.uncharted.software/torflow
+```
 
 If your container config.js points at a MySQL server that can't be resolved, you can add a hosts entry at run-time using the Docker parameter `--add-host`.
 
-### Ingest container
+### Ingest Container
 
 The "torflow-ingest" container will run the ingest program described above, ingesting whatever data is mounted at the command-line below.  It will use the "config.js" configuration file built into the container.
 
 Build the ingest container:
 
-    cd /deploy/ingest
-    sudo docker build -t="docker.uncharted.software/torflow-ingest" .
+```bash
+cd /deploy/ingest
+sudo docker build -t="docker.uncharted.software/torflow-ingest" .
+```
 
 Run the ingest container:
 
-    sudo docker run -ti --rm --name torflow-ingest -v /torflow/data/sample/:/torflow/data docker.uncharted.software/torflow-ingest
+```bash
+sudo docker run -ti --rm --name torflow-ingest -v /torflow/data/sample/:/torflow/data docker.uncharted.software/torflow-ingest
+```
 
 This assumes you are importing the sample data in the /torflow/data/sample folder. If your container config.js points at a MySQL server that can't be resolved, you can add a hosts entry at run-time using the Docker parameter `--add-host`.
 
-### Demo container
+### Demo Container
 
 The demo container is pre-configured to run against the demo MySQL database, and will automatically ingest the the sample data from the /torflow/data/sample folder.  The "config.js" for the demo app, and the "mysql.properties" for the MySQL server, are already configured to match each other. If you change one, you need to update the other.
 
 Run the MySQL container:
 
-    sudo docker run -ti --rm --name torflow-mysql -p 3306:3306 --env-file mysql.properties mysql:5.7
+```bash
+sudo docker run -ti --rm --name torflow-mysql -p 3306:3306 --env-file mysql.properties mysql:5.7
+```
 
 Build the demo container:
 
-    cd /deploy/demo
-    sudo docker build -t="docker.uncharted.software/torflow-demo" .
+```bash
+cd /deploy/demo
+sudo docker build -t="docker.uncharted.software/torflow-demo" .
+```
 
 Run the demo container:
 
-    sudo docker run -ti --rm --name torflow --link torflow-mysql:MYSQL -v /logs/:/var/log/supervisor/ -p 3000:3000 docker.uncharted.software/torflow-demo
-
-### Known issues with Docker
-
-The Docker containers run in UTC, but the app currently assumes you are running in EDT.  To workaround this, force the time zone of the Docker container to EDT. For example, add this to the docker run command:
-
-	-v /usr/share/zoneinfo/Canada/Eastern:/etc/localtime
+```bash
+sudo docker run -ti --rm --name torflow --link torflow-mysql:MYSQL -v /logs/:/var/log/supervisor/ -p 3000:3000 docker.uncharted.software/torflow-demo
+```
