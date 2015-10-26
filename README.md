@@ -64,13 +64,13 @@ Build the app container:
 
 ```bash
 cd /deploy/app
-sudo docker build -t docker.uncharted.software/torflow .
+docker build -t docker.uncharted.software/torflow .
 ```
 
 Run the app container:
 
 ```bash
-sudo docker run -ti --rm --name torflow -v /logs/:/var/log/supervisor/ -p 3000:3000 docker.uncharted.software/torflow
+docker run -ti --rm --name torflow -v /logs/:/var/log/supervisor/ -p 3000:3000 docker.uncharted.software/torflow
 ```
 
 If your container config.js points at a MySQL server that can't be resolved, you can add a hosts entry at run-time using the Docker parameter `--add-host`.
