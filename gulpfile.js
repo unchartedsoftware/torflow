@@ -27,65 +27,53 @@
 
 var gulp = require('gulp');
 var jshint = require('gulp-jshint');
+var merge = require('merge-stream');
 
-gulp.task('copy', function() {
-    // app
-    gulp.src('package.json')
-        .pipe(gulp.dest('./deploy/app/'));
-    gulp.src(['app.js', 'config.js', 'package.json'])
-        .pipe(gulp.dest('./deploy/app/build/'));
-    gulp.src('bin/**')
-        .pipe(gulp.dest('./deploy/app/build/bin/'));
-    gulp.src('data/**')
-        .pipe(gulp.dest('./deploy/app/build/data/'));
-    gulp.src('public/**')
-        .pipe(gulp.dest('./deploy/app/build/public/'));
-    gulp.src('routes/**')
-        .pipe(gulp.dest('./deploy/app/build/routes/'));
-    gulp.src('util/**')
-        .pipe(gulp.dest('./deploy/app/build/util/'));
-    gulp.src('views/**')
-        .pipe(gulp.dest('./deploy/app/build/views/'));
-    gulp.src('db/**')
-        .pipe(gulp.dest('./deploy/app/build/db/'));
+var config = {
+    deployDirs: [
+        './bin/**',
+        './data/**',
+        './public/**',
+        './routes/**',
+        './ingest/**',
+        './util/**',
+        './views/**',
+        './db/**'
+    ]
+};
 
-    // ingest
-    gulp.src('package.json')
-        .pipe(gulp.dest('./deploy/ingest/'));
-    gulp.src(['config.js', 'package.json'])
-        .pipe(gulp.dest('./deploy/ingest/build/'));
-    gulp.src('bin/ingest')
-        .pipe(gulp.dest('./deploy/ingest/build/bin/'));
-    gulp.src('ingest/**')
-        .pipe(gulp.dest('./deploy/ingest/build/ingest/'));
-    gulp.src('db/**')
-        .pipe(gulp.dest('./deploy/ingest/build/db/'));
-    gulp.src('util/**')
-        .pipe(gulp.dest('./deploy/ingest/build/util/'));
+function copyDirs(subDir) {
+    return merge(
+        // root files
+        gulp.src(['package.json'], {
+            dot: true
+        })
+        .pipe(gulp.dest('./deploy/'+subDir+'/')),
+        // public files
+        gulp.src(['app.js', 'config.js', 'package.json', '.jshintrc'])
+            .pipe(gulp.dest('./deploy/'+subDir+'/build/')),
+        // dirs
+        gulp.src( config.deployDirs, {
+            base: '.',
+            dot: true
+        })
+        .pipe( gulp.dest('./deploy/'+subDir+'/build') )
+    );
+}
 
-    // demo
-    gulp.src('package.json')
-        .pipe(gulp.dest('./deploy/demo/'));
-    gulp.src(['app.js', 'config.js', 'package.json'])
-        .pipe(gulp.dest('./deploy/demo/build/'));
-    gulp.src('bin/**')
-        .pipe(gulp.dest('./deploy/demo/build/bin/'));
-    gulp.src('data/**')
-        .pipe(gulp.dest('./deploy/demo/build/data/'));
-    gulp.src('public/**')
-        .pipe(gulp.dest('./deploy/demo/build/public/'));
-    gulp.src('routes/**')
-        .pipe(gulp.dest('./deploy/demo/build/routes/'));
-    gulp.src('util/**')
-        .pipe(gulp.dest('./deploy/demo/build/util/'));
-    gulp.src('views/**')
-        .pipe(gulp.dest('./deploy/demo/build/views/'));
-    gulp.src('db/**')
-        .pipe(gulp.dest('./deploy/demo/build/db/'));
-    gulp.src('ingest/**')
-        .pipe(gulp.dest('./deploy/demo/build/ingest/'));
-    gulp.src('db/**')
-        .pipe(gulp.dest('./deploy/demo/build/db/'));
+gulp.task('copyApp', function() {
+    return copyDirs('app');
+})
+
+gulp.task('copyIngest', function() {
+    return copyDirs('ingest');
+})
+
+gulp.task('copyDemo', function() {
+    return copyDirs('demo');
+})
+
+gulp.task('copy', ['copyApp', 'copyIngest', 'copyDemo'], function() {
 });
 
 gulp.task('lint',function() {

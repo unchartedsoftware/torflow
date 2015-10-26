@@ -29,7 +29,7 @@
     'use strict';
 
     var lerp = require('../util/lerp');
-    var Config = require('../Config');
+    var Config = require('../config');
 
     // Reduce counts if on mobile device
     var IS_MOBILE = require('../util/mobile').IS_MOBILE;

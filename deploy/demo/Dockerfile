@@ -3,7 +3,8 @@ FROM centos:centos7
 # update and install npm
 RUN yum update -y
 RUN yum install -y epel-release
-RUN yum install -y npm supervisor wget nodejs
+RUN yum install -y npm supervisor wget
+RUN yum install -y nodejs npm
 
 # How to run
 EXPOSE  3000
@@ -17,8 +18,7 @@ ADD supervisord.conf /etc/supervisor/conf.d/supervisord.conf
 
 # bundle the app source
 COPY build /torflow/
-COPY config.js /torflow/
 
 # Install app dependencies
 RUN npm install -g bower gulp;
-RUN cd /torflow; npm install; cd public; bower install; gulp deploy;
+RUN cd /torflow; npm install; cd public; bower install --allow-root; gulp deploy;

@@ -30,7 +30,7 @@
 
     var OutlierChart = require('../ui/outlierchart');
     var DateHistogram = require('../ui/datehistogram');
-    var Config = require('../Config');
+    var Config = require('../config');
 
     // Reduce counts if on mobile device
     var IS_MOBILE = require('../util/mobile').IS_MOBILE;

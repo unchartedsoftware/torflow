@@ -50,21 +50,10 @@ The application will be available in your browser at http://localhost:3000/
 
 ## Building the Docker Containers
 
-### Prepare the build directory
-
-Start the VM:
+### Prepare the Build Directories
 
 ```bash
-vagrant up
-vagrant ssh
-cd /vagrant
 gulp build
-```
-
-You may need to start docker:
-
-```bash
-sudo systemctl start docker
 ```
 
 ### Application Server Container
@@ -75,7 +64,7 @@ Build the app container:
 
 ```bash
 cd /deploy/app
-sudo docker build -t="docker.uncharted.software/torflow" .
+sudo docker build -t docker.uncharted.software/torflow .
 ```
 
 Run the app container:
@@ -94,13 +83,13 @@ Build the ingest container:
 
 ```bash
 cd /deploy/ingest
-sudo docker build -t="docker.uncharted.software/torflow-ingest" .
+docker build -t docker.uncharted.software/torflow-ingest .
 ```
 
 Run the ingest container:
 
 ```bash
-sudo docker run -ti --rm --name torflow-ingest -v /torflow/data/sample/:/torflow/data docker.uncharted.software/torflow-ingest
+docker run -ti --rm --name torflow-ingest -v /torflow/data/sample/:/torflow/data docker.uncharted.software/torflow-ingest
 ```
 
 This assumes you are importing the sample data in the /torflow/data/sample folder. If your container config.js points at a MySQL server that can't be resolved, you can add a hosts entry at run-time using the Docker parameter `--add-host`.
@@ -112,18 +101,18 @@ The demo container is pre-configured to run against the demo MySQL database, and
 Run the MySQL container:
 
 ```bash
-sudo docker run -ti --rm --name torflow-mysql -p 3306:3306 --env-file mysql.properties mysql:5.7
+docker run -ti --rm --name torflow-mysql -p 3306:3306 --env-file mysql.properties mysql:5.7
 ```
 
 Build the demo container:
 
 ```bash
 cd /deploy/demo
-sudo docker build -t="docker.uncharted.software/torflow-demo" .
+docker build -t docker.uncharted.software/torflow-demo .
 ```
 
 Run the demo container:
 
 ```bash
-sudo docker run -ti --rm --name torflow --link torflow-mysql:MYSQL -v /logs/:/var/log/supervisor/ -p 3000:3000 docker.uncharted.software/torflow-demo
+docker run -ti --rm --name torflow --link torflow-mysql:MYSQL -v /logs/:/var/log/supervisor/ -p 3000:3000 docker.uncharted.software/torflow-demo
 ```
