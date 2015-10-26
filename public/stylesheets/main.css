@@ -63,6 +63,7 @@ a {
     border: 1px solid #000;
     padding: 4px;
     margin-bottom: 10px;
+    white-space: nowrap;
 }
 
 .uncharted-logo {
