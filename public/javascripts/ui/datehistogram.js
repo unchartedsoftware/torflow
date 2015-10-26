@@ -66,6 +66,7 @@
         this._data = res.buckets.map( function(d) {
             return {
                 x: moment.utc(d.x).format('MMM Do, YYYY'),
+                xRange: moment.utc(d.from).twix(d.to, { allDay: true }).format(),
                 y: d.y
             };
         });
@@ -246,12 +247,12 @@
         chartLabel.addLabels({
             svg: svg,
             selector: '.bar',
-            label: function(x,y) {
-                return '<div class="chart-hover-label">'+
-                    '<div style="float:left;">Date: </div>' +
-                    '<div style="float:right">' + x + '</div>' +
+            label: function(x,y,d) {
+                return '<div class="hover-label">'+
+                    '<div style="float:left; padding-right:10px;">Date Range: </div>' +
+                    '<div style="float:right">' + d.xRange + '</div>' +
                     '<div style="clear:both"></div>' +
-                    '<div style="float:left;">Avg Count: </div>' +
+                    '<div style="float:left; padding-right:10px;">Avg Count: </div>' +
                     '<div style="float:right">' + y + '</div>' +
                     '<div style="clear:both"></div>' +
                 '</div>';

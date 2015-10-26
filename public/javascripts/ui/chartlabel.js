@@ -52,16 +52,30 @@
                     // if label doesn't already exist, create it
                     var formattedY = _isInteger(d.y) ? _addCommas(d.y) : _addCommas(d.y.toFixed(2));
                     if ( $.isFunction(label) ) {
-                        $label = $( label(d.x, formattedY) );
+                        $label = $( label(d.x, formattedY, d) );
                     } else {
                         $label = $(label);
                     }
                     $( document.body ).append( $label );
                 }
+                var left = d3.event.pageX - $label.outerWidth()/2;
+                var top = d3.event.pageY - $label.outerHeight()*1.25;
+                if (left + $label.outerWidth() > window.innerWidth) {
+                    left = window.innerWidth - $label.outerWidth();
+                }
+                if (left < 0) {
+                    left = 0;
+                }
+                if (top + $label.outerHeight() > window.innerWidth) {
+                    left = window.innerWidth - $label.outerHeight();
+                }
+                if (top < 0) {
+                    top = 0;
+                }
                 // position label
                 $label.css({
-                    'left': d3.event.pageX - $label.outerWidth()/2,
-                    'top': d3.event.pageY - $label.outerHeight()*1.25
+                    'left': left,
+                    'top': top
                 });
             })
             .on('mouseout', function() {

@@ -104,9 +104,9 @@ a {
     text-align: center;
 }
 
-.hover-label,
-.chart-hover-label {
+.hover-label {
     position: absolute;
+    white-space: nowrap;
     background-color: rgba(0,0,0,0.7);
     border: 1px solid rgb(20, 155, 223);
     line-height: 18px;
@@ -116,8 +116,4 @@ a {
     z-index: 2;
     opacity: 1;
     pointer-events: none;
-}
-
-.chart-hover-label {
-    width: 160px;
 }

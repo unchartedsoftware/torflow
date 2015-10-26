@@ -239,16 +239,16 @@
             label: function(x,y) {
                 if (x === 'Average') {
                     return '<div class="chart-hover-label">'+
-                        '<div style="float:left;">Average Count: </div>' +
+                        '<div style="float:left; padding-right:10px;">Average Count: </div>' +
                         '<div style="float:right">' + y + '</div>' +
                         '<div style="clear:both"></div>' +
                     '</div>';
                 } else {
                     return '<div class="chart-hover-label">'+
-                        '<div style="float:left;">Date: </div>' +
+                        '<div style="float:left; padding-right:10px;">Date: </div>' +
                         '<div style="float:right">' + x + '</div>' +
                         '<div style="clear:both"></div>' +
-                        '<div style="float:left;">Count: </div>' +
+                        '<div style="float:left; padding-right:10px;">Count: </div>' +
                         '<div style="float:right">' + y + '</div>' +
                         '<div style="clear:both"></div>' +
                     '</div>';

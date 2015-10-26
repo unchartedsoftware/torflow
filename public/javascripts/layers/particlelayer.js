@@ -63,10 +63,10 @@
                      */
                     filler,
                     /**
-                     * x: offset
-                     * y: speed
-                     * y: rand0
-                     * w: rand1
+                     * x: t0
+                     * y: offset0
+                     * y: t1
+                     * w: offset1
                      */
                     filler ])
             );
