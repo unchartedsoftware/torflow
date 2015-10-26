@@ -199,7 +199,7 @@
                     '<div style="float:left; padding-right:10px;">Date Range: </div>' +
                     '<div style="float:right">' + d.xRange.format() + '</div>' +
                     '<div style="clear:both"></div>' +
-                    '<div style="float:left; padding-right:10px;">Avg Count: </div>' +
+                    '<div style="float:left; padding-right:10px;">Avg Bandwidth (GiB): </div>' +
                     '<div style="float:right">' + y + '</div>' +
                     '<div style="clear:both"></div>' +
                 '</div>';
