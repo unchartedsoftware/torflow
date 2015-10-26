@@ -5,6 +5,7 @@ var async = require('async');
 var moment = require('moment');
 
 function getMySQLDate(dateId) {
+	console.log(dateId);
 	var date = moment.utc(dateId);
     var day = date.date(); // date == day of month, day == day of week.
     var month = date.month() + 1; // indexed from 0?

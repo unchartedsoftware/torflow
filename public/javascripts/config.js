@@ -37,7 +37,7 @@ var config = {
         max : 40
     },
     // country geo json
-    country_count: 25,
+    country_count: 50,
     country_count_min: 5,
     country_count_max : 200,
     // country mobile factor

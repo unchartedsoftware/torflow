@@ -92,6 +92,13 @@
         _updateCountries();
     };
 
+    var _redirectDate = function(data) {
+        var dateStr = moment.utc(data.x, 'MMM Do, YYYY').format('YYYY-MM-DD');
+        if (dateStr !== 'Invalid date') {
+            _dateSlider.setDate(dateStr);
+        }
+    };
+
     var _createLayerUI = function(layerName,layer) {
         var layerMenu = new LayerMenu({
                 layer: layer,
@@ -284,9 +291,7 @@
 
         _dateChart = new DateChart( $dateControls )
             .colorStops(['rgb(153,25,75)','rgb(25,75,153)'])
-            .click(function() {
-                _update();
-            })
+            .click(_redirectDate)
             .data(_dateInfo);
 
         // Create date slider
@@ -357,12 +362,7 @@
         _baseLayer.addTo(_map);
         // Initialize the country layer
         _countryLayer = new CountryLayer({
-            redirect: function(data) {
-                var dateStr = moment.utc(data.x, 'MMM Do, YYYY').format('YYYY-MM-DD');
-                if (dateStr !== 'Invalid date') {
-                    _dateSlider.setDate(dateStr);
-                }
-            }
+            redirect: _redirectDate
         });
         _countryLayer.addTo(_map);
         // Initialize markers layer

@@ -1,8 +1,6 @@
 var connectionPool = require('./connection');
 var config = require('../config');
 var relayDB = require('./relay');
-var DBUtil = require('./db_utils');
-var async = require('async');
 
 var getDates = function(callback) {
     connectionPool.query(
@@ -25,42 +23,18 @@ var getDates = function(callback) {
         });
 };
 
-var updateDates = function(callback) {
-    async.waterfall([
-        // truncate table if it exists
-        function(done) {
+var updateDates = function(date,callback) {
+    relayDB.getAggregates(date,null,function(err,row) {
+        if (err) {
+            callback(err);
+        } else {
+            var dateSpec = [[date, row.bandwidth]];
             connectionPool.query(
-                'TRUNCATE ' + config.db.database + '.dates',
-                done);
-        },
-        // get all dates from relay table
-        function(rows,done) {
-            relayDB.getDates(done);
-        },
-        // for each date, get the min, max, and total bandwidth, and insert into table
-        function(dates,done) {
-            async.series(
-                dates.map(function(date) {
-                    return function(done) {
-                        var sqlDate = DBUtil.getMySQLDate(date);
-                        relayDB.getAggregates(date,null,function(err,row) {
-                            if (err) {
-                                done(err);
-                            } else {
-                                var dateSpec = [[sqlDate, row.bandwidth]];
-                                connectionPool.query(
-                                    'INSERT INTO ' + config.db.database + '.dates (date,bandwidth) VALUES ?',
-                                    [ dateSpec ], //row.minMax.min, row.minMax.max],
-                                    done);
-                            }
-                        });
-                    };
-                }),
-                done );
-        }],
-        function(err) {
-            callback(err); // only pass on error, if it exists
-        });
+                'INSERT INTO ' + config.db.database + '.dates (date,bandwidth) VALUES ?',
+                [ dateSpec ], //row.minMax.min, row.minMax.max],
+                callback);
+        }
+    });
 };
 
 var getMinBandwidth = function(callback) {

@@ -15,19 +15,15 @@ datesDB.getDates(
             console.log('Dates could not be retrieved');
             process.exit(1);
         }
-
         var monthMap = {};
         var moments = dates.forEach(function(d) {
-            var m = moment.utc(d);
+            var m = moment.utc(d, 'YYYY-MM-DD HH:mm:ss');
             var dateStr = formatMoment(m);
             monthMap[dateStr] = true;
         });
-
-        var firstMoment = moment.utc(FIRST_DATE);
+        var firstMoment = moment.utc(FIRST_DATE, 'YYYY-MM-DD HH:mm:ss');
         var todayMoment = moment.utc();
         var daysBetween = todayMoment.diff(firstMoment, 'days');
-
-
         for (var i = 0; i < daysBetween; i++) {
             var m = moment.utc(FIRST_DATE).add(i,'days');
             var dateStr = formatMoment(m);
@@ -35,7 +31,6 @@ datesDB.getDates(
                 monthMap[dateStr] = true;
             }
         }
-
         Object.keys(monthMap).forEach(function(monthStr) {
             console.log(monthStr);
         });

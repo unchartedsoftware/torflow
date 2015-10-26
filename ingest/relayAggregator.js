@@ -93,11 +93,9 @@ var _getTotalBandwidth = function(nodes) {
 };
 
 var aggregateRelays = function(dateId,callback) {
-    // get sql date from id
-    var sqlDate = DBUtil.getMySQLDate(dateId);
     // pull relays for date
-    relayDB.get(
-        sqlDate,
+    relayDB.getRelays(
+        dateId,
         function(err,relays) {
             if (err) {
                 callback(err);

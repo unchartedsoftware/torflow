@@ -132,7 +132,7 @@ DateChart.prototype._update = function() {
     var y = d3.scale.linear()
         .range([this.height(), 0]);
     // Set value domains
-    x.domain([ 0, this._data.length ]);
+    x.domain([ 0, this._data.length - 1 ]);
     y.domain([ 0, this._max ]);
     // Create chart container
     var svg = d3.select($(this._container)[0]).append('svg')

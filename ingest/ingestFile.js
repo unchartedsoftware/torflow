@@ -4,36 +4,32 @@ var _ = require('lodash');
 var async = require('async');
 var relayParser = require('./relayParser');
 var relayDB = require('../db/relay');
-var connectionPool = require('../db/connection');
+var datesDB = require('../db/dates');
+var countryDB = require('../db/country');
 
-var _getGuardClientSpecs = function(guardClients,fingerprintToId,date) {
-	var guardClientSpecs = [];
-	// append id to guardclient
-	_.forIn(fingerprintToId,function(id,fingerprint) {
-		if (guardClients[fingerprint]) {
-			guardClients[fingerprint].id = id;
-		}
-	});
+/**
+ * Creates a hashmap from countrycode -> guardclient count
+ * @param guardClients - object containing guard client info
+ * @returns {*}
+ *
+ */
+var _getGuardClientsHistogram = function(guardClients) {
+	var histogram = {};
 	// extract guard client row
 	_.forIn(guardClients, function(guardClient) {
 		_.forIn(guardClient.guardClients,function(count,countrycode) {
 			if ( countrycode !== '??' ) {
 				// ignore clients with missing country codes
-				guardClientSpecs.push([
-					guardClient.id,
-					countrycode,
-					count,
-					date
-				]);
+				histogram[countrycode] = count;
 			}
 		});
 	});
-	return guardClientSpecs;
+	return histogram;
 };
 
 /**
  * Extracts an sql date string from the filename of the csv file we're processing
- * @param filename
+ * @param filename - name of the file to parse
  * @returns {*}
  */
 var _getSQLDateFromFilename = function(filename) {
@@ -43,7 +39,7 @@ var _getSQLDateFromFilename = function(filename) {
 	var year = datePieces[1];
 	var month = datePieces[2];
 	var day = datePieces[3];
-	return year + '/' + month + '/' + day + ' 00:00:00';
+	return year + '-' + month + '-' + day + ' 00:00:00';
 };
 
 /**
@@ -94,45 +90,6 @@ var _extractFromCSV = function(filename,callback) {
 };
 
 /**
- * Inserts a list of relays into the db
- * @param relaySpecs - array of spec arrays describing a list of relays
- * @param callback - callback
- * @private
- */
-var _insertRelayData = function(relaySpecs,callback) {
-	connectionPool.query(
-		'INSERT INTO relays (' + relayParser.DB_ORDER + ') VALUES ?',
-		[relaySpecs],
-		callback);
-};
-
-/**
- * Inserts a list of guard clients into the db
- * @param guardSpecs - array of spec arrays describing a list of guard clients
- * @param callback - callback
- * @private
- */
-var _insertGuardClientData = function(guardSpecs,callback) {
-	if ( guardSpecs.length === 0 ) {
-		return callback();
-	}
-	var BATCH_INSERT_SIZE = 2000;
-	var chunks = _.chunk(guardSpecs, BATCH_INSERT_SIZE);
-	async.series(
-		chunks.map(function(chunk) {
-			return function(done) {
-				connectionPool.query(
-					'INSERT INTO guard_clients (relay_id,cc,guardclientcount,date) VALUES ?',
-					[chunk],
-					done);
-			};
-		}),
-		function(err) {
-			callback(err);  // only pass on error, if it exists
-		});
-};
-
-/**
  * Ingest a csv relay file into the database
  * @param resolvedFilePath - the resolved path of the file
  * @param callback - callback
@@ -145,7 +102,7 @@ var ingestFile = function(resolvedFilePath,callback) {
 		},
 		// insert relay data into table
 		function(relaySpecs,numSkipped,guardClients,date,done) {
-			_insertRelayData(
+			relayDB.updateRelays(
 				relaySpecs,
 				function(err) {
 					if (err) {
@@ -155,30 +112,36 @@ var ingestFile = function(resolvedFilePath,callback) {
 					}
 				});
 		},
-		// get mapping from fingerprint -> relay id to each element with guard client
+		// get guard client histogram and write to countries table
 		function(relaySpecs,numSkipped,guardClients,date,done) {
-			relayDB.fingerprints(
-				date,
-				function(err,fingerprintToId) {
-					if (err) {
-						done(err);
-					} else {
-						done(null,relaySpecs,numSkipped,guardClients,date,fingerprintToId);
-					}
-				});
+			var histogram = _getGuardClientsHistogram(guardClients,date);
+			countryDB.updateCountries(date, histogram, function(err) {
+				if (err) {
+					done(err);
+				} else {
+					done(null,date,relaySpecs.length,numSkipped);
+				}
+			});
 		},
-		// push to the list of guard client rows in the database
-		function(relaySpecs,numSkipped,guardClients,date,fingerprintToId,done) {
-			var guardClientSpecs = _getGuardClientSpecs(guardClients,fingerprintToId,date);
-			_insertGuardClientData(
-				guardClientSpecs,
-				function(err) {
-					if (err) {
-						done(err);
-					} else {
-						done(null,relaySpecs.length,numSkipped);
-					}
-				});
+		// update relay_aggregates table
+		function(date,numImported,numSkipped,done) {
+			relayDB.updateAggregates(date,function(err) {
+				if (err) {
+					done(err);
+				} else {
+					done(null,date,numImported,numSkipped);
+				}
+			});
+		},
+		// update dates table
+		function(date,numImported,numSkipped,done) {
+			datesDB.updateDates(date, function(err) {
+				if (err) {
+					done(err);
+				} else {
+					done(null,numImported,numSkipped);
+				}
+			});
 		}],
         function(err, numImported, numSkipped ) {
 			if (err) {

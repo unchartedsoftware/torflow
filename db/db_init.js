@@ -6,7 +6,6 @@ var _getTableSpecs = function() {
 	var tables = [];
 	var nonNull = true;
 	var autoIncrement = true;
-
 	var relays = {
 		name : 'relays',
 		columns : [
@@ -25,7 +24,6 @@ var _getTableSpecs = function() {
 		primaryKey : 'id',
 		indices: ['date']
 	};
-
 	var relayaggregates = {
 		name : 'relay_aggregates',
 		columns : [
@@ -40,20 +38,6 @@ var _getTableSpecs = function() {
 		],
 		indices: ['date']
 	};
-
-	var guardclients = {
-		name : 'guard_clients',
-		columns : [
-			db_utils.createColumnString('id','int(11)',nonNull, autoIncrement),
-			db_utils.createColumnString('relay_id','int(11)',nonNull),
-			db_utils.createColumnString('cc','varchar(2)',nonNull),
-			db_utils.createColumnString('guardclientcount','int(11)',nonNull),
-			db_utils.createColumnString('date','datetime',nonNull)
-		],
-		primaryKey : 'id',
-		indices: ['date']
-	};
-
 	var countrycounts = {
 		name : 'country_counts',
 		columns : [
@@ -63,7 +47,6 @@ var _getTableSpecs = function() {
 		],
 		indices: ['date','cc']
 	};
-
 	var dates = {
 		name : 'dates',
 		columns : [
@@ -72,13 +55,10 @@ var _getTableSpecs = function() {
 		],
 		indices: ['bandwidth']
 	};
-
 	tables.push(relays);
 	tables.push(relayaggregates);
-	tables.push(guardclients);
 	tables.push(dates);
 	tables.push(countrycounts);
-
 	return tables;
 };
 

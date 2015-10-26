@@ -32,9 +32,7 @@ var cookieParser = require('cookie-parser');
 var bodyParser = require('body-parser');
 var compression = require( 'compression' );
 
-var routes = require('./routes/index');
-var about = require('./routes/about');
-
+var index = require('./routes/index');
 var nodes = require('./routes/nodes');
 var dates = require('./routes/dates');
 var map = require('./routes/map');
@@ -58,8 +56,7 @@ app.use(cookieParser());
 app.use(compression());
 app.use(express.static(path.join(__dirname, 'public')));
 
-app.use('/', routes);
-app.use('/about',about);
+app.use('/', index);
 app.use('/nodes',nodes);
 app.use('/dates',dates);
 app.use('/map',map);
