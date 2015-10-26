@@ -77,15 +77,16 @@
         var self = this;
         this._activeDate = dateStr;
         if (this._svg) {
-            this._svg
-                .selectAll('.bar')
-                .classed('active', false );
+            if (this._prev) {
+                this._prev.classed('active', false);
+            }
             var contains = this._svg
                 .selectAll('.bar')
                 .filter(function(d) {
                     return (d.xRange.contains(self._activeDate));
                 })[0];
-            d3.select( contains[contains.length-1] ).classed('active', true);
+            this._prev = d3.select( contains[contains.length-1] );
+            this._prev.classed('active', true);
         }
         return this;
     };

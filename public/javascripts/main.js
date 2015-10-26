@@ -291,22 +291,24 @@
         $mapControls.append(_addMarkerControls( _createLayerUI('Nodes', _markerLayer ), _markerLayer ));
         $mapControls.append(_createLayerUI('Labels', _labelLayer ));
         $mapControls.append(_addCountryControls( _createLayerUI('Top Client Connections', _countryLayer ), _countryLayer ));
-
         // Create date slider
         _dateSlider = new DateSlider({
             dates: _dateInfo.dates,
             slideStop: function() {
                 _update();
+            },
+            change: function() {
+                _dateChart.updateDate(_dateSlider.getISODate());
+                _countryLayer.updateDate(_dateSlider.getISODate());
             }
         });
         $dateControls.append(_dateSlider.getElement());
-
+        // Create date / bandwidth histogram
         _dateChart = new DateChart( $dateControls )
             .colorStops(['rgb(153,25,75)','rgb(25,75,153)'])
             .click(_redirectDate)
             .updateDate(_dateSlider.getISODate())
             .data(_dateInfo);
-
         // Add handlers to summary button
         $summaryButton.click( function() {
             swal({
@@ -315,7 +317,7 @@
                 html: true
             });
         });
-
+        // Create outliers dialog
         var $outlierContainer = $( ChartTemplate() )
             .addClass('outlier-chart-container');
         $outlierContainer.appendTo('#main');
@@ -323,7 +325,7 @@
         $outlierContainer.find('.chart-close-button').click(function() {
             $outlierContainer.hide();
         });
-
+        // create country histogram dialog
         var $histogramContainer = $( ChartTemplate() )
             .addClass('date-histogram-container');
         $histogramContainer.appendTo('#main');

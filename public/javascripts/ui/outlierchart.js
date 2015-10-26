@@ -60,15 +60,15 @@
         var self = this;
         this._activeDate = dateStr;
         if (this._svg) {
-            this._svg
-                .selectAll('.bar')
-                .classed('active', false );
-             this._svg
+            if (this._prev) {
+                this._prev.classed('active', false);
+            }
+            this._prev = this._svg
                 .selectAll('.bar')
                 .filter(function(d) {
                     return moment.utc(d.x, 'MMM Do, YYYY').isSame(self._activeDate, 'day');
-                })
-                .classed('active', true);
+                });
+            this._prev.classed('active', true);
         }
         return this;
     };

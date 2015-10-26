@@ -35,7 +35,7 @@
         var self = this;
         this._container = container;
         this._data = null;
-        this._margin = {top: 10, right: 10, bottom: 55, left: 10};
+        this._margin = {top: 10, right: 10, bottom: 75, left: 10};
         this._colorStops = d3.scale.sqrt()
             .range(['#ff0000','#0000ff'])
             .domain([0,1]);
@@ -78,15 +78,16 @@
         var self = this;
         this._activeDate = dateStr;
         if (this._svg) {
-            this._svg
-                .selectAll('.bar')
-                .classed('active', false );
+            if (this._prev) {
+                this._prev.classed('active', false);
+            }
             var contains = this._svg
                 .selectAll('.bar')
                 .filter(function(d) {
                     return (d.xRange.contains(self._activeDate));
                 })[0];
-            d3.select( contains[contains.length-1] ).classed('active', true);
+            this._prev = d3.select( contains[contains.length-1] );
+            this._prev.classed('active', true);
         }
         return this;
     };
@@ -148,27 +149,47 @@
         var barWidth = width / (this._data.length - 1);
         var colorStops = this._colorStops;
         // Set value ranges
-        var x = d3.scale.linear()
-            .range([0, this.width()]);
+        var x = d3.scale.ordinal()
+            .rangeRoundBands([0, this.width()], 0, 0.01);
         var y = d3.scale.linear()
             .range([this.height(), 0]);
         // Set value domains
-        x.domain([ 0, this._data.length - 1 ]);
+        x.domain(this._data.map(function(d) {
+            return d.x;
+        }));
         y.domain([ 0, this._max ]);
+        // Filter dates
+        var modFilter = Math.floor(this._data.length / 10);
+        var xAxisDates = this._data.filter(function(d,i) {
+                return i % modFilter === 0;
+            })
+            .map(function(d) {
+                return d.x;
+            });
+        // Create x-axis
+        var xAxis = d3.svg.axis()
+            .scale(x)
+            .tickValues(xAxisDates)
+            .orient('bottom');
         // Create chart container
         this._svg = d3.select($(this._container)[0]).append('svg')
             .attr('width', width + margin.left + margin.right)
             .attr('height', height + margin.top + margin.bottom)
             .append('g')
             .attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
+        // Create x-axis
+        this._svg.append('g')
+            .attr('class', 'x axis')
+            .attr('transform', 'translate(0,' + (height+8) + ')')
+            .call(xAxis);
         // Create bars
         var bars = this._svg.selectAll('.bar')
             .data(this._data)
             .enter()
             .append('g')
             .attr('class', 'bar')
-            .attr('transform', function(d, index) {
-                return 'translate(' + x(index) + ', 0)';
+            .attr('transform', function(d) {
+                return 'translate(' + x(d.x) + ', 0)';
             })
             .attr('width', barWidth)
             .attr('height', height);
