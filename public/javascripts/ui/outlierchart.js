@@ -28,7 +28,6 @@
 (function() {
     'use strict';
 
-
     var chartLabel = require('./chartlabel');
 
     var OutlierBarChart = function(container) {

@@ -28,7 +28,6 @@
 (function() {
     'use strict';
 
-
     var SliderTemplate = require('../templates/slider');
 
     var Slider = function(spec) {

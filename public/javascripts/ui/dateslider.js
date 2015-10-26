@@ -28,7 +28,6 @@
 (function() {
     'use strict';
 
-
     var DateSliderTemplate = require('../templates/dateslider');
 
     var _getMoment = function(dates, index) {

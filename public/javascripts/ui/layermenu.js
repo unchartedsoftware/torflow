@@ -28,7 +28,6 @@
 (function() {
     'use strict';
 
-
     var LayerMenuTemplate = require('../templates/layermenu');
 
     var LayerMenu = function(spec) {

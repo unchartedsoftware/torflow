@@ -28,7 +28,6 @@
 (function() {
     'use strict';
 
-
     function _createContainer() {
         if ( $('.loader-container').length === 0 ) {
             $( document.body ).append( $('<div class="loader-container"></div>') );

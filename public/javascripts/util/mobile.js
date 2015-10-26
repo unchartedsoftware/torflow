@@ -34,7 +34,7 @@
         }
         return false;
     };
-    
+
     module.exports.IS_MOBILE = isMobile();
 
 }());

@@ -28,7 +28,6 @@
 (function() {
     'use strict';
 
-
     var bucket = require('../util/bucket');
     var chartLabel = require('./chartlabel');
 
