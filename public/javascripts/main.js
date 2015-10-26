@@ -88,12 +88,15 @@
     };
 
     var _update = function() {
+        _dateChart.updateDate(_dateSlider.getISODate());
+        _countryLayer.updateDate(_dateSlider.getISODate());
         _updateNodes();
         _updateCountries();
     };
 
     var _redirectDate = function(data) {
-        var dateStr = moment.utc(data.x, 'MMM Do, YYYY').format('YYYY-MM-DD');
+        var date = (data.xRange) ? data.xRange.start : moment.utc(data.x, 'MMM Do, YYYY');
+        var dateStr = date.format('YYYY-MM-DD');
         if (dateStr !== 'Invalid date') {
             _dateSlider.setDate(dateStr);
         }
@@ -289,11 +292,6 @@
         $mapControls.append(_createLayerUI('Labels', _labelLayer ));
         $mapControls.append(_addCountryControls( _createLayerUI('Top Client Connections', _countryLayer ), _countryLayer ));
 
-        _dateChart = new DateChart( $dateControls )
-            .colorStops(['rgb(153,25,75)','rgb(25,75,153)'])
-            .click(_redirectDate)
-            .data(_dateInfo);
-
         // Create date slider
         _dateSlider = new DateSlider({
             dates: _dateInfo.dates,
@@ -302,6 +300,12 @@
             }
         });
         $dateControls.append(_dateSlider.getElement());
+
+        _dateChart = new DateChart( $dateControls )
+            .colorStops(['rgb(153,25,75)','rgb(25,75,153)'])
+            .click(_redirectDate)
+            .updateDate(_dateSlider.getISODate())
+            .data(_dateInfo);
 
         // Add handlers to summary button
         $summaryButton.click( function() {

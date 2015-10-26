@@ -152,6 +152,7 @@
                         .colorStops(['rgb(25,75,153)','rgb(100,100,100)','rgb(153,25,75)'])
                         .title('Guard Client Connection Outliers by Date (' + cc3.toUpperCase() + ')')
                         .click(self._redirect)
+                        .updateDate(self._date)
                         .data(json[cc2]);
                 })
                 .fail(function(err) {
@@ -172,15 +173,26 @@
                     var $container = $('.date-histogram-container');
                     $container.show();
                     // create chart
-                    self._chart  = new DateHistogram( $container.find('.chart-content') )
+                    self._dateHistogram  = new DateHistogram( $container.find('.chart-content') )
                         .colorStops(['rgb(153,25,75)','rgb(25,75,153)'])
                         .title('Guard Client Connections by Date (' + cc3.toUpperCase() + ')')
                         .click(self._redirect)
+                        .updateDate(self._date)
                         .data(histogram);
                 })
                 .fail(function(err) {
                     console.log(err);
                 });
+        },
+
+        updateDate : function(isoDate) {
+            this._date = isoDate;
+            if (this._chart) {
+                this._chart.updateDate(isoDate);
+            }
+            if (this._dateHistogram) {
+                this._dateHistogram.updateDate(isoDate);
+            }
         },
 
         _bindClickEvent : function(feature, layer) {

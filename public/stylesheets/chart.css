@@ -44,6 +44,50 @@
     fill-opacity: 0.8;
     stroke-opacity: 0.8;
     shape-rendering: crispEdges;
+    transition: opacity 0.5s;
+}
+
+.active .foreground-bar,
+.active .background-bar {
+    fill: #fff;
+    -webkit-animation-name: blinking;
+    -webkit-animation-duration: 1.2s;
+    -webkit-animation-timing-function: ease-in-out;
+    -webkit-animation-iteration-count: infinite;
+    -moz-animation-name: blinking;
+    -moz-animation-duration: 1.2s;
+    -moz-animation-timing-function: ease-in-out;
+    -moz-animation-iteration-count: infinite;
+    animation-name: blinking;
+    animation-duration: 1.2s;
+    animation-timing-function: ease-in-out;
+    animation-iteration-count: infinite;
+}
+
+@-moz-keyframes blinking {
+    0% { opacity: 1.0; }
+    50% { opacity: 0.2; }
+    100% { opacity: 1.0; }
+}
+
+@-webkit-keyframes blinking {
+    0% { opacity: 1.0; }
+    50% { opacity: 0.2; }
+    100% { opacity: 1.0; }
+}
+
+@keyframes blinking {
+    0% { opacity: 1.0; }
+    50% { opacity: 0.2; }
+    100% { opacity: 1.0; }
+}
+
+.active .foreground-bar {
+    fill-opacity: 1.0;
+}
+
+.active .background-bar {
+    fill-opacity: 0.3;
 }
 
 .bar:hover .foreground-bar {

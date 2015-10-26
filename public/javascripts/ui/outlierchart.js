@@ -57,6 +57,23 @@
         return this;
     };
 
+    OutlierBarChart.prototype.updateDate = function(dateStr) {
+        var self = this;
+        this._activeDate = dateStr;
+        if (this._svg) {
+            this._svg
+                .selectAll('.bar')
+                .classed('active', false );
+             this._svg
+                .selectAll('.bar')
+                .filter(function(d) {
+                    return moment.utc(d.x, 'MMM Do, YYYY').isSame(self._activeDate, 'day');
+                })
+                .classed('active', true);
+        }
+        return this;
+    };
+
     OutlierBarChart.prototype.title = function(title) {
         if (arguments.length === 0) {
             return this._title;
@@ -149,20 +166,20 @@
             .ticks(5)
             .orient('left');
         // Create chart container
-        var svg = d3.select($(this._container)[0]).append('svg')
+        this._svg = d3.select($(this._container)[0]).append('svg')
             .attr('width', width + margin.left + margin.right)
             .attr('height', height + margin.top + margin.bottom)
             .append('g')
             .attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
         // Create title
-        svg.append('text')
+        this._svg.append('text')
             .attr('x', width / 2)
             .attr('y', -margin.top / 3)
             .attr('text-anchor', 'middle')
             .attr('class', 'chart-title')
             .text(this.title());
         // Create x-axis
-        var svgXAxis = svg.append('g')
+        var svgXAxis = this._svg.append('g')
             .attr('class', 'x axis')
             .attr('transform', 'translate(0,' + (height+1) + ')')
             .call(xAxis);
@@ -176,7 +193,7 @@
             .attr('font-size', '14px')
             .text('Outlier Dates');
         // Create y-axis
-        svg.append('g')
+        this._svg.append('g')
             .attr('class', 'y axis')
             .call(yAxis)
             .append('text')
@@ -199,7 +216,7 @@
             .interpolate(d3.interpolateRgb)
             .range([colorStops[1], colorStops[2]]);
         // Create bars
-        var bars = svg.selectAll('.bar')
+        var bars = this._svg.selectAll('.bar')
             .data(this._data)
             .enter()
             .append('g')
@@ -212,7 +229,7 @@
         // Create background bars
         bars.append('rect')
             .attr('class', 'background-bar')
-            .attr('width', x.rangeBand()+1)
+            .attr('width', x.rangeBand())
             .attr('height', height+1);
         // Create foreground bars
         bars.append('rect')
@@ -234,7 +251,7 @@
             });
         // Add hover over tooltips
         chartLabel.addLabels({
-            svg: svg,
+            svg: this._svg,
             selector: '.bar',
             label: function(x,y) {
                 if (x === 'Average') {
@@ -257,10 +274,12 @@
         });
         // Set click event handler
         if (this._onClick) {
-            svg.selectAll('.bar').on('click', function () {
+            this._svg.selectAll('.bar').on('click', function () {
                 self._onClick(this.__data__);
             });
         }
+        // Select active date
+        this.updateDate(this._activeDate);
     };
 
     module.exports = OutlierBarChart;

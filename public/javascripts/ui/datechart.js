@@ -66,11 +66,28 @@
         this._data = res.buckets.map( function(d) {
             return {
                 x: moment.utc(d.x).format('MMM Do, YYYY'),
-                xRange: moment.utc(d.from).twix(d.to, { allDay: true }).format(),
+                xRange: moment.utc(d.from).twix(d.to, { allDay: true }),
                 y: d.y
             };
         });
         this._update();
+        return this;
+    };
+
+    DateChart.prototype.updateDate = function(dateStr) {
+        var self = this;
+        this._activeDate = dateStr;
+        if (this._svg) {
+            this._svg
+                .selectAll('.bar')
+                .classed('active', false );
+            var contains = this._svg
+                .selectAll('.bar')
+                .filter(function(d) {
+                    return (d.xRange.contains(self._activeDate));
+                })[0];
+            d3.select( contains[contains.length-1] ).classed('active', true);
+        }
         return this;
     };
 
@@ -139,19 +156,17 @@
         x.domain([ 0, this._data.length - 1 ]);
         y.domain([ 0, this._max ]);
         // Create chart container
-        var svg = d3.select($(this._container)[0]).append('svg')
+        this._svg = d3.select($(this._container)[0]).append('svg')
             .attr('width', width + margin.left + margin.right)
             .attr('height', height + margin.top + margin.bottom)
             .append('g')
             .attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
         // Create bars
-        var bars = svg.selectAll('.bar')
+        var bars = this._svg.selectAll('.bar')
             .data(this._data)
             .enter()
             .append('g')
-            .attr('class', function(d, index) {
-                return (index === self._dateIndex) ? 'bar active' : 'bar';
-            })
+            .attr('class', 'bar')
             .attr('transform', function(d, index) {
                 return 'translate(' + x(index) + ', 0)';
             })
@@ -177,12 +192,12 @@
             });
         // Add hover over tooltips
         chartLabel.addLabels({
-            svg: svg,
+            svg: this._svg,
             selector: '.bar',
             label: function(x,y,d) {
                 return '<div class="hover-label">' +
                     '<div style="float:left; padding-right:10px;">Date Range: </div>' +
-                    '<div style="float:right">' + d.xRange + '</div>' +
+                    '<div style="float:right">' + d.xRange.format() + '</div>' +
                     '<div style="clear:both"></div>' +
                     '<div style="float:left; padding-right:10px;">Avg Count: </div>' +
                     '<div style="float:right">' + y + '</div>' +
@@ -192,10 +207,12 @@
         });
         // Set click event handler
         if (this._onClick) {
-            svg.selectAll('.bar').on('click', function () {
+            this._svg.selectAll('.bar').on('click', function () {
                 self._onClick(this.__data__);
             });
         }
+        // Select active date
+        this.updateDate(this._activeDate);
     };
 
     module.exports = DateChart;
