@@ -143,6 +143,7 @@
         this._container.find('svg').remove();
         // Set local scope vars
         var MIN_HEIGHT = 5;
+        var NUM_X_LABELS = 7;
         var height = this.height();
         var width = this.width();
         var margin = this._margin;
@@ -159,7 +160,7 @@
         }));
         y.domain([ 0, this._max ]);
         // Filter dates
-        var modFilter = Math.floor(this._data.length / 10);
+        var modFilter = Math.ceil(this._data.length / NUM_X_LABELS);
         var xAxisDates = this._data.filter(function(d,i) {
                 return i % modFilter === 0;
             })
@@ -173,6 +174,7 @@
             .orient('bottom');
         // Create chart container
         this._svg = d3.select($(this._container)[0]).append('svg')
+            .style('overflow', 'visible')
             .attr('width', width + margin.left + margin.right)
             .attr('height', height + margin.top + margin.bottom)
             .append('g')

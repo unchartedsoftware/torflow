@@ -160,6 +160,7 @@
         // Clear container
         this._container.find('svg').remove();
         // Set local scope vars
+        var NUM_X_LABELS = 7;
         var height = this._height;
         var width = this._width;
         var margin = this._margin;
@@ -176,7 +177,7 @@
         }));
         y.domain([ 0, this._max ]);
         // Filter dates
-        var modFilter = Math.floor(this._data.length / 6);
+        var modFilter = Math.ceil(this._data.length / NUM_X_LABELS);
         var xAxisDates = this._data.filter(function(d,i) {
                 return i % modFilter === 0;
             })
@@ -220,6 +221,7 @@
         // Create y-axis
         this._svg.append('g')
             .attr('class', 'y axis')
+            .attr('transform', 'translate(0,1)')
             .call(yAxis)
             .append('text')
             .attr('class', 'y-axis-title')

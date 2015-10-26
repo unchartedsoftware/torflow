@@ -194,6 +194,7 @@
         // Create y-axis
         this._svg.append('g')
             .attr('class', 'y axis')
+            .attr('transform', 'translate(0,1)')
             .call(yAxis)
             .append('text')
             .attr('class', 'y-axis-title')
