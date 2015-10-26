@@ -25,183 +25,188 @@
 * SOFTWARE.
 */
 
-var lerp = require('../util/lerp');
-var Config = require('../Config');
+(function() {
+    'use strict';
 
-// Reduce counts if on mobile device
-var IS_MOBILE = require('../util/mobile').IS_MOBILE;
-var NODE_COUNT = IS_MOBILE ? Config.node_count * Config.node_mobile_factor : Config.node_count;
-var NODE_COUNT_MIN = IS_MOBILE ? Config.node_count_min * Config.node_mobile_factor : Config.node_count_min;
-var NODE_COUNT_MAX = IS_MOBILE ? Config.node_count_max * Config.node_mobile_factor : Config.node_count_max;
+    var lerp = require('../util/lerp');
+    var Config = require('../Config');
 
-var MarkerLayer = function() {
-    this._markerLayer = L.layerGroup();
-    this._nodes = null;
-    this._opacity = 1;
-    this._scaleByBandwidth = true;
-};
+    // Reduce counts if on mobile device
+    var IS_MOBILE = require('../util/mobile').IS_MOBILE;
+    var NODE_COUNT = IS_MOBILE ? Config.node_count * Config.node_mobile_factor : Config.node_count;
+    var NODE_COUNT_MIN = IS_MOBILE ? Config.node_count_min * Config.node_mobile_factor : Config.node_count_min;
+    var NODE_COUNT_MAX = IS_MOBILE ? Config.node_count_max * Config.node_mobile_factor : Config.node_count_max;
 
-MarkerLayer.prototype = _.extend(MarkerLayer.prototype, {
+    var MarkerLayer = function() {
+        this._markerLayer = L.layerGroup();
+        this._nodes = null;
+        this._opacity = 1;
+        this._scaleByBandwidth = true;
+    };
 
-    addTo: function(map) {
-        this._map = map;
-        this._markerLayer.addTo(map);
-        this._$pane = $('#map').find('.leaflet-marker-pane');
-        this.setOpacity(this.getOpacity());
-        return this;
-    },
+    MarkerLayer.prototype = _.extend(MarkerLayer.prototype, {
 
-    getNodeCountMin: function() {
-        return NODE_COUNT_MIN;
-    },
+        addTo: function(map) {
+            this._map = map;
+            this._markerLayer.addTo(map);
+            this._$pane = $('#map').find('.leaflet-marker-pane');
+            this.setOpacity(this.getOpacity());
+            return this;
+        },
 
-    getNodeCountMax: function() {
-        return NODE_COUNT_MAX;
-    },
+        getNodeCountMin: function() {
+            return NODE_COUNT_MIN;
+        },
 
-    getNodeCount: function() {
-        return this._nodeCount || NODE_COUNT;
-    },
+        getNodeCountMax: function() {
+            return NODE_COUNT_MAX;
+        },
 
-    setNodeCount: function(count) {
-        this._nodeCount = Math.round(count);
-    },
+        getNodeCount: function() {
+            return this._nodeCount || NODE_COUNT;
+        },
 
-    set : function(nodeData) {
-        var self = this;
-        this._nodes = nodeData.nodes;
-        this._minMax = nodeData.minMax;
-        var markers = this._nodes.map(function(node) {
-            var title = node.label;
-            var pointRadius;
-            if (self._scaleByBandwidth) {
-                var nodeBW = node.bandwidth;
-                pointRadius = lerp(
-                    Config.node_radius.min,
-                    Config.node_radius.max,
-                    nodeBW / (self._minMax.max-self._minMax.min));
-            } else {
-                pointRadius = Config.node_radius.min;
+        setNodeCount: function(count) {
+            this._nodeCount = Math.round(count);
+        },
+
+        set : function(nodeData) {
+            var self = this;
+            this._nodes = nodeData.nodes;
+            this._minMax = nodeData.minMax;
+            var markers = this._nodes.map(function(node) {
+                var title = node.label;
+                var pointRadius;
+                if (self._scaleByBandwidth) {
+                    var nodeBW = node.bandwidth;
+                    pointRadius = lerp(
+                        Config.node_radius.min,
+                        Config.node_radius.max,
+                        nodeBW / (self._minMax.max-self._minMax.min));
+                } else {
+                    pointRadius = Config.node_radius.min;
+                }
+                var marker = L.marker({
+                        lat: node.lat,
+                        lng: node.lng
+                    }, {
+                    icon: L.divIcon({
+                        className: 'leaflet-marker-cluster',
+                        iconSize: L.point(pointRadius,pointRadius)
+                    })
+                });
+                self._addMarkerHandlers( marker, title );
+                return marker;
+            });
+            // store timestamp, if this changes during a batch it will cancel the
+            // entire series operation, preventing stale additions
+            var currentTimestamp = Date.now();
+            this._requestTimestamp = currentTimestamp;
+            // Leaflet only let you add markers 1 at a time, or requires you to
+            // recreate the layer and add all markers. This causes a noticible
+            // jitter so here we throttle it in batches.
+            var CHUNK_SIZE = 20;
+            var TIMEOUT = 200;
+            var chunks = _.chunk(markers, CHUNK_SIZE);
+            var additions = _.map(chunks, function(chunk) {
+                return function(done) {
+                    setTimeout(function() {
+                        chunk.forEach(function(marker) {
+                            self._markerLayer.addLayer(marker);
+                        });
+                        done(self._requestTimestamp !== currentTimestamp);
+                    }, TIMEOUT);
+                };
+            });
+            // execute the additions in chunks to prevent browser from locking
+            async.series(additions);
+        },
+
+        clear : function() {
+            this._markerLayer.clearLayers();
+        },
+
+        scaleByBandwidth: function( scaleByBandwidth ) {
+            if (scaleByBandwidth !== undefined &&
+                scaleByBandwidth !== this._scaleByBandwidth) {
+                this._scaleByBandwidth = scaleByBandwidth;
+                this.clear();
+                this.set({
+                    minMax: this._minMax,
+                    nodes: this._nodes
+                });
             }
-            var marker = L.marker({
-                    lat: node.lat,
-                    lng: node.lng
-                }, {
-                icon: L.divIcon({
-                    className: 'leaflet-marker-cluster',
-                    iconSize: L.point(pointRadius,pointRadius)
-                })
-            });
-            self._addMarkerHandlers( marker, title );
-            return marker;
-        });
-        // store timestamp, if this changes during a batch it will cancel the
-        // entire series operation, preventing stale additions
-        var currentTimestamp = Date.now();
-        this._requestTimestamp = currentTimestamp;
-        // Leaflet only let you add markers 1 at a time, or requires you to
-        // recreate the layer and add all markers. This causes a noticible
-        // jitter so here we throttle it in batches.
-        var CHUNK_SIZE = 20;
-        var TIMEOUT = 200;
-        var chunks = _.chunk(markers, CHUNK_SIZE);
-        var additions = _.map(chunks, function(chunk) {
-            return function(done) {
-                setTimeout(function() {
-                    chunk.forEach(function(marker) {
-                        self._markerLayer.addLayer(marker);
-                    });
-                    done(self._requestTimestamp !== currentTimestamp);
-                }, TIMEOUT);
-            };
-        });
-        // execute the additions in chunks to prevent browser from locking
-        async.series(additions);
-    },
+            return this._scaleByBandwidth;
+        },
 
-    clear : function() {
-        this._markerLayer.clearLayers();
-    },
+        getOpacity: function() {
+            return this._opacity;
+        },
 
-    scaleByBandwidth: function( scaleByBandwidth ) {
-        if (scaleByBandwidth !== undefined &&
-            scaleByBandwidth !== this._scaleByBandwidth) {
-            this._scaleByBandwidth = scaleByBandwidth;
-            this.clear();
-            this.set({
-                minMax: this._minMax,
-                nodes: this._nodes
-            });
-        }
-        return this._scaleByBandwidth;
-    },
+        setOpacity: function( opacity ) {
+            if (this._opacity !== opacity ||
+                this._$pane.css('opacity') !== opacity) {
+                this._opacity = opacity;
+                if ( this._$pane ) {
+                    this._$pane.css('opacity', this._opacity);
+                }
+            }
+        },
 
-    getOpacity: function() {
-        return this._opacity;
-    },
-
-    setOpacity: function( opacity ) {
-        if (this._opacity !== opacity ||
-            this._$pane.css('opacity') !== opacity) {
-            this._opacity = opacity;
+        show: function() {
+            this._hidden = false;
             if ( this._$pane ) {
-                this._$pane.css('opacity', this._opacity);
+                this._$pane.css('display', '');
             }
-        }
-    },
+        },
 
-    show: function() {
-        this._hidden = false;
-        if ( this._$pane ) {
-            this._$pane.css('display', '');
-        }
-    },
-
-    hide: function() {
-        this._hidden = true;
-        if ( this._$pane ) {
-            this._$pane.css('display', 'none');
-        }
-    },
-
-    isHidden: function() {
-        return this._hidden;
-    },
-
-    _addMarkerHandlers : function( marker, label ) {
-        var self = this;
-        if ( typeof label === 'function' ) {
-            label = label();
-        }
-        // on mouse over create label
-        marker.on( 'mouseover', function( leafletEvent ) {
-            var event = leafletEvent.originalEvent;
-            var $marker = $(event.target);
-            var offset = $marker.offset();
-            var posY = offset.top - $(window).scrollTop();
-            var posX = offset.left - $(window).scrollLeft() + $marker.outerWidth()/2;
-            if ( self._$label ) {
-                self._$label.remove();
+        hide: function() {
+            this._hidden = true;
+            if ( this._$pane ) {
+                this._$pane.css('display', 'none');
             }
-            self._$label = $(
-                '<div class="hover-label">'+
-                    label +
-                '</div>' );
-            $( document.body ).append( self._$label );
-            self._$label.css({
-                'left': -self._$label.outerWidth()/2 + posX + 'px',
-                'top': -self._$label.outerHeight()*1.25 + posY + 'px'
+        },
+
+        isHidden: function() {
+            return this._hidden;
+        },
+
+        _addMarkerHandlers : function( marker, label ) {
+            var self = this;
+            if ( typeof label === 'function' ) {
+                label = label();
+            }
+            // on mouse over create label
+            marker.on( 'mouseover', function( leafletEvent ) {
+                var event = leafletEvent.originalEvent;
+                var $marker = $(event.target);
+                var offset = $marker.offset();
+                var posY = offset.top - $(window).scrollTop();
+                var posX = offset.left - $(window).scrollLeft() + $marker.outerWidth()/2;
+                if ( self._$label ) {
+                    self._$label.remove();
+                }
+                self._$label = $(
+                    '<div class="hover-label">'+
+                        label +
+                    '</div>' );
+                $( document.body ).append( self._$label );
+                self._$label.css({
+                    'left': -self._$label.outerWidth()/2 + posX + 'px',
+                    'top': -self._$label.outerHeight()*1.25 + posY + 'px'
+                });
             });
-        });
-        // on mouse out destroy label
-        marker.on( 'mouseout', function() {
-            if ( self._$label ) {
-                self._$label.remove();
-                self._$label = null;
-            }
-        });
-    }
+            // on mouse out destroy label
+            marker.on( 'mouseout', function() {
+                if ( self._$label ) {
+                    self._$label.remove();
+                    self._$label = null;
+                }
+            });
+        }
 
-});
+    });
 
-module.exports = MarkerLayer;
+    module.exports = MarkerLayer;
+
+}());

@@ -25,22 +25,27 @@
  * SOFTWARE.
  */
 
-var express = require('express');
-var router = express.Router();
-var countryDB = require('../db/country');
+(function() {
+    'use strict';
 
-/**
- * GET /histogram/:countrycode
- */
-router.get('/:countrycode', function(req, res) {
-    var cc = req.params.countrycode.toLowerCase();
-    countryDB.getDateHistogram(cc,function(err,json) {
-        if (err) {
-            res.send(null);
-        } else {
-            res.send(json);
-        }
+    var express = require('express');
+    var router = express.Router();
+    var countryDB = require('../db/country');
+
+    /**
+     * GET /histogram/:countrycode
+     */
+    router.get('/:countrycode', function(req, res) {
+        var cc = req.params.countrycode.toLowerCase();
+        countryDB.getDateHistogram(cc,function(err,json) {
+            if (err) {
+                res.send(null);
+            } else {
+                res.send(json);
+            }
+        });
     });
-});
 
-module.exports = router;
+    module.exports = router;
+    
+}());

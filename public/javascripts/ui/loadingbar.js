@@ -25,54 +25,60 @@
 * SOFTWARE.
 */
 
-function _createContainer() {
-    if ( $('.loader-container').length === 0 ) {
-        $( document.body ).append( $('<div class="loader-container"></div>') );
-    }
-}
+(function() {
+    'use strict';
 
-var LoadingBar = function() {
-    this._percent = 0;
-    this._loaderCount = 0;
-    this._$loader = $('<div class="loader-bar"></div>');
-    _createContainer();
-    $('.loader-container').append( this._$loader );
-};
 
-LoadingBar.prototype.update = function( percent ) {
-    if ( this._percent < percent ) {
-        this._percent = percent;
-        this._$loader.css({
-            width: this._percent * 100 + '%',
-            opacity: 1.0 - ( this._percent/2 )
-        });
-        if ( this._percent === 1 ) {
-            var that  = this;
-            this._$loader.animate({
-                opacity: 0
-            }, 400, function() {
-                that._$loader.remove();
-                that._$loader = null;
-            });
+    function _createContainer() {
+        if ( $('.loader-container').length === 0 ) {
+            $( document.body ).append( $('<div class="loader-container"></div>') );
         }
     }
-};
 
-LoadingBar.prototype.cancel = function() {
-    if ( this._$loader ) {
-        this._$loader.finish();
-    }
-    if ( this._$loader ) {
-        this._$loader.remove();
-    }
-};
+    var LoadingBar = function() {
+        this._percent = 0;
+        this._loaderCount = 0;
+        this._$loader = $('<div class="loader-bar"></div>');
+        _createContainer();
+        $('.loader-container').append( this._$loader );
+    };
 
-LoadingBar.prototype.finish = function() {
-    this._$loader.animate({
-        opacity: 0
-    }, 400, function() {
-        this._$loader.remove();
-    });
-};
+    LoadingBar.prototype.update = function( percent ) {
+        if ( this._percent < percent ) {
+            this._percent = percent;
+            this._$loader.css({
+                width: this._percent * 100 + '%',
+                opacity: 1.0 - ( this._percent/2 )
+            });
+            if ( this._percent === 1 ) {
+                var that  = this;
+                this._$loader.animate({
+                    opacity: 0
+                }, 400, function() {
+                    that._$loader.remove();
+                    that._$loader = null;
+                });
+            }
+        }
+    };
 
-module.exports = LoadingBar;
+    LoadingBar.prototype.cancel = function() {
+        if ( this._$loader ) {
+            this._$loader.finish();
+        }
+        if ( this._$loader ) {
+            this._$loader.remove();
+        }
+    };
+
+    LoadingBar.prototype.finish = function() {
+        this._$loader.animate({
+            opacity: 0
+        }, 400, function() {
+            this._$loader.remove();
+        });
+    };
+
+    module.exports = LoadingBar;
+
+}());

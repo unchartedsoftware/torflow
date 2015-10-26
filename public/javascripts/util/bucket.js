@@ -25,66 +25,71 @@
 * SOFTWARE.
 */
 
-var bucket = function(spec) {
-    spec = spec || {};
-    var data = spec.data;
-    var threshld = spec.threshold || 1;
-    var maxBucketSize = spec.maxBucketSize || Math.round(data.length / 100);
-    var xExtractor = spec.xExtractor || function(x) { return x; };
-    var yExtractor = spec.yExtractor || function(y) { return y; };
-    var min = yExtractor( _.min(data, function(value) {
-            return yExtractor(value);
-        }));
-    var max = yExtractor( _.max(data, function(value) {
-            return yExtractor(value);
-        }));
-    var range = max - min;
-    var currentX = null;
-    var currentY = null;
-    var currentCount = 0;
-    var buckets = [];
-    data.forEach(function(value,index) {
-        var x = xExtractor(value,index);
-        var y = yExtractor(value,index);
-        if ( currentY === null ) {
-            currentX = x;
-            currentY = y;
-            currentCount++;
-        } else {
-            var current = (( currentY / currentCount ) - min) / range;
-            var val = (y - min) / range;
-            if ( currentCount === maxBucketSize || Math.abs(val - current) > threshld ) {
-                buckets.push({
-                    x: currentX / currentCount,
-                    y: currentY / currentCount
-                });
-                currentX = null;
-                currentY = null;
-                currentCount = 0;
-            } else {
-                currentX += x;
-                currentY += y;
-                currentCount++;
-            }
-        }
-    });
-    if ( currentY ) {
-        buckets.push({
-            x: currentX / currentCount,
-            y: currentY / currentCount
-        });
-    }
-    this._data = buckets.map(function(bandwidth,index) {
-        return {
-            bandwidth: bandwidth,
-            index: index
-        };
-    });
-    return {
-        buckets: buckets,
-        min: min,
-        max: max
-    };
-};
+(function() {
+    'use strict';
 
-module.exports = bucket;
+    var bucket = function(spec) {
+        spec = spec || {};
+        var data = spec.data;
+        var threshld = spec.threshold || 1;
+        var maxBucketSize = spec.maxBucketSize || Math.round(data.length / 100);
+        var xExtractor = spec.xExtractor || function(x) { return x; };
+        var yExtractor = spec.yExtractor || function(y) { return y; };
+        var min = yExtractor( _.min(data, function(value) {
+                return yExtractor(value);
+            }));
+        var max = yExtractor( _.max(data, function(value) {
+                return yExtractor(value);
+            }));
+        var range = max - min;
+        var currentX = null;
+        var currentY = null;
+        var currentCount = 0;
+        var currentMin = null;
+        var buckets = [];
+        data.forEach(function(value,index) {
+            var x = xExtractor(value,index);
+            var y = yExtractor(value,index);
+            if ( currentY === null ) {
+                currentX = x;
+                currentMin = x;
+                currentY = y;
+                currentCount++;
+            } else {
+                var current = (( currentY / currentCount ) - min) / range;
+                var val = (y - min) / range;
+                if ( currentCount === maxBucketSize || Math.abs(val - current) > threshld ) {
+                    buckets.push({
+                        x: currentX / currentCount,
+                        y: currentY / currentCount,
+                        from: currentMin,
+                        to: x
+                    });
+                    currentX = null;
+                    currentY = null;
+                    currentCount = 0;
+                } else {
+                    currentX += x;
+                    currentY += y;
+                    currentCount++;
+                }
+            }
+        });
+        if ( currentY ) {
+            buckets.push({
+                x: currentX / currentCount,
+                y: currentY / currentCount,
+                from: currentMin,
+                to: xExtractor(data[data.length-1], data.length-1)
+            });
+        }
+        return {
+            buckets: buckets,
+            min: min,
+            max: max
+        };
+    };
+
+    module.exports = bucket;
+
+}());

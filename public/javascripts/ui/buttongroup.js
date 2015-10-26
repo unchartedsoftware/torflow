@@ -25,40 +25,45 @@
 * SOFTWARE.
 */
 
-var ButtonGroupTemplate = require('../templates/buttongroup');
+(function() {
+    'use strict';
 
-var ButtonGroup = function(spec) {
-    var self = this;
-    // parse inputs
-    spec = spec || {};
-    spec.buttons = spec.buttons || [];
-    spec.initialValue = spec.initialValue !== undefined ? spec.initialValue : 0;
-    // create buttons
-    spec.buttons = spec.buttons.map( function( button, index ) {
-        return {
-            label: button.label || 'missing-label-' + index,
-            className: ( index === spec.initialValue ) ? 'active' : '',
-            click: button.click || null
-        };
-    });
-    // create container element
-    this._$container = $( ButtonGroupTemplate(spec) );
-    this._$group = this._$container.find('.services-btn-group');
-    this._$buttons = this._$group.find('.btn-primary');
-    // add click callbacks
-    spec.buttons.forEach( function( button, index ) {
-        var click = button.click || null;
-        var $button = $( self._$buttons.get(index) );
-        $button.click( function() {
-            if ($.isFunction(click)) {
-                click();
-            }
+    var ButtonGroupTemplate = require('../templates/buttongroup');
+
+    var ButtonGroup = function(spec) {
+        var self = this;
+        // parse inputs
+        spec = spec || {};
+        spec.buttons = spec.buttons || [];
+        spec.initialValue = spec.initialValue !== undefined ? spec.initialValue : 0;
+        // create buttons
+        spec.buttons = spec.buttons.map( function( button, index ) {
+            return {
+                label: button.label || 'missing-label-' + index,
+                className: ( index === spec.initialValue ) ? 'active' : '',
+                click: button.click || null
+            };
         });
-    });
-};
+        // create container element
+        this._$container = $( ButtonGroupTemplate(spec) );
+        this._$group = this._$container.find('.services-btn-group');
+        this._$buttons = this._$group.find('.btn-primary');
+        // add click callbacks
+        spec.buttons.forEach( function( button, index ) {
+            var click = button.click || null;
+            var $button = $( self._$buttons.get(index) );
+            $button.click( function() {
+                if ($.isFunction(click)) {
+                    click();
+                }
+            });
+        });
+    };
 
-ButtonGroup.prototype.getElement = function() {
-    return this._$container;
-};
+    ButtonGroup.prototype.getElement = function() {
+        return this._$container;
+    };
 
-module.exports = ButtonGroup;
+    module.exports = ButtonGroup;
+
+}());

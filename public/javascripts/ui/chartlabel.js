@@ -25,49 +25,55 @@
 * SOFTWARE.
 */
 
-var _addCommas = function (x) {
-    return x.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',');
-};
+(function() {
+    'use strict';
 
-var _isInteger = function(n) {
-   return n % 1 === 0;
-};
+    var _addCommas = function (x) {
+        return x.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+    };
 
-var addLabels = function(spec) {
-    spec = spec || {};
-    if ( !spec.svg ) {
-        console.error('Must pass svg element to add labels to. Ignoring command.');
-        return;
-    }
-    var svg = spec.svg;
-    var label = spec.label || 'missing label';
-    var selector = spec.selector || '';
-    var $label = null;
-    svg.selectAll(selector)
-        .on('mousemove', function(d) {
-            if ($label) {
-                $label.remove();
-            }
-            var formattedY = _isInteger(d.y) ? _addCommas(d.y) : _addCommas(d.y.toFixed(2));
-            if ( $.isFunction(label) ) {
-                $label = $( label(d.x, formattedY) );
-            } else {
-                $label = $(label);
-            }
-            $( document.body ).append( $label );
-            $label.css({
-                'left': d3.event.pageX - $label.outerWidth()/2,
-                'top': d3.event.pageY - $label.outerHeight()*1.25
+    var _isInteger = function(n) {
+       return n % 1 === 0;
+    };
+
+    var addLabels = function(spec) {
+        spec = spec || {};
+        if ( !spec.svg ) {
+            console.error('Must pass svg element to add labels to. Ignoring command.');
+            return;
+        }
+        var svg = spec.svg;
+        var label = spec.label || 'missing label';
+        var selector = spec.selector || '';
+        var $label = null;
+        svg.selectAll(selector)
+            .on('mousemove', function(d) {
+                if (!$label) {
+                    // if label doesn't already exist, create it
+                    var formattedY = _isInteger(d.y) ? _addCommas(d.y) : _addCommas(d.y.toFixed(2));
+                    if ( $.isFunction(label) ) {
+                        $label = $( label(d.x, formattedY) );
+                    } else {
+                        $label = $(label);
+                    }
+                    $( document.body ).append( $label );
+                }
+                // position label
+                $label.css({
+                    'left': d3.event.pageX - $label.outerWidth()/2,
+                    'top': d3.event.pageY - $label.outerHeight()*1.25
+                });
+            })
+            .on('mouseout', function() {
+                if ( $label ) {
+                    $label.remove();
+                    $label = null;
+                }
             });
-        })
-        .on('mouseout', function() {
-            if ( $label ) {
-                $label.remove();
-                $label = null;
-            }
-        });
-};
+    };
 
-module.exports = {
-    addLabels: addLabels
-};
+    module.exports = {
+        addLabels: addLabels
+    };
+
+}());

@@ -25,27 +25,32 @@
 * SOFTWARE.
 */
 
-var LabelLayer = L.TileLayer.extend({
+(function() {
+    'use strict';
 
-    getOpacity: function() {
-        return this.options.opacity;
-    },
+    var LabelLayer = L.TileLayer.extend({
 
-    show: function() {
-        this._hidden = false;
-        this._prevMap.addLayer(this);
-    },
+        getOpacity: function() {
+            return this.options.opacity;
+        },
 
-    hide: function() {
-        this._hidden = true;
-        this._prevMap = this._map;
-        this._map.removeLayer(this);
-    },
+        show: function() {
+            this._hidden = false;
+            this._prevMap.addLayer(this);
+        },
 
-    isHidden: function() {
-        return this._hidden;
-    }
+        hide: function() {
+            this._hidden = true;
+            this._prevMap = this._map;
+            this._map.removeLayer(this);
+        },
 
-});
+        isHidden: function() {
+            return this._hidden;
+        }
 
-module.exports = LabelLayer;
+    });
+
+    module.exports = LabelLayer;
+
+}());

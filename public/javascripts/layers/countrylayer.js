@@ -25,248 +25,253 @@
 * SOFTWARE.
 */
 
-var OutlierChart = require('../ui/outlierchart');
-var DateHistogram = require('../ui/datehistogram');
-var Config = require('../Config');
+(function() {
+    'use strict';
 
-// Reduce counts if on mobile device
-var IS_MOBILE = require('../util/mobile').IS_MOBILE;
-var COUNTRY_COUNT = IS_MOBILE ? Config.country_count * Config.country_mobile_factor : Config.country_count;
-var COUNTRY_COUNT_MIN = IS_MOBILE ? Config.country_count_min * Config.country_mobile_factor : Config.country_count_min;
-var COUNTRY_COUNT_MAX = IS_MOBILE ? Config.country_count_max * Config.country_mobile_factor : Config.country_count_max;
+    var OutlierChart = require('../ui/outlierchart');
+    var DateHistogram = require('../ui/datehistogram');
+    var Config = require('../Config');
 
-var CountryLayer = function(spec) {
-    this._geoJSONLayer = L.geoJson(null, {
-        style: this._getFeatureStyle.bind(this),
-        onEachFeature: this._bindClickEvent.bind(this)
-    });
-    this._redirect = spec.redirect;
-    this._opacity = 0.2;
-    this._histogram = null;
-    this._geoJSONMap = {};
-    this._colorScale = d3.scale.linear()
-        .range(['rgb(0,0,50)', 'rgb(50,50,255)']) // or use hex values
-        .domain([0,1]);
-};
+    // Reduce counts if on mobile device
+    var IS_MOBILE = require('../util/mobile').IS_MOBILE;
+    var COUNTRY_COUNT = IS_MOBILE ? Config.country_count * Config.country_mobile_factor : Config.country_count;
+    var COUNTRY_COUNT_MIN = IS_MOBILE ? Config.country_count_min * Config.country_mobile_factor : Config.country_count_min;
+    var COUNTRY_COUNT_MAX = IS_MOBILE ? Config.country_count_max * Config.country_mobile_factor : Config.country_count_max;
 
-CountryLayer.prototype = _.extend(CountryLayer.prototype, {
+    var CountryLayer = function(spec) {
+        this._geoJSONLayer = L.geoJson(null, {
+            style: this._getFeatureStyle.bind(this),
+            onEachFeature: this._bindClickEvent.bind(this)
+        });
+        this._redirect = spec.redirect;
+        this._opacity = 0.2;
+        this._histogram = null;
+        this._geoJSONMap = {};
+        this._colorScale = d3.scale.linear()
+            .range(['rgb(0,0,50)', 'rgb(50,50,255)']) // or use hex values
+            .domain([0,1]);
+    };
 
-    addTo: function(map) {
-        this._map = map;
-        this._geoJSONLayer.addTo(map);
-        this._$pane = $('#map').find('.leaflet-overlay-pane');
-        this.setOpacity(this.getOpacity());
-        return this;
-    },
+    CountryLayer.prototype = _.extend(CountryLayer.prototype, {
 
-    getCountryCountMin: function() {
-        return COUNTRY_COUNT_MIN;
-    },
+        addTo: function(map) {
+            this._map = map;
+            this._geoJSONLayer.addTo(map);
+            this._$pane = $('#map').find('.leaflet-overlay-pane');
+            this.setOpacity(this.getOpacity());
+            return this;
+        },
 
-    getCountryCountMax: function() {
-        return COUNTRY_COUNT_MAX;
-    },
+        getCountryCountMin: function() {
+            return COUNTRY_COUNT_MIN;
+        },
 
-    getCountryCount: function() {
-        return this._countryCount || COUNTRY_COUNT;
-    },
+        getCountryCountMax: function() {
+            return COUNTRY_COUNT_MAX;
+        },
 
-    setCountryCount: function(count) {
-        this._countryCount = Math.round(count);
-    },
+        getCountryCount: function() {
+            return this._countryCount || COUNTRY_COUNT;
+        },
 
-    set : function(histogram) {
-        var self = this;
-        // store country / count histogram
-        this._histogram = histogram;
-        // store timestamp of request, if this changes during a batch
-        // it will cancel the entire series operation, preventing stale
-        // requests
-        var currentTimestamp = Date.now();
-        this._requestTimestamp = currentTimestamp;
-        // update max client count
-        this._maxClientCount = _.max( this._histogram );
-        // build requests array
-        var requests = [];
-        _.forEach(this._histogram, function(count,countryCode) {
-            if ( count === 0 ) {
-                return;
+        setCountryCount: function(count) {
+            this._countryCount = Math.round(count);
+        },
+
+        set : function(histogram) {
+            var self = this;
+            // store country / count histogram
+            this._histogram = histogram;
+            // store timestamp of request, if this changes during a batch
+            // it will cancel the entire series operation, preventing stale
+            // requests
+            var currentTimestamp = Date.now();
+            this._requestTimestamp = currentTimestamp;
+            // update max client count
+            this._maxClientCount = _.max( this._histogram );
+            // build requests array
+            var requests = [];
+            _.forEach(this._histogram, function(count,countryCode) {
+                if ( count === 0 ) {
+                    return;
+                }
+                if (self._geoJSONMap[countryCode]) {
+                    // we already have the geoJSON
+                    requests.push( function(done) {
+                        self._render(countryCode);
+                        done(self._requestTimestamp !== currentTimestamp);
+                    });
+                } else {
+                    // request geoJSON from server
+                    requests.push( function(done) {
+                        var request = {
+                            url: '/geo/' + countryCode,
+                            type: 'GET',
+                            contentType: 'application/json; charset=utf-8',
+                            async: true
+                        };
+                        $.ajax(request)
+                            .done(function(geoJSON) {
+                                self._geoJSONMap[countryCode] = geoJSON;
+                                self._render(countryCode);
+                                done(self._requestTimestamp !== currentTimestamp);
+                            })
+                            .fail(function(err) {
+                                console.log(err);
+                                done(self._requestTimestamp !== currentTimestamp);
+                            });
+                    });
+                }
+            });
+            // execute the requests one at a time to prevent browser from locking
+            async.series(requests);
+        },
+
+        _render : function(countryCode) {
+            var geoJSON = this._geoJSONMap[countryCode];
+            if (geoJSON) {
+                this._geoJSONLayer.addData(geoJSON);
             }
-            if (self._geoJSONMap[countryCode]) {
-                // we already have the geoJSON
-                requests.push( function(done) {
-                    self._render(countryCode);
-                    done(self._requestTimestamp !== currentTimestamp);
+        },
+
+        _createOutlierChart : function(cc2, cc3) {
+            var OUTLIERS_COUNT = 10;
+            var self = this;
+            var request = {
+                url: '/outliers/' + cc2 + '/' + OUTLIERS_COUNT,
+                type: 'GET',
+                contentType: 'application/json; charset=utf-8',
+                async: true
+            };
+            $.ajax(request)
+                .done(function(json) {
+                    var $container = $('.outlier-chart-container');
+                    $container.show();
+                    // create chart
+                    self._chart = new OutlierChart( $container.find('.chart-content') )
+                        .colorStops(['rgb(25,75,153)','rgb(100,100,100)','rgb(153,25,75)'])
+                        .title('Guard Client Connection Outliers by Date (' + cc3.toUpperCase() + ')')
+                        .click(self._redirect)
+                        .data(json[cc2]);
+                })
+                .fail(function(err) {
+                    console.log(err);
                 });
+        },
+
+        _createDateHistogram : function(cc2, cc3) {
+            var self = this;
+            var request = {
+                url: '/histogram/' + cc2,
+                type: 'GET',
+                contentType: 'application/json; charset=utf-8',
+                async: true
+            };
+            $.ajax(request)
+                .done(function(histogram) {
+                    var $container = $('.date-histogram-container');
+                    $container.show();
+                    // create chart
+                    self._chart  = new DateHistogram( $container.find('.chart-content') )
+                        .colorStops(['rgb(153,25,75)','rgb(25,75,153)'])
+                        .title('Guard Client Connections by Date (' + cc3.toUpperCase() + ')')
+                        .click(self._redirect)
+                        .data(histogram);
+                })
+                .fail(function(err) {
+                    console.log(err);
+                });
+        },
+
+        _bindClickEvent : function(feature, layer) {
+
+            var self = this;
+            layer.on({
+                click: function(event) {
+                    var feature = event.target.feature;
+                    var cc3 = feature.id || feature.properties.ISO_A3;
+                    var cc2 = self._threeLetterToTwoLetter(cc3);
+                    self._createOutlierChart(cc2, cc3);
+                    self._createDateHistogram(cc2, cc3);
+                },
+                mouseover: function() {
+                    layer.setStyle(self._getFeatureHoverStyle());
+                },
+                mouseout: function(event) {
+                    var feature = event.target.feature;
+                    layer.setStyle(self._getFeatureStyle(feature));
+                }
+            });
+        },
+
+        _threeLetterToTwoLetter : function(cc_threeLetter) {
+            var self = this;
+            var cc_twoLetter = Object.keys(this._geoJSONMap).filter(function(cc) {
+                return self._geoJSONMap[cc] && self._geoJSONMap[cc].cc_3 === cc_threeLetter.toUpperCase();
+            });
+            if (cc_twoLetter && cc_twoLetter.length) {
+                return cc_twoLetter[0];
             } else {
-                // request geoJSON from server
-                requests.push( function(done) {
-                    var request = {
-                        url: '/geo/' + countryCode,
-                        type: 'GET',
-                        contentType: 'application/json; charset=utf-8',
-                        async: true
-                    };
-                    $.ajax(request)
-                        .done(function(geoJSON) {
-                            self._geoJSONMap[countryCode] = geoJSON;
-                            self._render(countryCode);
-                            done(self._requestTimestamp !== currentTimestamp);
-                        })
-                        .fail(function(err) {
-                            console.log(err);
-                            done(self._requestTimestamp !== currentTimestamp);
-                        });
-                });
+                return null;
             }
-        });
-        // execute the requests one at a time to prevent browser from locking
-        async.series(requests);
-    },
+        },
 
-    _render : function(countryCode) {
-        var geoJSON = this._geoJSONMap[countryCode];
-        if (geoJSON) {
-            this._geoJSONLayer.addData(geoJSON);
-        }
-    },
+        _getFeatureStyle : function(feature) {
+            var cc = this._threeLetterToTwoLetter(feature.id || feature.properties.ISO_A3);
+            var relativePercentage = this._histogram[cc] / this._maxClientCount;
+            var fillColor = this._colorScale(relativePercentage);
+            return {
+                fillColor: fillColor,
+                weight : 0,
+                fillOpacity: 1
+            };
+        },
 
-    _createOutlierChart : function(cc2, cc3) {
-        var OUTLIERS_COUNT = 10;
-        var self = this;
-        var request = {
-            url: '/outliers/' + cc2 + '/' + OUTLIERS_COUNT,
-            type: 'GET',
-            contentType: 'application/json; charset=utf-8',
-            async: true
-        };
-        $.ajax(request)
-            .done(function(json) {
-                var $container = $('.outlier-chart-container');
-                $container.show();
-                // create chart
-                self._chart = new OutlierChart( $container.find('.chart-content') )
-                    .colorStops(['rgb(25,75,153)','rgb(100,100,100)','rgb(153,25,75)'])
-                    .title('Guard Client Connection Outliers by Date (' + cc3.toUpperCase() + ')')
-                    .click(self._redirect)
-                    .data(json[cc2]);
-            })
-            .fail(function(err) {
-                console.log(err);
-            });
-    },
+        _getFeatureHoverStyle : function() {
+            return {
+                fillColor: '#fff',
+                weight : 0,
+                fillOpacity: 1
+            };
+        },
 
-    _createDateHistogram : function(cc2, cc3) {
-        var self = this;
-        var request = {
-            url: '/histogram/' + cc2,
-            type: 'GET',
-            contentType: 'application/json; charset=utf-8',
-            async: true
-        };
-        $.ajax(request)
-            .done(function(histogram) {
-                var $container = $('.date-histogram-container');
-                $container.show();
-                // create chart
-                self._chart  = new DateHistogram( $container.find('.chart-content') )
-                    .colorStops(['rgb(153,25,75)','rgb(25,75,153)'])
-                    .title('Guard Client Connections by Date (' + cc3.toUpperCase() + ')')
-                    .click(self._redirect)
-                    .data(histogram);
-            })
-            .fail(function(err) {
-                console.log(err);
-            });
-    },
+        clear : function() {
+            this._geoJSONLayer.clearLayers();
+        },
 
-    _bindClickEvent : function(feature, layer) {
+        getOpacity : function() {
+            return this._opacity;
+        },
 
-        var self = this;
-        layer.on({
-            click: function(event) {
-                var feature = event.target.feature;
-                var cc3 = feature.id || feature.properties.ISO_A3;
-                var cc2 = self._threeLetterToTwoLetter(cc3);
-                self._createOutlierChart(cc2, cc3);
-                self._createDateHistogram(cc2, cc3);
-            },
-            mouseover: function() {
-                layer.setStyle(self._getFeatureHoverStyle());
-            },
-            mouseout: function(event) {
-                var feature = event.target.feature;
-                layer.setStyle(self._getFeatureStyle(feature));
+        setOpacity: function( opacity ) {
+            if (this._opacity !== opacity ||
+                this._$pane.css('opacity') !== opacity) {
+                this._opacity = opacity;
+                if ( this._$pane ) {
+                    this._$pane.css('opacity', this._opacity);
+                }
             }
-        });
-    },
+        },
 
-    _threeLetterToTwoLetter : function(cc_threeLetter) {
-        var self = this;
-        var cc_twoLetter = Object.keys(this._geoJSONMap).filter(function(cc) {
-            return self._geoJSONMap[cc] && self._geoJSONMap[cc].cc_3 === cc_threeLetter.toUpperCase();
-        });
-        if (cc_twoLetter && cc_twoLetter.length) {
-            return cc_twoLetter[0];
-        } else {
-            return null;
-        }
-    },
-
-    _getFeatureStyle : function(feature) {
-        var cc = this._threeLetterToTwoLetter(feature.id || feature.properties.ISO_A3);
-        var relativePercentage = this._histogram[cc] / this._maxClientCount;
-        var fillColor = this._colorScale(relativePercentage);
-        return {
-            fillColor: fillColor,
-            weight : 0,
-            fillOpacity: 1
-        };
-    },
-
-    _getFeatureHoverStyle : function() {
-        return {
-            fillColor: '#fff',
-            weight : 0,
-            fillOpacity: 1
-        };
-    },
-
-    clear : function() {
-        this._geoJSONLayer.clearLayers();
-    },
-
-    getOpacity : function() {
-        return this._opacity;
-    },
-
-    setOpacity: function( opacity ) {
-        if (this._opacity !== opacity ||
-            this._$pane.css('opacity') !== opacity) {
-            this._opacity = opacity;
+        show: function() {
+            this._hidden = false;
             if ( this._$pane ) {
-                this._$pane.css('opacity', this._opacity);
+                this._$pane.css('display', '');
             }
+        },
+
+        hide: function() {
+            this._hidden = true;
+            if ( this._$pane ) {
+                this._$pane.css('display', 'none');
+            }
+        },
+
+        isHidden: function() {
+            return this._hidden;
         }
-    },
 
-    show: function() {
-        this._hidden = false;
-        if ( this._$pane ) {
-            this._$pane.css('display', '');
-        }
-    },
+    });
+    module.exports = CountryLayer;
 
-    hide: function() {
-        this._hidden = true;
-        if ( this._$pane ) {
-            this._$pane.css('display', 'none');
-        }
-    },
-
-    isHidden: function() {
-        return this._hidden;
-    }
-
-});
-module.exports = CountryLayer;
+}());

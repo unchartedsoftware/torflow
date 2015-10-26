@@ -24,7 +24,14 @@
 * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 * SOFTWARE.
 */
-var lerp = function(min,max,alpha) {
-    return min + (max-min) * alpha;
-};
-module.exports = lerp;
+
+(function() {
+    'use strict';
+
+    var lerp = function(min,max,alpha) {
+        return min + (max-min) * alpha;
+    };
+
+    module.exports = lerp;
+
+}());

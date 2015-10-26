@@ -25,28 +25,33 @@
 * SOFTWARE.
 */
 
-var express = require('express');
-var router = express.Router();
-var relayDB = require('../db/relay');
-var DBUtil = require('../db/db_utils');
+(function() {
+    'use strict';
 
-/**
- * GET /nodes/:dateid
- */
-router.get('/:dateid', function(req, res) {
-    // get sql date from id
-    var sqlDate = DBUtil.getMySQLDate(req.params.dateid);
-    // pull relays for date
-    relayDB.getAggregates(
-        sqlDate,
-        req.query.count, // get count from query param
-        function(err,nodes) {
-            if (err) {
-                res.status(500).send('Node data could not be retrieved.');
-            } else {
-                res.send(nodes);
-            }
-        });
-});
+    var express = require('express');
+    var router = express.Router();
+    var relayDB = require('../db/relay');
+    var DBUtil = require('../db/db_utils');
 
-module.exports = router;
+    /**
+     * GET /nodes/:dateid
+     */
+    router.get('/:dateid', function(req, res) {
+        // get sql date from id
+        var sqlDate = DBUtil.getMySQLDate(req.params.dateid);
+        // pull relays for date
+        relayDB.getAggregates(
+            sqlDate,
+            req.query.count, // get count from query param
+            function(err,nodes) {
+                if (err) {
+                    res.status(500).send('Node data could not be retrieved.');
+                } else {
+                    res.send(nodes);
+                }
+            });
+    });
+
+    module.exports = router;
+
+}());

@@ -18,6 +18,7 @@
 	"laxbreak":true,
     "quotmark":"single",
     "nonew": false,
+	"strict": true,
 	"globals": {
 		"define":true,
 		"require":true,

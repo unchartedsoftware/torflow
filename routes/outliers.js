@@ -25,23 +25,28 @@
  * SOFTWARE.
  */
 
-var express = require('express');
-var router = express.Router();
-var countryDB = require('../db/country');
+(function() {
+    'use strict';
 
-/**
- * GET /outliers/:countrycode/:count
- */
-router.get('/:countrycode/:count', function(req, res) {
-    var cc = req.params.countrycode.toLowerCase();
-    var count = parseInt(req.params.count,10);
-    countryDB.getCountryOutliers(cc,count,function(err,json) {
-        if (err) {
-            res.send(null);
-        } else {
-            res.send(json);
-        }
+    var express = require('express');
+    var router = express.Router();
+    var countryDB = require('../db/country');
+
+    /**
+     * GET /outliers/:countrycode/:count
+     */
+    router.get('/:countrycode/:count', function(req, res) {
+        var cc = req.params.countrycode.toLowerCase();
+        var count = parseInt(req.params.count,10);
+        countryDB.getCountryOutliers(cc,count,function(err,json) {
+            if (err) {
+                res.send(null);
+            } else {
+                res.send(json);
+            }
+        });
     });
-});
 
-module.exports = router;
+    module.exports = router;
+
+}());

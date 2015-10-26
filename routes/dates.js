@@ -24,33 +24,40 @@
 * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 * SOFTWARE.
 */
-var express = require('express');
-var datesDB = require('../db/dates');
-var router = express.Router();
-var async = require('async');
 
-/**
- * GET /dates
- */
-router.get('/', function(req, res) {
-    async.parallel({
-            dates: datesDB.getDates,
-            min: datesDB.getMinBandwidth,
-            max: datesDB.getMaxBandwidth
-        },
-        function(err, data) {
-            if (err) {
-                console.log(err.message);
-                res.status(500).send('Dates data could not be retrieved.');
-            } else {
-                res.send({
-                    dates: data.dates.dates,
-                    bandwidths: data.dates.bandwidths,
-                    min: data.min,
-                    max: data.max
-                });
-            }
-        });
-});
+(function() {
+    'use strict';
+    
+    var express = require('express');
+    var datesDB = require('../db/dates');
+    var router = express.Router();
+    var async = require('async');
 
-module.exports = router;
+    /**
+     * GET /dates
+     */
+    router.get('/', function(req, res) {
+        async.parallel({
+                dates: datesDB.getDates,
+                min: datesDB.getMinBandwidth,
+                max: datesDB.getMaxBandwidth
+            },
+            function(err, data) {
+                if (err) {
+                    console.log(err.message);
+                    res.status(500).send('Dates data could not be retrieved.');
+                } else {
+                    res.send({
+                        dates: data.dates.dates,
+                        bandwidths: data.dates.bandwidths,
+                        min: data.min,
+                        max: data.max
+                    });
+                }
+            });
+    });
+
+    module.exports = router;
+
+
+}());
