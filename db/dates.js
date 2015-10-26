@@ -61,7 +61,7 @@
                 var dateSpec = [[date, row.bandwidth]];
                 connectionPool.query(
                     'INSERT INTO ' + config.db.database + '.dates (date,bandwidth) VALUES ?',
-                    [ dateSpec ], //row.minMax.min, row.minMax.max],
+                    [ dateSpec ],
                     callback);
             }
         });

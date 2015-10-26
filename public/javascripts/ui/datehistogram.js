@@ -217,7 +217,7 @@
             .style('text-anchor', 'middle')
             .attr('y', margin.bottom * 0.95 )
             .attr('font-size', '14px')
-            .text('Dates');
+            .text('Dates (Binned)');
         // Create y-axis
         this._svg.append('g')
             .attr('class', 'y axis')

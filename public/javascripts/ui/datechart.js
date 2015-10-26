@@ -198,7 +198,7 @@
         bars.append('rect')
             .attr('class', 'background-bar')
             .attr('width', barWidth)
-            .attr('height', height);
+            .attr('height', height + MIN_HEIGHT);
         // Create foreground bars
         bars.append('rect')
             .attr('class', 'foreground-bar')
