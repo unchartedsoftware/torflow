@@ -146,7 +146,7 @@
         var colorStops = this._colorStops;
         // Set value ranges
         var x = d3.scale.ordinal()
-            .rangeRoundBands([0, width], 0, 0.01);
+            .rangeRoundBands([0, width], 0.1, 0.01);
         var y = d3.scale.sqrt()
             .range([height, 0]);
         // Set value domains
@@ -241,7 +241,7 @@
                 }
             })
             .attr('stroke', '#000')
-            .attr('width', x.rangeBand())
+            .attr('width', x.rangeBand()-1)
             .attr('height', function(d) {
                 return height - y(d.y);
             })
