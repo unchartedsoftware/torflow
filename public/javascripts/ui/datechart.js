@@ -150,7 +150,7 @@
         var colorStops = this._colorStops;
         // Set value ranges
         var x = d3.scale.ordinal()
-            .rangeRoundBands([0, this.width()], 0, 0.01);
+            .rangeBands([0, this.width()]);
         var y = d3.scale.linear()
             .range([this.height(), 0]);
         // Set value domains
