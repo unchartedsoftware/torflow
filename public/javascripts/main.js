@@ -54,6 +54,7 @@
     var _countryLayer = null;
     var _labelLayer = null;
     var _baseLayer = null;
+    var _layerMenus = {};
 
     // Date slider which controls which date is currently being visualized.
     var _dateSlider = null;
@@ -120,6 +121,7 @@
                 }
             });
         layerMenu.getBody().append( opacitySlider.getElement() ).append('<div style="clear:both;"></div>');
+        _layerMenus[layerName] = layerMenu;
         return layerMenu.getElement();
     };
 
@@ -293,14 +295,16 @@
         var $dateControls = $('.date-controls');
         var $summaryButton = $('.summary-button');
         // Create map controls
-        $mapControls.append(_addFlowControls( _createLayerUI('Particles', _particleLayer ), _particleLayer ));
-        // Disable layer controls if webgl is not supported
-        if (!_particleLayer.getContext()) {
-            $mapControls.find('.layer-control-head,.layer-control-body').addClass('disabled');
+        if (_particleLayer.getContext()) {
+            $mapControls.append(_addFlowControls( _createLayerUI('Particles', _particleLayer ), _particleLayer ));
         }
         $mapControls.append(_addMarkerControls( _createLayerUI('Nodes', _markerLayer ), _markerLayer ));
         $mapControls.append(_createLayerUI('Labels', _labelLayer ));
         $mapControls.append(_addCountryControls( _createLayerUI('Top Client Connections', _countryLayer ), _countryLayer ));
+        // Minimize menus by default
+        _.forIn( _layerMenus, function(menu) {
+            menu.minimize();
+        });
         // Create date slider
         _dateSlider = new DateSlider({
             dates: _dateInfo.dates,
