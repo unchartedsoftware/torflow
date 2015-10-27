@@ -7,6 +7,8 @@ RUN yum install -y npm supervisor wget
 RUN yum install -y nodejs npm
 RUN yum install zlib-devel
 
+ENV GOOGLE_ANALTICS_ID UA-21723198-9
+
 # How to run
 EXPOSE  3000
 CMD ["/usr/bin/supervisord", "-c", "/etc/supervisor/conf.d/supervisord.conf"]
