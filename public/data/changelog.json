@@ -15,7 +15,7 @@
     {
       "version": "1.1",
       "releaseDate": "October 27th, 2015",
-      "nodes" : [
+      "notes" : [
         "Replaced canvas rendering with WebGL rendering",
         "Added mobile support",
         "Removed geographic clustering by zoom level",

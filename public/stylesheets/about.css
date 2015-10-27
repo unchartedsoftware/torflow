@@ -25,89 +25,27 @@
 * SOFTWARE.
 */
 
-.chart-container {
+.about ul {
+    list-style-type: disc;
+    list-style-position: inside;
+    margin-left: 15px;
+}
+
+.about {
+    text-align: left;
+}
+
+.about-button {
     position: absolute;
-    cursor: move; /* fallback if grab cursor is unsupported */
-    cursor: grab;
-    cursor: -moz-grab;
-    cursor: -webkit-grab;
-    background-color: rgba(0,0,0,0.5);
-    border-radius: 4px;
-    border: 1px solid rgb(20, 155, 223);
-    padding: 4px;
-    z-index: 2;
-    display: none;
-}
-
-.bar {
-    cursor: pointer;
-    fill-opacity: 0.8;
-    stroke-opacity: 0.8;
-    shape-rendering: crispEdges;
-    transition: opacity 0.5s;
-}
-
-.active .foreground-bar,
-.active .background-bar {
-    fill: #fff;
-}
-
-.active .foreground-bar {
-    fill-opacity: 1.0;
-}
-
-.active .background-bar {
-    fill-opacity: 0.3;
-}
-
-.bar:hover .foreground-bar {
-    stroke-opacity: 1.0;
-    fill-opacity: 1.0;
-}
-
-.background-bar {
-    fill-opacity: 0;
-}
-
-.bar:hover .background-bar {
-    fill-opacity: 0.3;
-}
-
-.chart-content {
-    position: relative;
-    height: 100%;
-    width: 100%;
-    z-index: 1;
-}
-
-.chart-close-button {
-    position: absolute;
-    top: 10px;
+    bottom: 10px;
     right: 10px;
 }
 
-.mobile .chart-close-button {
-    top: 6px;
+.mobile .about-button {
+    bottom: 6px;
     right: 6px;
 }
 
-.axis,
-.chart-title {
-    fill: #ddd;
-}
-
-.chart-title,
-.axis-title  {
-    font-size: 14px;
-}
-
-.axis {
-    font-size: 10px;
-}
-
-.axis path,
-.axis line {
-    fill: none;
-    stroke: #666;
-    shape-rendering: crispEdges;
+.about-button a {
+    color: #fff;
 }

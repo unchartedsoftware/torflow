@@ -46,6 +46,7 @@
 
     var ChartTemplate = require('./templates/chart');
     var MainTemplate = require('./templates/main');
+    var AboutTemplate = require('./templates/about');
 
     // Map elements
     var _map = null;
@@ -332,7 +333,7 @@
         $outlierContainer.find('.chart-close-button').click(function() {
             $outlierContainer.hide();
         });
-        // create country histogram dialog
+        // Create country histogram dialog
         var $histogramContainer = $( ChartTemplate() )
             .addClass('date-histogram-container');
         $histogramContainer.appendTo('#main');
@@ -340,7 +341,7 @@
         $histogramContainer.find('.chart-close-button').click(function() {
             $histogramContainer.hide();
         });
-        // create country histogram dialog
+        // Create country histogram dialog
         var $summaryContainer = $( ChartTemplate() )
             .addClass('summary-container');
         $summaryContainer.appendTo('#main');
@@ -348,18 +349,22 @@
         $summaryContainer.find('.chart-close-button').click(function() {
             $summaryContainer.hide();
         });
-        $summaryContainer.find('.chart-content').append(IS_MOBILE ? Config.summary_mobile : Config.summary);
-
+        // Add summary content
+        $summaryContainer.find('.chart-content')
+            .append(IS_MOBILE ? Config.summary_mobile : Config.summary);
+        // Create about button
+        var $aboutButton = $(
+            '<div class="about-button large-button">' +
+                '<a href="/about" target="_blank">' +
+                    '<i class="fa fa-info-circle"></i>' +
+                '</a>' +
+            '</div>');
+        $summaryContainer.append($aboutButton);
         // Add handlers to summary button
         $summaryButton.click( function() {
             $outlierContainer.hide();
             $histogramContainer.hide();
             $summaryContainer.show();
-            // swal({
-            //     title: null,
-            //     text: IS_MOBILE ? Config.summary_mobile : Config.summary,
-            //     html: true
-            // });
         });
         // Store containers
         _containers['outliers'] = $outlierContainer;
@@ -444,6 +449,11 @@
         start: function() {
             // Request dates and intialize the app
             $.get('/dates', _init );
+        },
+        about : function() {
+            $.get('data/changelog.json',function(changelog) {
+                $(document.body).append( AboutTemplate(changelog) );
+            });
         }
     };
 

@@ -33,6 +33,7 @@ var bodyParser = require('body-parser');
 var compression = require('compression');
 
 var index = require('./routes/index');
+var about = require('./routes/about');
 var nodes = require('./routes/nodes');
 var dates = require('./routes/dates');
 var map = require('./routes/map');
@@ -57,6 +58,7 @@ app.use(compression());
 app.use(express.static(path.join(__dirname, 'public')));
 
 app.use('/', index);
+app.use('/about',about);
 app.use('/nodes',nodes);
 app.use('/dates',dates);
 app.use('/map',map);
