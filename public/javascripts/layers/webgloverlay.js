@@ -48,11 +48,35 @@
             done();
         },
 
+        getContext: function() {
+            return this._gl;
+        },
+
         _initGL : function() {
             var self = this,
                 shadersDone = $.Deferred(),
                 buffersDone = $.Deferred(),
-                gl = this._gl = esper.WebGLContext.get( this._canvas );
+                gl;
+            // overwrite alert temporarily
+            var alert = window.alert;
+            window.alert = function() {};
+            gl = this._gl = esper.WebGLContext.get( this._canvas );
+            // handle missing context
+            if ( !gl ) {
+                swal({
+                    title: 'Oh no!',
+                    text: '<div style="text-align:center">' +
+                            '<p style="text-align:center">It seems your ' +
+                                'browser does not support WebGL. Please try ' +
+                                'running this application from a modern ' +
+                                'browser.' +
+                            '</p>' +
+                            '<i class="fa fa-exclamation-triangle" style="font-size:60px;"></i>'+
+                        '</div>',
+                    html: true
+                });
+                return;
+            }
             // init the webgl state
             gl.clearColor( 0, 0, 0, 0 );
             gl.enable( gl.BLEND );
@@ -79,6 +103,8 @@
                 self._initialized = true;
                 self._draw();
             });
+            // restore alert
+            window.alert = alert;
         },
 
         _initCanvas: function () {

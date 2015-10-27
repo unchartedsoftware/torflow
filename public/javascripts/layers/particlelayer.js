@@ -89,6 +89,9 @@
         },
 
         updateNodes: function(nodes, bandwidth) {
+            if (!this._gl) {
+                return;
+            }
             var self = this;
             if (nodes) {
                 this._nodes = nodes;
@@ -224,6 +227,9 @@
         },
 
         _clearBackBuffer: function() {
+            if (!this._gl) {
+                return;
+            }
             var gl = this._gl;
             gl.clear( gl.COLOR_BUFFER_BIT );
         },
@@ -263,6 +269,9 @@
         },
 
         draw: function() {
+            if (!this._gl) {
+                return;
+            }
             this._clearBackBuffer();
             if ( this._isReady ) {
                 this._viewport.push();

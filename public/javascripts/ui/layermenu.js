@@ -110,14 +110,14 @@
         this._layer.hide();
         this._$toggleIcon.removeClass('fa-check-square-o');
         this._$toggleIcon.addClass('fa-square-o');
-        this._$body.css('opacity', '0.3');
+        this._$body.addClass('disabled');
     };
 
     LayerMenu.prototype.enable = function() {
         this._layer.show();
         this._$toggleIcon.removeClass('fa-square-o');
         this._$toggleIcon.addClass('fa-check-square-o');
-        this._$body.css('opacity', '');
+        this._$body.removeClass('disabled');
     };
 
     LayerMenu.prototype.getElement = function() {

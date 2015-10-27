@@ -66,6 +66,11 @@ a {
     white-space: nowrap;
 }
 
+.disabled {
+    opacity: 0.3;
+    pointer-events: none;
+}
+
 .uncharted-logo {
     position: absolute;
     right: 0;

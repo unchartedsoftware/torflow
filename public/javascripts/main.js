@@ -294,6 +294,10 @@
         var $summaryButton = $('.summary-button');
         // Create map controls
         $mapControls.append(_addFlowControls( _createLayerUI('Particles', _particleLayer ), _particleLayer ));
+        // Disable layer controls if webgl is not supported
+        if (!_particleLayer.getContext()) {
+            $mapControls.find('.layer-control-head,.layer-control-body').addClass('disabled');
+        }
         $mapControls.append(_addMarkerControls( _createLayerUI('Nodes', _markerLayer ), _markerLayer ));
         $mapControls.append(_createLayerUI('Labels', _labelLayer ));
         $mapControls.append(_addCountryControls( _createLayerUI('Top Client Connections', _countryLayer ), _countryLayer ));
