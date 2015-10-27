@@ -359,9 +359,9 @@
         // Determine map server
         var mapUrlBase;
         if (Config.localMapServer) {
-            mapUrlBase = 'http://' + window.location.host + '/map/';
+            mapUrlBase = '//' + window.location.host + '/map/';
         } else {
-            mapUrlBase ='http://{s}.basemaps.cartocdn.com/';
+            mapUrlBase ='https://cartodb-basemaps-{s}.global.ssl.fastly.net/';
         }
         // Initialize the baselayer
         _baseLayer = L.tileLayer(
