@@ -11,6 +11,23 @@
         "Toggle labels without reloading all tiles",
         "Toggle bandwidth scaling in unclustered mode"
       ]
+    },
+    {
+      "version": "1.1",
+      "releaseDate": "October 27th, 2015",
+      "nodes" : [
+        "Replaced canvas rendering with WebGL rendering",
+        "Added mobile support",
+        "Removed geographic clustering by zoom level",
+        "Replaced Elasticsearch backend with MySQL",
+        "Improved ingestion pipeline to reduce memory footprint and increase render times",
+        "Added country counts for each date",
+        "Date is encoded into url for bookmarking and 'jump to date' functionality",
+        "Added a gloabl activity historgram that shows bandwidth over time",
+        "Added drilldowns for each country that show top 10 outlier days as well as a bucketed histogram over time",
+        "Added Google Analytics",
+        "Improved controls for tweaking visuals (opacity, zoom, etc)"
+      ]
     }
   ]
 }
