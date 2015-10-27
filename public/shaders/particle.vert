@@ -26,13 +26,13 @@ float B4(float t) {
 }
 
 vec2 getBezier(float percent, vec2 C1, vec2 C2, vec2 C3, vec2 C4) {
-  return vec2(
-      C1.x*B1(percent) + C2.x*B2(percent) + C3.x*B3(percent) + C4.x*B4(percent),
-      C1.y*B1(percent) + C2.y*B2(percent) + C3.y*B3(percent) + C4.y*B4(percent)
-  );
+    return vec2(
+        C1.x*B1(percent) + C2.x*B2(percent) + C3.x*B3(percent) + C4.x*B4(percent),
+        C1.y*B1(percent) + C2.y*B2(percent) + C3.y*B3(percent) + C4.y*B4(percent)
+    );
 }
 
-float rand(vec2 co){
+float rand(vec2 co) {
     return fract(sin(dot(co.xy ,vec2(12.9898,78.233))) * 43758.5453);
 }
 
@@ -40,7 +40,7 @@ void main() {
     // get start and end positions
     vec2 startPos = aPositions.xy;
     vec2 endPos = aPositions.zw;
-    // get difference vector and distance distance
+    // get difference vector and distance
     vec2 diff = endPos - startPos;
     float dist = length( diff );
     // get normalize vector perpendicular to path

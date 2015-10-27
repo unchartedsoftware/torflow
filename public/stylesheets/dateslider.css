@@ -31,6 +31,10 @@
     bottom: 0;
 }
 
+.mobile .date-slider-container {
+    left: 0;
+}
+
 .date-slider-container .slider.slider-horizontal {
     width: 300px;
 }

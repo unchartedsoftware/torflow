@@ -74,6 +74,20 @@
             done();
         },
 
+        _updateProjection: function() {
+            var bounds = this._map.getPixelBounds(),
+                dim = Math.pow( 2, this._map.getZoom() ) * 256,
+                ortho = esper.Mat44.ortho(
+                    (bounds.min.x / dim) * Config.particle_precision_factor,
+                    (bounds.max.x / dim) * Config.particle_precision_factor,
+                    (( dim - bounds.max.y ) / dim) * Config.particle_precision_factor,
+                    (( dim - bounds.min.y ) / dim) * Config.particle_precision_factor,
+                    -1, 1 );
+            if ( this._camera ) {
+                this._camera.projectionMatrix( ortho );
+            }
+        },
+
         updateNodes: function(nodes, bandwidth) {
             var self = this;
             if (nodes) {
@@ -115,7 +129,8 @@
                 type: 'start',
                 spec: {
                     offset: Config.particle_offset,
-                    count: this.getUnscaledParticleCount()
+                    count: this.getUnscaledParticleCount(),
+                    precision_factor: Config.particle_precision_factor
                 },
                 nodes: this._nodes
             });
@@ -254,7 +269,7 @@
                 this._shader.push();
                 this._shader.setUniform( 'uProjectionMatrix', this._camera.projectionMatrix() );
                 this._shader.setUniform( 'uTime', Date.now() - this._timestamp );
-                this._shader.setUniform( 'uSpeedFactor', Config.particle_base_speed_ms / this.getSpeed() );
+                this._shader.setUniform( 'uSpeedFactor', Config.particle_base_speed_ms / ( this.getSpeed() * Config.particle_precision_factor ) );
                 this._shader.setUniform( 'uOffsetFactor', this.getPathOffset() );
                 this._shader.setUniform( 'uPointSize', this.getParticleSize() );
                 this._shader.setUniform( 'uOpacity', this.getOpacity() );

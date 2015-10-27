@@ -30,6 +30,8 @@
 
     var chartLabel = require('./chartlabel');
 
+    var IS_MOBILE = require('../util/mobile').IS_MOBILE;
+
     var OutlierBarChart = function(container) {
         this._container = container;
         this._data = null;
@@ -250,28 +252,30 @@
                 return y(d.y);
             });
         // Add hover over tooltips
-        chartLabel.addLabels({
-            svg: this._svg,
-            selector: '.bar',
-            label: function(x,y) {
-                if (x === 'Average') {
-                    return '<div class="chart-hover-label">'+
-                        '<div style="float:left; padding-right:10px;">Average Count: </div>' +
-                        '<div style="float:right">' + y + '</div>' +
-                        '<div style="clear:both"></div>' +
-                    '</div>';
-                } else {
-                    return '<div class="chart-hover-label">'+
-                        '<div style="float:left; padding-right:10px;">Date: </div>' +
-                        '<div style="float:right">' + x + '</div>' +
-                        '<div style="clear:both"></div>' +
-                        '<div style="float:left; padding-right:10px;">Count: </div>' +
-                        '<div style="float:right">' + y + '</div>' +
-                        '<div style="clear:both"></div>' +
-                    '</div>';
+        if (!IS_MOBILE) {
+            chartLabel.addLabels({
+                svg: this._svg,
+                selector: '.bar',
+                label: function(x,y) {
+                    if (x === 'Average') {
+                        return '<div class="chart-hover-label">'+
+                            '<div style="float:left; padding-right:10px;">Average Count: </div>' +
+                            '<div style="float:right">' + y + '</div>' +
+                            '<div style="clear:both"></div>' +
+                        '</div>';
+                    } else {
+                        return '<div class="chart-hover-label">'+
+                            '<div style="float:left; padding-right:10px;">Date: </div>' +
+                            '<div style="float:right">' + x + '</div>' +
+                            '<div style="clear:both"></div>' +
+                            '<div style="float:left; padding-right:10px;">Count: </div>' +
+                            '<div style="float:right">' + y + '</div>' +
+                            '<div style="clear:both"></div>' +
+                        '</div>';
+                    }
                 }
-            }
-        });
+            });
+        }
         // Set click event handler
         if (this._onClick) {
             this._svg.selectAll('.bar').on('click', function () {

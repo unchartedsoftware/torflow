@@ -144,8 +144,8 @@
             var bounds = this._map.getPixelBounds(),
                 dim = Math.pow( 2, this._map.getZoom() ) * 256,
                 ortho = esper.Mat44.ortho(
-                    bounds.min.x / dim,
-                    bounds.max.x / dim,
+                    (bounds.min.x / dim),
+                    (bounds.max.x / dim),
                     ( dim - bounds.max.y ) / dim,
                     ( dim - bounds.min.y ) / dim,
                     -1, 1 );

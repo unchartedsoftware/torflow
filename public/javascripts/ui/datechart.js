@@ -31,6 +31,8 @@
     var bucket = require('../util/bucket');
     var chartLabel = require('./chartlabel');
 
+    var IS_MOBILE = require('../util/mobile').IS_MOBILE;
+
     var DateChart = function(container) {
         var self = this;
         this._container = container;
@@ -214,20 +216,22 @@
                 return y(d.y);
             });
         // Add hover over tooltips
-        chartLabel.addLabels({
-            svg: this._svg,
-            selector: '.bar',
-            label: function(x,y,d) {
-                return '<div class="hover-label">' +
-                    '<div style="float:left; padding-right:10px;">Date Range: </div>' +
-                    '<div style="float:right">' + d.xRange.format() + '</div>' +
-                    '<div style="clear:both"></div>' +
-                    '<div style="float:left; padding-right:10px;">Avg Bandwidth (GB): </div>' +
-                    '<div style="float:right">' + y + '</div>' +
-                    '<div style="clear:both"></div>' +
-                '</div>';
-            }
-        });
+        if (!IS_MOBILE) {
+            chartLabel.addLabels({
+                svg: this._svg,
+                selector: '.bar',
+                label: function(x,y,d) {
+                    return '<div class="hover-label">' +
+                        '<div style="float:left; padding-right:10px;">Date Range: </div>' +
+                        '<div style="float:right">' + d.xRange.format() + '</div>' +
+                        '<div style="clear:both"></div>' +
+                        '<div style="float:left; padding-right:10px;">Avg Bandwidth (GB): </div>' +
+                        '<div style="float:right">' + y + '</div>' +
+                        '<div style="clear:both"></div>' +
+                    '</div>';
+                }
+            });
+        }
         // Set click event handler
         if (this._onClick) {
             this._svg.selectAll('.bar').on('click', function () {

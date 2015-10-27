@@ -43,7 +43,7 @@
         country_count_min: 5,
         country_count_max : 200,
         // country mobile factor
-        country_mobile_factor: 0.1,
+        country_mobile_factor: 0.5,
         // particle count config
         particle_count : 200000,
         particle_count_min : 100000,
@@ -64,7 +64,9 @@
         particle_speed_min_factor : 0.01,
         particle_speed_max_factor : 4.0,
         // particle mobile factor
-        particle_mobile_factor: 0.1,
+        particle_mobile_factor: 0.4,
+        // particle precision factor (used to scale the range for mobile devices)
+        particle_precision_factor: 1000,
         // hidden services
         hiddenServiceProbability : 0.04,
         // html config

@@ -29,6 +29,8 @@
 
     'use strict';
 
+    var IS_MOBILE = require('./util/mobile').IS_MOBILE;
+
     var ParticleLayer = require('./layers/particlelayer');
     var CountryLayer = require('./layers/countrylayer');
     var MarkerLayer = require('./layers/markerlayer');
@@ -279,6 +281,10 @@
     var _initMain = function() {
         // Create and append the main tempalte
         $(document.body).append( MainTemplate(Config) );
+        // If mobile append mobile class
+        if (IS_MOBILE) {
+            $(document.body).addClass('mobile');
+        }
     };
 
     var _initUI = function() {

@@ -196,7 +196,6 @@
         },
 
         _bindClickEvent : function(feature, layer) {
-
             var self = this;
             layer.on({
                 click: function(event) {

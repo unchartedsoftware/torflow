@@ -94,6 +94,10 @@ a {
     z-index: 2;
 }
 
+.mobile .map-controls {
+    display: none;
+}
+
 .date-controls {
     position: absolute;
     bottom: 0;
@@ -103,6 +107,16 @@ a {
     z-index: 2;
     line-height: 20px;
     text-align: center;
+}
+
+.mobile .date-controls {
+    position: absolute;
+    bottom: 0;
+    left: 10px;
+}
+
+.mobile .date-controls > svg {
+    display: none;
 }
 
 .hover-label {
