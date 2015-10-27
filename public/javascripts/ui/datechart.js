@@ -151,6 +151,10 @@
         var margin = this._margin;
         var barWidth = width / (this._data.length - 1);
         var colorStops = this._colorStops;
+        // Don't draw chart if width is too small.
+        if (width < 500) {
+            return;
+        }
         // Set value ranges
         var x = d3.scale.ordinal()
             .rangeBands([0, this.width()]);
