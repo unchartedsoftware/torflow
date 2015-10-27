@@ -53,6 +53,8 @@
             var click = button.click || null;
             var $button = $( self._$buttons.get(index) );
             $button.click( function() {
+                self._$buttons.removeClass('active');
+                $button.addClass('active');
                 if ($.isFunction(click)) {
                     click();
                 }

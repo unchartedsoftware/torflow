@@ -4,8 +4,6 @@
   "private": true,
   "dependencies": {
     "async": "1.4.2",
-    "bootstrap": "3.3.5",
-    "cyborg-bootstrap": "0.0.1",
     "d3": "3.5.6",
     "draggabilly": "1.2.4",
     "esper": "0.4.0",
@@ -19,12 +17,6 @@
     "twix": "0.7.2"
   },
   "overrides": {
-    "bootstrap": {
-      "main": [
-        "dist/css/bootstrap.min.css",
-        "dist/js/bootstrap.min.js"
-      ]
-    },
     "leaflet-canvas-layer": {
       "main": [
         "leaflet_canvas_layer.js"

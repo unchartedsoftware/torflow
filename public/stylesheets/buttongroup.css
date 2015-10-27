@@ -34,6 +34,7 @@
 .btn-primary:hover,
 .btn-primary.active,
 .btn-primary.active:hover {
+    color: #fff;
     border: 1px solid rgb(20, 155, 223);
     background-color: rgba(20, 155, 223, 0.5);
 }

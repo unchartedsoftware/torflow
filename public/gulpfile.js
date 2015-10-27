@@ -88,6 +88,7 @@ gulp.task('minify-js',function() {
 
 gulp.task('build-css', function () {
     return gulp.src([
+            config.style + '/**/bootstrap.css',
             config.style + '/**/*.css',
             '!' + config.style + '/extern.css',
             '!' + config.style + '/extern/**/*.css'

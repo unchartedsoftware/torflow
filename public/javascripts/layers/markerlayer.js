@@ -106,7 +106,7 @@
             // recreate the layer and add all markers. This causes a noticible
             // jitter so here we throttle it in batches.
             var CHUNK_SIZE = 20;
-            var TIMEOUT = 200;
+            var TIMEOUT = 100;
             var chunks = _.chunk(markers, CHUNK_SIZE);
             var additions = _.map(chunks, function(chunk) {
                 return function(done) {
