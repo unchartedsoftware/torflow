@@ -31,7 +31,7 @@
     var bucket = function(spec) {
         spec = spec || {};
         var data = spec.data;
-        var threshld = spec.threshold || 1;
+        var threshold = spec.threshold || 1;
         var maxBucketSize = spec.maxBucketSize || Math.round(data.length / 100);
         var xExtractor = spec.xExtractor || function(x) { return x; };
         var yExtractor = spec.yExtractor || function(y) { return y; };
@@ -47,27 +47,32 @@
         var currentCount = 0;
         var currentMin = null;
         var buckets = [];
-        data.forEach(function(value,index) {
-            var x = xExtractor(value,index);
-            var y = yExtractor(value,index);
+        data.forEach(function(value, index) {
+            var x = xExtractor(value, index);
+            var y = yExtractor(value, index);
             if ( currentY === null ) {
                 currentX = x;
                 currentMin = x;
                 currentY = y;
                 currentCount++;
             } else {
-                var current = (( currentY / currentCount ) - min) / range;
+                // compare normalized values
+                var currentAvg = currentY / currentCount;
+                var current = (currentAvg - min) / range;
                 var val = (y - min) / range;
-                if ( currentCount === maxBucketSize || Math.abs(val - current) > threshld ) {
+                if ( currentCount === maxBucketSize || Math.abs(val - current) > threshold ) {
+                    // push bucket
                     buckets.push({
                         x: currentX / currentCount,
                         y: currentY / currentCount,
                         from: currentMin,
                         to: x
                     });
-                    currentX = null;
-                    currentY = null;
-                    currentCount = 0;
+                    // create fresh bucket
+                    currentX = x;
+                    currentY = y;
+                    currentMin = x;
+                    currentCount = 1;
                 } else {
                     currentX += x;
                     currentY += y;
@@ -75,6 +80,7 @@
                 }
             }
         });
+        // add last bucket if it was unfinished
         if ( currentY ) {
             buckets.push({
                 x: currentX / currentCount,
