@@ -3,6 +3,8 @@
         {{#each buttons}}
             <label class="btn btn-xs btn-primary {{className}}">
                 <input class="hidden-filter-input" type="radio" name="hidden-options">{{label}}
+                <div class="half-circle left" style="background-color:{{leftColor}}"></div>
+                <div class="half-circle right" style="background-color:{{rightColor}}"></div>
             </label>
         {{/each}}
     </div>

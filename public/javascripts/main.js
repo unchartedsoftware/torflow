@@ -193,6 +193,14 @@
                     layer.scaleCountByBandwidth(false);
                 }
             }),
+            hiddenRGB = 'rgb(' +
+                Math.floor(Config.particle_hidden_color[0]*255+50) + ',' +
+                Math.floor(Config.particle_hidden_color[1]*255+50) + ',' +
+                Math.floor(Config.particle_hidden_color[2]*255+50) + ')',
+            generalRGB = 'rgb(' +
+                Math.floor(Config.particle_general_color[0]*255+50) + ',' +
+                Math.floor(Config.particle_general_color[1]*255+50) + ',' +
+                Math.floor(Config.particle_general_color[2]*255+50) + ')',
             servicesButtonGroup = new ButtonGroup({
                 intialValue: 0,
                 buttons: [
@@ -200,19 +208,23 @@
                         label: 'All Services',
                         click: function() {
                             layer.showTraffic('all');
-                        }
+                        },
+                        leftColor: hiddenRGB,
+                        rightColor: generalRGB
                     },
                     {
                         label: 'Hidden Services',
                         click: function() {
                             layer.showTraffic('hidden');
-                        }
+                        },
+                        color: hiddenRGB
                     },
                     {
                         label: 'General Services',
                         click: function() {
                             layer.showTraffic('general');
-                        }
+                        },
+                        color: generalRGB
                     }
                 ]
             });
@@ -321,7 +333,7 @@
         $dateControls.append(_dateSlider.getElement());
         // Create date / bandwidth histogram
         _dateChart = new DateChart( $dateControls )
-            .colorStops(['rgb(153,25,75)','rgb(25,75,153)'])
+            .colorStops(['rgb(64,0,128)','rgb(30,155,223)'])
             .click(_redirectDate)
             .updateDate(_dateSlider.getISODate())
             .data(_dateInfo);

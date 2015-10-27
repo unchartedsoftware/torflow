@@ -41,7 +41,9 @@
             return {
                 label: button.label || 'missing-label-' + index,
                 className: ( index === spec.initialValue ) ? 'active' : '',
-                click: button.click || null
+                click: button.click || null,
+                leftColor: button.leftColor || button.color,
+                rightColor: button.rightColor || button.color
             };
         });
         // create container element

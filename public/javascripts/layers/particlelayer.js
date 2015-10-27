@@ -142,7 +142,7 @@
         _drawHiddenServices: function() {
             var gl = this._gl,
                 hiddenServicesCount = Math.floor(Config.hiddenServiceProbability * this.getParticleCount());
-            this._shader.setUniform( 'uColor', [ 0.6, 0.1, 0.3 ] );
+            this._shader.setUniform( 'uColor', Config.particle_hidden_color);
             gl.drawArrays(
                 gl.POINTS, // primitive type
                 0, // offset
@@ -153,7 +153,7 @@
             var gl = this._gl,
                 hiddenServicesCount = Math.floor(Config.hiddenServiceProbability * this.getParticleCount()),
                 generalServicesCount = this.getParticleCount() - hiddenServicesCount;
-            this._shader.setUniform( 'uColor', [ 0.1, 0.3, 0.6 ] );
+            this._shader.setUniform( 'uColor', Config.particle_general_color);
             gl.drawArrays(
                 gl.POINTS, // primitive type
                 hiddenServicesCount, // offset

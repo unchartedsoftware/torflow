@@ -36,7 +36,7 @@
 .btn-primary.active:hover {
     color: #fff;
     border: 1px solid rgb(20, 155, 223);
-    background-color: rgba(20, 155, 223, 0.5);
+    background-color: rgba(20, 155, 223, 0.1);
 }
 
 .services-btn-group {
@@ -45,4 +45,29 @@
 
 .services-btn-group .btn {
     padding: 1px 7px;
+}
+
+.half-circle {
+    position: relative;
+    float:left;
+    height: 12px;
+    width: 6px;
+    margin-top: 3px;
+    background-color: yellow;
+    opacity: 0.5;
+}
+
+.active .half-circle {
+    opacity: 1.0;
+}
+
+.half-circle.left {
+    border-top-left-radius: 10px;
+    border-bottom-left-radius: 10px;
+}
+
+.half-circle.right {
+    border-top-right-radius: 10px;
+    border-bottom-right-radius: 10px;
+    margin-right: 4px;
 }
