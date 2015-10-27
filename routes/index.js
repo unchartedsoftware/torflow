@@ -30,10 +30,14 @@
 
     var express = require('express');
     var router = express.Router();
+    var googleAnalyticsId = process.env.GOOGLE_ANALYTICS_ID;
 
     /* GET home page. */
     router.get('/', function(req, res) {
-        res.render('index', { title: 'TorFlow' });
+        res.render('index', {
+            title: 'TorFlow',
+            googleAnalyticsId : googleAnalyticsId
+        });
     });
 
     module.exports = router;
