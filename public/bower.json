@@ -13,7 +13,6 @@
     "lodash": "3.10.1",
     "moment": "2.10.6",
     "seiyria-bootstrap-slider": "5.2.4",
-    "sweetalert": "1.1.1",
     "twix": "0.7.2"
   },
   "overrides": {

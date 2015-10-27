@@ -31,10 +31,3 @@
     height: 250px;
     width: 612px;
 }
-
-.mobile .outlier-chart-container {
-    top: calc(100% - 100px - 180px - 180px - 10px); /* use left for draggabilly */
-    left: calc(100% - 612px - 10px); /* use top for draggabilly */
-    height: 180px;
-    width: 612px;
-}

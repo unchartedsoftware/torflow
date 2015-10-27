@@ -48,6 +48,10 @@
     line-height: 24px;
 }
 
+.leaflet-touch .leaflet-bar a {
+    font-size: 18px;
+}
+
 .large-button {
     font-size: 14px;
 }

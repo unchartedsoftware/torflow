@@ -31,7 +31,7 @@
     cursor: grab;
     cursor: -moz-grab;
     cursor: -webkit-grab;
-    background-color: rgba(0,0,0,0.4);
+    background-color: rgba(0,0,0,0.5);
     border-radius: 4px;
     border: 1px solid rgb(20, 155, 223);
     padding: 4px;
@@ -91,7 +91,8 @@
     fill: #ddd;
 }
 
-.chart-title {
+.chart-title,
+.axis-title  {
     font-size: 14px;
 }
 

@@ -187,11 +187,10 @@
         svgXAxis.selectAll('text')
             .attr('transform', 'rotate(-45), translate(-38,0)');
         svgXAxis.append('text')
-            .attr('class', 'x-axis-title')
+            .attr('class', 'axis-title')
             .attr('x', width / 2 )
             .style('text-anchor', 'middle')
             .attr('y', margin.bottom * 0.95 )
-            .attr('font-size', '14px')
             .text('Outlier Dates');
         // Create y-axis
         this._svg.append('g')
@@ -199,11 +198,10 @@
             .attr('transform', 'translate(0,1)')
             .call(yAxis)
             .append('text')
-            .attr('class', 'y-axis-title')
+            .attr('class', 'axis-title')
             .attr('transform', 'rotate(-90)')
             .attr('x', -(height / 2))
             .attr('y', -margin.left)
-            .attr('font-size', '14px')
             .attr('dy', '14px')
             .style('text-anchor', 'middle')
             .text('Connections');

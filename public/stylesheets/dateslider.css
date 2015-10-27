@@ -32,14 +32,32 @@
 }
 
 .mobile .date-slider-container {
+    position: absolute;
     left: 0;
+    text-align: left;
+    width: 50%;
 }
 
 .date-slider-container .slider.slider-horizontal {
     width: 300px;
 }
 
+.mobile .date-slider-container .slider.slider-horizontal {
+    width: calc(100% - 72px - 10px); /* -width for 2 buttons and padding/margin of container */
+}
+
 .date-label {
     display: inline-block;
-    padding: 0 10px;
+    padding: 0 4px;
+}
+
+.date-label {
+    font-size: 12px;
+}
+
+.mobile .date-label {
+    position: absolute;
+    left: 0;
+    bottom: 34px;
+    font-size: 10px;
 }

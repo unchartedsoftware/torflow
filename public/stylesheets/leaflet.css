@@ -35,9 +35,25 @@
 
 .leaflet-control-attribution {
     background: none !important;
-    bottom: 10px;
-    right: 10px;
+    margin: 0 10px 10px 10px;
     padding: 0;
+    width: 100%;
+}
+
+.leaflet-container .leaflet-control-attribution,
+.leaflet-container .leaflet-control-attribution a {
+    right: 10px;
+    bottom: 10px;
+    font-size: 12px;
+}
+
+.mobile .leaflet-container .leaflet-control-attribution,
+.mobile .leaflet-container .leaflet-control-attribution a {
+    font-size: 9px;
+}
+
+.leaflet-bottom.leaflet-right {
+    max-width: 50%;
 }
 
 .leaflet-control-zoom-in,

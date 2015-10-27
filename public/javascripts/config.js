@@ -43,7 +43,7 @@
         country_count_min: 5,
         country_count_max : 200,
         // country mobile factor
-        country_mobile_factor: 0.5,
+        country_mobile_factor: 0.2,
         // particle count config
         particle_count : 200000,
         particle_count_min : 100000,
@@ -81,17 +81,22 @@
             '<p>Each circle represents the aggregated bandwidth of relay servers grouped by proximity. Hover over a circle to see information about that group.</p>' +
             '<p>Each colored country represents a country that is responsible for the top N client connections. Click on the country to display the distribution by time and the outlier counts.</p>' +
             '<p>Use the date slider to select the simulation date.</p>',
+        summary_mobile :
+            '<h2>Data Flow in the Tor Network</h2>' +
+            '<p>The Tor network is a group of volunteer-operated servers (relays) that allows people to improve their privacy and' +
+            ' security on the Internet. Tor\'s users employ this network by connecting through a series of virtual tunnels' +
+            ' rather than making a direct connection, thus allowing both organizations and individuals to share information ' +
+            'over public networks without compromising their privacy.<a href="https://www.torproject.org/about/overview.html.en"><sup>[1]</sup></a></p>' +
+            '<p>The following visualization shows information flow between the ~6500 relay servers.  General purpose Tor traffic is shown in blue.  Traffic to hidden services is shown in red.</p>',
         // base layer config
-        localMapServer : false,
+        localMapServer: false,
         mapAttribution:
             '<span class="attribution">' +
                 'Map tiles by ' +
-                '<a href="http://cartodb.com/attributions#basemaps">CartoDB</a>,' +
-                ' under ' +
-                '<a href="https://creativecommons.org/licenses/by/3.0/">CC BY 3.0</a>' +
+                '<a href="http://cartodb.com/attributions">CartoDB</a>' +
                 '<div class="uncharted-logo">' +
                     '<a href="http://uncharted.software" target="_blank">' +
-                        '<img style="width:200px;" src="/img/uncharted-logo-white.png">' +
+                        '<img src="/img/uncharted-logo-white.png">' +
                     '</a>' +
                 '</div>' +
             '</span>'

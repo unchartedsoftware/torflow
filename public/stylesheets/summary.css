@@ -31,32 +31,45 @@
     right: 44px;
 }
 
-.sweet-alert {
-    background-color: rgba(0,0,0,0.5);
-    border: 1px solid rgb(20, 155, 223);
-    padding: 17px 32px;
-    width: 612px;
+.summary-container {
+    text-align: center;
+    top: calc(50% - 216px); /* use left for draggabilly */
+    left: calc(50% - 200px); /* use top for draggabilly */
+    width: 600px;
+    height: 432px;
+    padding: 16px 24px;
 }
 
-.sweet-alert p {
-    margin: 0 0 10px;
-    text-align: left;
-    color: #ddd;
+.mobile .summary-container {
+    top: 20%; /* use left for draggabilly */
+    left: 5%; /* use top for draggabilly */
+    width: 90%;
+    height: auto;
+    max-height: 300px;
+    padding: 8px 12px;
 }
 
-.sweet-alert h2 {
+.summary-container h2 {
     color: #eee;
     font-size: 24px;
-    margin: 16px 10px;
+    line-height: 24px;
     padding: 0;
     text-align: center;
 }
 
-.sweet-alert button {
-    background-color: rgba(20, 155, 223, 0.3) !important; /* sweet alert only accepts hex */
-    border: 1px solid rgb(20, 155, 223);
+.mobile .summary-container h2 {
+    line-height: 13px;
+    font-size: 13px;
+    margin: 8px 0;
 }
 
-.sweet-alert button:hover {
-    background-color: rgba(20, 155, 223, 0.5) !important; /* sweet alert only accepts hex */
+.summary-container p {
+    margin: 0 0 10px;
+    text-align: left;
+    color: #ddd;
+    font-size: 16px;
+}
+
+.mobile .summary-container p {
+    font-size: 12px;
 }

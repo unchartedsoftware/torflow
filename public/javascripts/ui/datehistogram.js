@@ -214,11 +214,10 @@
             .attr('transform', 'translate(0,' + (height+1) + ')')
             .call(xAxis);
         svgXAxis.append('text')
-            .attr('class', 'x-axis-title')
+            .attr('class', 'axis-title')
             .attr('x', width / 2 )
             .style('text-anchor', 'middle')
             .attr('y', margin.bottom * 0.95 )
-            .attr('font-size', '14px')
             .text('Dates (Binned)');
         // Create y-axis
         this._svg.append('g')
@@ -226,11 +225,10 @@
             .attr('transform', 'translate(0,1)')
             .call(yAxis)
             .append('text')
-            .attr('class', 'y-axis-title')
+            .attr('class', 'axis-title')
             .attr('transform', 'rotate(-90)')
             .attr('x', -(height / 2))
             .attr('y', -margin.left)
-            .attr('font-size', '14px')
             .attr('dy', '14px')
             .style('text-anchor', 'middle')
             .text('Connections');

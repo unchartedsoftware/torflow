@@ -31,10 +31,3 @@
     height: 250px;
     width: 812px;
 }
-
-.mobile .date-histogram-container {
-    top: calc(100% - 100px - 180px); /* use left for draggabilly */
-    left: calc(100% - 612px - 10px); /* use top for draggabilly */
-    height: 180px;
-    width: 612px;
-}

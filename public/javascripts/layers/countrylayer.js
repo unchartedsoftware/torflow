@@ -44,6 +44,7 @@
             onEachFeature: this._bindClickEvent.bind(this)
         });
         this._redirect = spec.redirect;
+        this._click = spec.click;
         this._opacity = 0.2;
         this._histogram = null;
         this._geoJSONMap = {};
@@ -135,7 +136,7 @@
         },
 
         _createOutlierChart : function(cc2, cc3) {
-            var OUTLIERS_COUNT = 10;
+            var OUTLIERS_COUNT = IS_MOBILE ? 5 : 10;
             var self = this;
             var request = {
                 url: '/outliers/' + cc2 + '/' + OUTLIERS_COUNT,
@@ -197,22 +198,27 @@
 
         _bindClickEvent : function(feature, layer) {
             var self = this;
-            layer.on({
-                click: function(event) {
-                    var feature = event.target.feature;
-                    var cc3 = feature.id || feature.properties.ISO_A3;
-                    var cc2 = self._threeLetterToTwoLetter(cc3);
-                    self._createOutlierChart(cc2, cc3);
-                    self._createDateHistogram(cc2, cc3);
-                },
-                mouseover: function() {
-                    layer.setStyle(self._getFeatureHoverStyle());
-                },
-                mouseout: function(event) {
-                    var feature = event.target.feature;
-                    layer.setStyle(self._getFeatureStyle(feature));
-                }
-            });
+            if (!IS_MOBILE) {
+                layer.on({
+                    click: function(event) {
+                        // execute click func
+                        self._click();
+                        // grab country codes
+                        var feature = event.target.feature;
+                        var cc3 = feature.id || feature.properties.ISO_A3;
+                        var cc2 = self._threeLetterToTwoLetter(cc3);
+                        self._createOutlierChart(cc2, cc3);
+                        self._createDateHistogram(cc2, cc3);
+                    },
+                    mouseover: function() {
+                        layer.setStyle(self._getFeatureHoverStyle());
+                    },
+                    mouseout: function(event) {
+                        var feature = event.target.feature;
+                        layer.setStyle(self._getFeatureStyle(feature));
+                    }
+                });
+            }
         },
 
         _threeLetterToTwoLetter : function(cc_threeLetter) {

@@ -55,6 +55,7 @@
     var _labelLayer = null;
     var _baseLayer = null;
     var _layerMenus = {};
+    var _containers = {};
 
     // Date slider which controls which date is currently being visualized.
     var _dateSlider = null;
@@ -323,14 +324,6 @@
             .click(_redirectDate)
             .updateDate(_dateSlider.getISODate())
             .data(_dateInfo);
-        // Add handlers to summary button
-        $summaryButton.click( function() {
-            swal({
-                title: null,
-                text: Config.summary,
-                html: true
-            });
-        });
         // Create outliers dialog
         var $outlierContainer = $( ChartTemplate() )
             .addClass('outlier-chart-container');
@@ -347,6 +340,31 @@
         $histogramContainer.find('.chart-close-button').click(function() {
             $histogramContainer.hide();
         });
+        // create country histogram dialog
+        var $summaryContainer = $( ChartTemplate() )
+            .addClass('summary-container');
+        $summaryContainer.appendTo('#main');
+        $summaryContainer.draggabilly();
+        $summaryContainer.find('.chart-close-button').click(function() {
+            $summaryContainer.hide();
+        });
+        $summaryContainer.find('.chart-content').append(IS_MOBILE ? Config.summary_mobile : Config.summary);
+
+        // Add handlers to summary button
+        $summaryButton.click( function() {
+            $outlierContainer.hide();
+            $histogramContainer.hide();
+            $summaryContainer.show();
+            // swal({
+            //     title: null,
+            //     text: IS_MOBILE ? Config.summary_mobile : Config.summary,
+            //     html: true
+            // });
+        });
+        // Store containers
+        _containers['outliers'] = $outlierContainer;
+        _containers['histogram'] = $histogramContainer;
+        _containers['summary'] = $summaryContainer;
     };
 
     var _initMap = function() {
@@ -382,7 +400,10 @@
         _baseLayer.addTo(_map);
         // Initialize the country layer
         _countryLayer = new CountryLayer({
-            redirect: _redirectDate
+            redirect: _redirectDate,
+            click: function() {
+                _containers['summary'].hide();
+            }
         });
         _countryLayer.addTo(_map);
         // Initialize markers layer
