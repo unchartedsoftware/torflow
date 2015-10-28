@@ -56,16 +56,17 @@
     font-size: 14px;
 }
 
+.leaflet-bar,
 .leaflet-touch .leaflet-bar {
     border: none;
 }
-
 
 .small-button,
 .large-button,
 .leaflet-bar a,
 .leaflet-touch .leaflet-bar a,
 .leaflet-bar a.leaflet-disabled {
+    color: #eee;
     border: 1px solid rgb(20, 155, 223);
     background-color: rgba(0, 0, 0, 0.4);
 }
@@ -76,23 +77,15 @@
     border-bottom: 1px solid rgb(20, 155, 223);
 }
 
-.leaflet-bar a,
-.leaflet-touch .leaflet-bar a,
-.leaflet-bar a.leaflet-disabled {
-    color: #eee;
-    line-height: 24px;
-}
-
-.leaflet-touch .leaflet-bar a:hover,
-.leaflet-bar a:hover {
-    line-height: 24px;
+.leaflet-bar a:hover
+.leaflet-touch .leaflet-bar a:hover {
     border-bottom: 1px solid rgb(20, 155, 223);
 }
 
 .small-button:hover,
 .large-button:hover,
-.leaflet-touch .leaflet-bar a:hover,
-.leaflet-bar a:hover {
+.leaflet-bar a:hover,
+.leaflet-touch .leaflet-bar a:hover {
     background-color: rgb(40, 96, 144);
     color: #eee;
 }

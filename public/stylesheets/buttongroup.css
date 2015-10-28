@@ -26,13 +26,13 @@
 */
 
 .btn-primary {
+    color: #888;
     border: 1px solid rgb(20, 155, 223);
     background: none;
-    color: #888;
 }
 
-.btn-primary:hover,
 .btn-primary.active,
+.btn-primary:hover,
 .btn-primary.active:hover {
     color: #fff;
     border: 1px solid rgb(20, 155, 223);

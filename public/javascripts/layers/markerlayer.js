@@ -95,7 +95,10 @@
                         iconSize: L.point(pointRadius,pointRadius)
                     })
                 });
-                self._addMarkerHandlers( marker, title );
+                // if not mobile, allow hover over markers
+                if (!IS_MOBILE) {
+                    self._addMarkerHandlers( marker, title );
+                }
                 return marker;
             });
             // store timestamp, if this changes during a batch it will cancel the

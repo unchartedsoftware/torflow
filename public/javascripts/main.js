@@ -297,6 +297,10 @@
     var _initMain = function() {
         // Create and append the main tempalte
         $(document.body).append( MainTemplate(Config) );
+        // Prevent mobile scrolling
+        $(document.body).on('touchmove', function(event) {
+            event.preventDefault();
+        });
         // If mobile append mobile class
         if (IS_MOBILE) {
             $(document.body).addClass('mobile');
@@ -342,7 +346,6 @@
         var $outlierContainer = $( ChartTemplate() )
             .addClass('outlier-chart-container');
         $outlierContainer.appendTo('.main');
-        $outlierContainer.draggabilly();
         $outlierContainer.find('.chart-close-button').click(function() {
             $outlierContainer.hide();
         });
@@ -350,7 +353,6 @@
         var $histogramContainer = $( ChartTemplate() )
             .addClass('date-histogram-container');
         $histogramContainer.appendTo('.main');
-        $histogramContainer.draggabilly();
         $histogramContainer.find('.chart-close-button').click(function() {
             $histogramContainer.hide();
         });
@@ -358,7 +360,6 @@
         var $summaryContainer = $( ChartTemplate() )
             .addClass('summary-container');
         $summaryContainer.appendTo('.main');
-        $summaryContainer.draggabilly();
         $summaryContainer.find('.chart-close-button').click(function() {
             $summaryContainer.hide();
         });
@@ -383,6 +384,12 @@
         _containers['outliers'] = $outlierContainer;
         _containers['histogram'] = $histogramContainer;
         _containers['summary'] = $summaryContainer;
+        // Enable draggable containers on desktop
+        if (!IS_MOBILE) {
+            $outlierContainer.draggabilly();
+            $histogramContainer.draggabilly();
+            $summaryContainer.draggabilly();
+        }
     };
 
     var _initMap = function() {

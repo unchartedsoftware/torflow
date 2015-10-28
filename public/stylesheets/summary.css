@@ -46,7 +46,7 @@
     width: 80%;
     height: auto;
     max-height: 300px;
-    padding: 8px 12px;
+    padding: 8px 12px 16px 8px;
 }
 
 .summary-container h2 {
