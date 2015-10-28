@@ -6,7 +6,7 @@ RUN yum install -y epel-release
 RUN yum install -y npm supervisor wget
 RUN yum install -y nodejs npm
 
-ENV GOOGLE_ANALTICS_ID UA-21723198-9
+ENV GOOGLE_ANALYTICS_ID UA-21723198-9
 
 # How to run
 EXPOSE  3000
