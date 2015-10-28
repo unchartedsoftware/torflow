@@ -256,13 +256,13 @@
                 selector: '.bar',
                 label: function(x,y) {
                     if (x === 'Average') {
-                        return '<div class="chart-hover-label">'+
+                        return '<div class="hover-label">'+
                             '<div style="float:left; padding-right:10px;">Average Count: </div>' +
                             '<div style="float:right">' + y + '</div>' +
                             '<div style="clear:both"></div>' +
                         '</div>';
                     } else {
-                        return '<div class="chart-hover-label">'+
+                        return '<div class="hover-label">'+
                             '<div style="float:left; padding-right:10px;">Date: </div>' +
                             '<div style="float:right">' + x + '</div>' +
                             '<div style="clear:both"></div>' +

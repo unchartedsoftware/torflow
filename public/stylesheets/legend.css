@@ -28,24 +28,37 @@
 .layer-legend {
     position: relative;
     float: left;
-    width: 150px;
-    border-radius: 4px;
     height: 100%;
 }
 
 .legend-ramp-container {
     position: relative;
-    height:100%;
-    width:100%;
+    display: inline-block;
+    width: 160px;
     overflow:hidden;
-    border-radius:7px;
-    margin-left: 4px;
-    height: 12px;
-    top: 5px;
-    border: 1px solid #000;
+    border-radius: 4px;
+    margin-left: 3px;
+    height: 10px;
+    top: 2px;
 }
 
 .legend-increment {
     float:left;
     height:100%;
+}
+
+.legend-label {
+    display: inline-block;
+    font-size: 10px;
+    text-align: center;
+    top: 4px;
+}
+
+.legend-label.left {
+    width: 10px;
+}
+
+.legend-label.right {
+    text-align: right;
+    width: 27px;
 }

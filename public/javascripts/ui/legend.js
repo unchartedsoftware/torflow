@@ -33,7 +33,7 @@
     function _createRamp(increments,ramp) {
         var i;
         var $ramp = $('<div class="legend-ramp-container""></div>');
-        var colorRamp = d3.scale.sqrt()
+        var colorRamp = d3.scale.linear()
             .range(ramp)
             .domain([0,1]);
         for ( i=0; i<increments; i++ ) {
@@ -55,6 +55,7 @@
         this._$container = $( LegendTemplate(spec) );
         this._$container.find('.layer-legend').append( _createRamp(spec.increments,spec.ramp) );
     };
+
 
     Legend.prototype.getElement = function() {
         return this._$container;

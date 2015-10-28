@@ -26,13 +26,25 @@
 */
 (function() {
     'use strict';
-
     var config = {
-        // main color scale
-        color_ramp: [
+        // main color ramp
+        bandwidth_color_ramp: [
             'rgb(64,0,128)',
             'rgb(30,155,223)'
         ],
+        // connections color ramp
+        connections_color_ramp: [
+            'rgb(64,0,128)',
+            'rgb(30,115,223)'
+        ],
+        // country connections color ramp
+        countries_color_ramp: [
+            'rgb(64,0,128)',
+            'rgb(50,100,255)'
+        ],
+        // color
+        particle_hidden_color: [0.28, 1.0, 0.3],
+        particle_general_color: [0.1, 0.3, 0.6],
         // node count config
         node_count: 500,
         node_count_min: 100,
@@ -44,13 +56,13 @@
             max : 40
         },
         // country geo json
-        country_count: 50,
+        country_count: 100,
         country_count_min: 5,
         country_count_max : 200,
         // country mobile factor
-        country_mobile_factor: 0.2,
+        country_mobile_factor: 0.1,
         // particle count config
-        particle_count : 200000,
+        particle_count : 400000,
         particle_count_min : 100000,
         particle_count_max : 2000000,
         // particle path offset config
@@ -69,14 +81,11 @@
         particle_speed_min_factor : 0.01,
         particle_speed_max_factor : 4.0,
         // particle mobile factor
-        particle_mobile_factor: 0.4,
+        particle_mobile_factor: 0.3,
         // particle precision factor (used to scale the range for mobile devices)
         particle_precision_factor: 1000,
         // hidden services
         hiddenServiceProbability : 0.04,
-        // color
-        particle_hidden_color: [0.9, 0.666, 0.2],
-        particle_general_color: [0.1, 0.3, 0.6],
         // html config
         title : 'TorFlow',
         summary :
@@ -98,6 +107,15 @@
             '<p>The following visualization shows information flow between the ~6500 relay servers. General purpose Tor traffic is shown in blue. Traffic to hidden services is shown in organe.</p>',
         // base layer config
         localMapServer: false,
+        // map starting position
+        desktop_zoom: {
+            min: 3,
+            start: 4
+        },
+        mobile_zoom: {
+            min: 2,
+            start: 2
+        },
         mapAttribution:
             '<span class="attribution">' +
                 'Map tiles by ' +

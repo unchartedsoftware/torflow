@@ -92,13 +92,18 @@
 }
 
 .axis,
-.chart-title {
+.chart-title,
+.small-chart-title {
     fill: #ddd;
 }
 
 .chart-title,
 .axis-title  {
     font-size: 14px;
+}
+
+.small-chart-title {
+    font-size: 12px;
 }
 
 .axis {

@@ -49,7 +49,7 @@
         this._histogram = null;
         this._geoJSONMap = {};
         this._colorScale = d3.scale.linear()
-            .range(['rgb(64,0,128)','rgb(50,100,255)']) // or use hex values
+            .range(Config.countries_color_ramp) // or use hex values
             .domain([0,1]);
     };
 
@@ -150,7 +150,7 @@
                     $container.show();
                     // create chart
                     self._chart = new OutlierChart( $container.find('.chart-content') )
-                        .colorStops([Config.color_ramp[1],'rgb(100,100,100)',Config.color_ramp[0]])
+                        .colorStops([Config.connections_color_ramp[1],'rgb(100,100,100)',Config.connections_color_ramp[0]])
                         .title('Guard Client Connection Outliers by Date (' + cc3.toUpperCase() + ')')
                         .click(self._redirect)
                         .updateDate(self._date)
@@ -175,7 +175,7 @@
                     $container.show();
                     // create chart
                     self._dateHistogram  = new DateHistogram( $container.find('.chart-content') )
-                        .colorStops(Config.color_ramp)
+                        .colorStops(Config.connections_color_ramp)
                         .title('Guard Client Connections by Date (' + cc3.toUpperCase() + ')')
                         .click(self._redirect)
                         .updateDate(self._date)

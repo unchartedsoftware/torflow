@@ -94,6 +94,15 @@
         return this;
     };
 
+    DateChart.prototype.title = function(title) {
+        if (arguments.length === 0) {
+            return this._title;
+        }
+        this._title = title;
+        this._update();
+        return this;
+    };
+
     DateChart.prototype.margin = function(margin) {
         if (arguments.length === 0) {
             return this._margin;
@@ -185,6 +194,12 @@
             .attr('height', height + margin.top + margin.bottom)
             .append('g')
             .attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
+        this._svg.append('text')
+            //.attr('x', width / 2)
+            .attr('y', -margin.top / 3)
+            //.attr('text-anchor', 'middle')
+            .attr('class', 'small-chart-title')
+            .text(this.title());
         // Create x-axis
         this._svg.append('g')
             .attr('class', 'x axis')

@@ -40,7 +40,6 @@
     var DateChart = require('./ui/datechart');
     var Slider = require('./ui/slider');
     var ToggleBox = require('./ui/togglebox');
-    var Legend = require('./ui/legend');
     var ButtonGroup = require('./ui/buttongroup');
     var LayerMenu = require('./ui/layermenu');
     var Config = require('./config');
@@ -289,14 +288,9 @@
                         _updateCountries();
                     }
                 }
-            }),
-            countryLegend = new Legend({
-                label: 'Legend (low to high)',
-                ramp: Config.color_ramp
             });
         $controlElement.find('.layer-control-body')
-            .append( countryCountSlider.getElement() ).append('<div style="clear:both;"></div>')
-            .append( countryLegend.getElement() ).append('<div style="clear:both;"></div>');
+            .append( countryCountSlider.getElement() ).append('<div style="clear:both;"></div>');
         return $controlElement;
     };
 
@@ -339,9 +333,10 @@
         $dateControls.append(_dateSlider.getElement());
         // Create date / bandwidth histogram
         _dateChart = new DateChart( $dateControls )
-            .colorStops(Config.color_ramp)
+            .colorStops(Config.bandwidth_color_ramp)
             .click(_redirectDate)
             .updateDate(_dateSlider.getISODate())
+            .title('Bandwidth Over Time')
             .data(_dateInfo);
         // Create outliers dialog
         var $outlierContainer = $( ChartTemplate() )
@@ -374,7 +369,7 @@
         var $aboutButton = $(
             '<div class="about-button large-button">' +
                 '<a href="/about" target="_blank">' +
-                    '<i class="fa fa-info-circle"></i>' +
+                    '<i class="fa fa-info"></i>' +
                 '</a>' +
             '</div>');
         $summaryContainer.append($aboutButton);
@@ -395,10 +390,10 @@
         _map = L.map('map', {
             inertia: false,
             zoomControl: false,
-            minZoom: 3,
+            minZoom: IS_MOBILE ? Config.mobile_zoom.min : Config.desktop_zoom.min,
             maxZoom: Config.maxZoom || 18
         });
-        _map.setView([40, -42], 4);
+        _map.setView([40, -42], IS_MOBILE ? Config.mobile_zoom.start : Config.desktop_zoom.start);
         // Initialize zoom controls
         var zoomControls = new L.Control.Zoom({ position: 'topright' });
         zoomControls.addTo(_map);

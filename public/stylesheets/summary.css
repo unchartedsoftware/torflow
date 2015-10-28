@@ -34,7 +34,7 @@
 .summary-container {
     text-align: center;
     top: calc(50% - 216px); /* use left for draggabilly */
-    left: calc(50% - 200px); /* use top for draggabilly */
+    left: calc(50% - 300px); /* use top for draggabilly */
     width: 600px;
     height: 432px;
     padding: 16px 24px;
@@ -42,8 +42,8 @@
 
 .mobile .summary-container {
     top: 20%; /* use left for draggabilly */
-    left: 5%; /* use top for draggabilly */
-    width: 90%;
+    left: 10%; /* use top for draggabilly */
+    width: 80%;
     height: auto;
     max-height: 300px;
     padding: 8px 12px;

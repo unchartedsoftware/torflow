@@ -92,8 +92,12 @@ a {
 
 .uncharted-logo {
     position: absolute;
-    right: 0;
     bottom: 14px;
+    right: -14px;
+}
+
+.mobile .uncharted-logo {
+    right: -10px;
 }
 
 .uncharted-logo img {
@@ -135,7 +139,7 @@ a {
     bottom: 0;
     width: calc(100% - 800px);
     height: 120px;
-    left: 430px;
+    left: 500px;
     z-index: 2;
     line-height: 20px;
     text-align: center;
