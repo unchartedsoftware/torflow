@@ -46,7 +46,7 @@
     width: 80%;
     height: auto;
     max-height: 300px;
-    padding: 8px 12px 16px 8px;
+    padding: 8px 12px 24px 8px;
 }
 
 .summary-container h2 {
@@ -59,8 +59,8 @@
 
 .mobile .summary-container h2 {
     line-height: 13px;
-    font-size: 13px;
-    margin: 8px 0;
+    font-size: 14px;
+    margin: 8px 0 18px 8px;
 }
 
 .summary-container p {

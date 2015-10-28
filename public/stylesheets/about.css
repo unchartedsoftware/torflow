@@ -36,6 +36,29 @@
 
 .about {
     text-align: center;
+    padding-top: 20px;
+}
+
+.mobile .about {
+    padding: 10px 20px;
+}
+
+.about h2 {
+    font-size:18px;
+}
+
+.about h4,
+.about li {
+    font-size: 12px;
+}
+
+.mobile .about h2 {
+    font-size: 14px;
+}
+
+.mobile .about h4,
+.mobile .about li {
+    font-size: 10px;
 }
 
 .about-content {
@@ -44,6 +67,10 @@
     display: block;
     margin-left: auto;
     margin-right: auto;
+}
+
+.mobile .about-content {
+    width: auto;
 }
 
 .about-button {

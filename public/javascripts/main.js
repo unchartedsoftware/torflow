@@ -369,10 +369,11 @@
         // Create about button
         var $aboutButton = $(
             '<div class="about-button large-button">' +
-                '<a href="/about" target="_blank">' +
                     '<i class="fa fa-info"></i>' +
-                '</a>' +
             '</div>');
+        $aboutButton.click(function() {
+            window.open('/about', '_blank');
+        });
         $summaryContainer.append($aboutButton);
         // Add handlers to summary button
         $summaryButton.click( function() {
@@ -465,15 +466,21 @@
         _update();
     };
 
+    var _about = function(changeLog) {
+        if (IS_MOBILE) {
+            $(document.body).addClass('mobile');
+        }
+        $(document.body).append( AboutTemplate(changeLog) );
+    };
+
     window.torflow = {
         start: function() {
-            // Request dates and intialize the app
+            // Request dates and initialize the app
             $.get('/dates', _init );
         },
         about : function() {
-            $.get('data/changelog.json',function(changelog) {
-                $(document.body).append( AboutTemplate(changelog) );
-            });
+            // request change log and initialize page
+            $.get('data/changelog.json', _about );
         }
     };
 
