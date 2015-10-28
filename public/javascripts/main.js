@@ -341,7 +341,7 @@
         // Create outliers dialog
         var $outlierContainer = $( ChartTemplate() )
             .addClass('outlier-chart-container');
-        $outlierContainer.appendTo('#main');
+        $outlierContainer.appendTo('.main');
         $outlierContainer.draggabilly();
         $outlierContainer.find('.chart-close-button').click(function() {
             $outlierContainer.hide();
@@ -349,7 +349,7 @@
         // Create country histogram dialog
         var $histogramContainer = $( ChartTemplate() )
             .addClass('date-histogram-container');
-        $histogramContainer.appendTo('#main');
+        $histogramContainer.appendTo('.main');
         $histogramContainer.draggabilly();
         $histogramContainer.find('.chart-close-button').click(function() {
             $histogramContainer.hide();
@@ -357,7 +357,7 @@
         // Create country histogram dialog
         var $summaryContainer = $( ChartTemplate() )
             .addClass('summary-container');
-        $summaryContainer.appendTo('#main');
+        $summaryContainer.appendTo('.main');
         $summaryContainer.draggabilly();
         $summaryContainer.find('.chart-close-button').click(function() {
             $summaryContainer.hide();

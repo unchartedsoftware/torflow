@@ -2,7 +2,7 @@
   "lastModified" : "July 30th, 2015 8:59AM",
   "versions": [
     {
-      "version": "1.0",
+      "version": "1.0.0",
       "releaseDate": "July 30th, 2015",
       "notes" : [
         "Offline map server up to zoom level 8",
@@ -13,7 +13,7 @@
       ]
     },
     {
-      "version": "1.1",
+      "version": "1.1.0",
       "releaseDate": "October 27th, 2015",
       "notes" : [
         "Replaced canvas rendering with WebGL rendering",
