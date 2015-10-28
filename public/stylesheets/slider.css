@@ -50,6 +50,8 @@
 .slider-handle {
     height: 14px;
     width: 14px;
+    background-image: none;
+    background-color: rgb(20, 155, 223);
 }
 
 .slider-handle.round {
