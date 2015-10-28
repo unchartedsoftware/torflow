@@ -28,6 +28,8 @@
 (function() {
     'use strict';
 
+    var IS_MOBILE = require('../util/mobile').IS_MOBILE;
+
     L.WebGLOverlay = L.Class.extend({
 
         initialize: function (options) {
@@ -112,11 +114,27 @@
             map._panes.tilePane.appendChild(this._canvas);
             this._initGL();
             map.on('move', this._reset, this);
-            map.on('resize',  this._resize, this);
-            //map.on('zoomend', this._reset, this);
+            var self = this;
+            if (IS_MOBILE) {
+                // Don't animate on mobile since it ends up rendering a stale
+                // frame which looks horrible
+                map.on('zoomstart', function() {
+                    if (self._prevReady === undefined) {
+                        self._prevReady = self._isReady;
+                        self._isReady = false;
+                        self.draw();
+                    }
+                });
+                map.on('zoomend', function() {
+                    self._isReady = self._prevReady;
+                    self._prevReady = undefined;
+                });
+            }
+            // Only aniamte on desktop
             if (map.options.zoomAnimation && L.Browser.any3d) {
                 map.on('zoomanim', this._animateZoom, this);
             }
+            map.on('resize', this._resize, this);
             this._reset();
         },
 
@@ -124,7 +142,6 @@
             map.getPanes().tilePane.removeChild(this._canvas);
             map.off('move', this._reset, this);
             map.off('resize', this._resize, this);
-            //map.off('zoomend', this._reset, this);
             if (map.options.zoomAnimation) {
                 map.off('zoomanim', this._animateZoom, this);
             }
@@ -200,6 +217,9 @@
                 // Force a discard of the swap buffer on a zoom because it will
                 // be of the incorrect projection. (Thank you James Robinson)
                 this._prevZoom = currentZoom;
+                this._clearBackBuffer();
+                this.draw();
+                this._clearBackBuffer();
                 this.draw();
             }
         },

@@ -86,7 +86,11 @@
 .large-button:hover,
 .leaflet-bar a:hover,
 .leaflet-touch .leaflet-bar a:hover {
-    line-height: 24px;
     background-color: rgb(40, 96, 144);
     color: #eee;
+}
+
+.leaflet-bar a:hover,
+.leaflet-touch .leaflet-bar a:hover {
+    line-height: 24px;
 }

@@ -121,7 +121,13 @@
                         this._loadingBar = null;
                         self._vertexBuffer.bufferData( new Float32Array( e.data.buffer ) );
                         self._timestamp = Date.now();
-                        self._isReady = true; // flag as ready to draw
+                        if (self._prevReady !== undefined) {
+                            // flag as ready to draw once zooming ends
+                            self._prevReady = true;
+                        } else {
+                            // flag as ready to draw
+                            self._isReady = true;
+                        }
                         self._worker.terminate();
                         self._worker = null;
                         break;
@@ -264,7 +270,6 @@
             if (!this._gl) {
                 return;
             }
-            this._clearBackBuffer();
             if ( this._isReady ) {
                 this._viewport.push();
                 this._shader.push();
