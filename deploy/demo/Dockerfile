@@ -5,7 +5,6 @@ RUN yum update -y
 RUN yum install -y epel-release
 RUN yum install -y npm supervisor wget
 RUN yum install -y nodejs npm
-RUN yum install zlib-devel
 
 ENV GOOGLE_ANALTICS_ID UA-21723198-9
 

@@ -5,7 +5,6 @@ RUN yum update -y
 RUN yum install -y epel-release
 RUN yum install -y npm supervisor wget
 RUN yum install -y nodejs npm
-RUN yum install zlib-devel
 
 ENV GOOGLE_ANALTICS_ID UA-21723198-9
 
@@ -23,5 +22,5 @@ ADD supervisord.conf /etc/supervisor/conf.d/supervisord.conf
 COPY build /torflow/
 
 # Install app dependencies
-RUN npm install -g bower gulp pm2;
+RUN npm install -g bower gulp;
 RUN cd /torflow; npm install; cd public; bower install --allow-root; gulp deploy;
