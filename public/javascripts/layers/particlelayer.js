@@ -226,14 +226,6 @@
             return PARTICLE_COUNT_MAX;
         },
 
-        _clearBackBuffer: function() {
-            if (!this._gl) {
-                return;
-            }
-            var gl = this._gl;
-            gl.clear( gl.COLOR_BUFFER_BIT );
-        },
-
         clear: function() {
             this._clearBackBuffer();
             this._isReady = false;

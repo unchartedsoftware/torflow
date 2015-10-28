@@ -74,7 +74,7 @@
         particle_min_size : 1,
         particle_max_size : 10,
         particle_zoom_scale: function( zoom, config_particle_size ) {
-            return config_particle_size * ( zoom - 3 );
+            return config_particle_size * Math.max( 1, zoom - 3 );
         },
         // particle speed config
         particle_base_speed_ms : 60000, // ms for particle to circle the earth

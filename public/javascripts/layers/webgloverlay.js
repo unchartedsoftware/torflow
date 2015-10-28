@@ -61,20 +61,10 @@
             var alert = window.alert;
             window.alert = function() {};
             gl = this._gl = esper.WebGLContext.get( this._canvas );
+            // restore alert
+            window.alert = alert;
             // handle missing context
             if ( !gl ) {
-                swal({
-                    title: 'Oh no!',
-                    text: '<div style="text-align:center">' +
-                            '<p style="text-align:center">It seems your ' +
-                                'browser does not support WebGL. Please try ' +
-                                'running this application from a modern ' +
-                                'browser.' +
-                            '</p>' +
-                            '<i class="fa fa-exclamation-triangle" style="font-size:60px;"></i>'+
-                        '</div>',
-                    html: true
-                });
                 return;
             }
             // init the webgl state
@@ -103,8 +93,6 @@
                 self._initialized = true;
                 self._draw();
             });
-            // restore alert
-            window.alert = alert;
         },
 
         _initCanvas: function () {
@@ -125,7 +113,7 @@
             this._initGL();
             map.on('move', this._reset, this);
             map.on('resize',  this._resize, this);
-            map.on('zoomend', this._reset, this);
+            //map.on('zoomend', this._reset, this);
             if (map.options.zoomAnimation && L.Browser.any3d) {
                 map.on('zoomanim', this._animateZoom, this);
             }
@@ -136,7 +124,7 @@
             map.getPanes().tilePane.removeChild(this._canvas);
             map.off('move', this._reset, this);
             map.off('resize', this._resize, this);
-            map.off('zoomend', this._reset, this);
+            //map.off('zoomend', this._reset, this);
             if (map.options.zoomAnimation) {
                 map.off('zoomanim', this._animateZoom, this);
             }
@@ -180,6 +168,14 @@
             }
         },
 
+        _clearBackBuffer: function() {
+            if (!this._gl) {
+                return;
+            }
+            var gl = this._gl;
+            gl.clear( gl.COLOR_BUFFER_BIT );
+        },
+
         _animateZoom: function (e) {
             var scale = this._map.getZoomScale(e.zoom),
                 offset = this._map._getCenterOffset(e.center)._multiplyBy(-scale).subtract(this._map._getMapPanePos());
@@ -195,10 +191,17 @@
             }
         },
 
-        _reset: function () {
+        _reset: function() {
             var topLeft = this._map.containerPointToLayerPoint([0, 0]);
             L.DomUtil.setPosition(this._canvas, topLeft);
             this._updateProjection();
+            var currentZoom = this._map.getZoom();
+            if ( this._prevZoom !== currentZoom ) {
+                // Force a discard of the swap buffer on a zoom because it will
+                // be of the incorrect projection. (Thank you James Robinson)
+                this._prevZoom = currentZoom;
+                this.draw();
+            }
         },
 
         _draw: function () {
