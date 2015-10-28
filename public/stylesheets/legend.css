@@ -25,38 +25,27 @@
 * SOFTWARE.
 */
 
-.layer-control .slider.slider-horizontal {
+.layer-legend {
+    position: relative;
+    float: left;
     width: 150px;
-}
-
-.slider.slider-horizontal .slider-track {
     border-radius: 4px;
-    background: none;
-    border: 1px solid rgb(20, 155, 223);
+    height: 100%;
 }
 
-.slider.slider-horizontal .slider-track-high {
-    background: none;
-    background-color: rgba(0,0,0,0.4);
-    border-radius: 4px;
+.legend-ramp-container {
+    position: relative;
+    height:100%;
+    width:100%;
+    overflow:hidden;
+    border-radius:7px;
+    margin-left: 4px;
+    height: 12px;
+    top: 5px;
+    border: 1px solid #000;
 }
 
-.slider.slider-horizontal .slider-selection {
-    background: none;
-    background-color: rgba(20, 155, 223, 0.5);
-    border-radius: 4px;
-}
-
-.slider-handle {
-    height: 14px;
-    width: 14px;
-}
-
-.slider-handle.round {
-    border-radius: 4px;
-}
-
-.slider.slider-horizontal .slider-handle {
-    margin-left: -7px;
-    margin-top: -3px;
+.legend-increment {
+    float:left;
+    height:100%;
 }

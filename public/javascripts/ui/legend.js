@@ -25,38 +25,41 @@
 * SOFTWARE.
 */
 
-.layer-control .slider.slider-horizontal {
-    width: 150px;
-}
+(function() {
+    'use strict';
 
-.slider.slider-horizontal .slider-track {
-    border-radius: 4px;
-    background: none;
-    border: 1px solid rgb(20, 155, 223);
-}
+    var LegendTemplate = require('../templates/legend');
 
-.slider.slider-horizontal .slider-track-high {
-    background: none;
-    background-color: rgba(0,0,0,0.4);
-    border-radius: 4px;
-}
+    function _createRamp(increments,ramp) {
+        var i;
+        var $ramp = $('<div class="legend-ramp-container""></div>');
+        var colorRamp = d3.scale.sqrt()
+            .range(ramp)
+            .domain([0,1]);
+        for ( i=0; i<increments; i++ ) {
+            $ramp.append('<div class="legend-increment" style="' +
+                'background-color:' + colorRamp(i/increments) + ';' +
+                'width:' + ((1/increments)*100) + '%;' +
+                '"></div>');
+        }
+        return $ramp;
+    }
 
-.slider.slider-horizontal .slider-selection {
-    background: none;
-    background-color: rgba(20, 155, 223, 0.5);
-    border-radius: 4px;
-}
+    var Legend = function(spec) {
+        // parse inputs
+        spec = spec || {};
+        spec.label = spec.label !== undefined ? spec.label : 'Legend';
+        spec.increments = spec.increments || 20;
+        spec.ramp = spec.ramp || ['rgb(255,0,0)', 'rgb(0,0,255)'];
+        // create elements
+        this._$container = $( LegendTemplate(spec) );
+        this._$container.find('.layer-legend').append( _createRamp(spec.increments,spec.ramp) );
+    };
 
-.slider-handle {
-    height: 14px;
-    width: 14px;
-}
+    Legend.prototype.getElement = function() {
+        return this._$container;
+    };
 
-.slider-handle.round {
-    border-radius: 4px;
-}
+    module.exports = Legend;
 
-.slider.slider-horizontal .slider-handle {
-    margin-left: -7px;
-    margin-top: -3px;
-}
+}());

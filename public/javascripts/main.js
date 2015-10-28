@@ -40,6 +40,7 @@
     var DateChart = require('./ui/datechart');
     var Slider = require('./ui/slider');
     var ToggleBox = require('./ui/togglebox');
+    var Legend = require('./ui/legend');
     var ButtonGroup = require('./ui/buttongroup');
     var LayerMenu = require('./ui/layermenu');
     var Config = require('./config');
@@ -288,9 +289,14 @@
                         _updateCountries();
                     }
                 }
+            }),
+            countryLegend = new Legend({
+                label: 'Legend (low to high)',
+                ramp: Config.color_ramp
             });
         $controlElement.find('.layer-control-body')
-            .append( countryCountSlider.getElement() ).append('<div style="clear:both;"></div>');
+            .append( countryCountSlider.getElement() ).append('<div style="clear:both;"></div>')
+            .append( countryLegend.getElement() ).append('<div style="clear:both;"></div>');
         return $controlElement;
     };
 
@@ -333,7 +339,7 @@
         $dateControls.append(_dateSlider.getElement());
         // Create date / bandwidth histogram
         _dateChart = new DateChart( $dateControls )
-            .colorStops(['rgb(64,0,128)','rgb(30,155,223)'])
+            .colorStops(Config.color_ramp)
             .click(_redirectDate)
             .updateDate(_dateSlider.getISODate())
             .data(_dateInfo);

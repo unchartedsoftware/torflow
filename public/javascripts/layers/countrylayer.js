@@ -150,7 +150,7 @@
                     $container.show();
                     // create chart
                     self._chart = new OutlierChart( $container.find('.chart-content') )
-                        .colorStops(['rgb(30,155,223)','rgb(100,100,100)','rgb(64,0,128)'])
+                        .colorStops([Config.color_ramp[1],'rgb(100,100,100)',Config.color_ramp[0]])
                         .title('Guard Client Connection Outliers by Date (' + cc3.toUpperCase() + ')')
                         .click(self._redirect)
                         .updateDate(self._date)
@@ -175,7 +175,7 @@
                     $container.show();
                     // create chart
                     self._dateHistogram  = new DateHistogram( $container.find('.chart-content') )
-                        .colorStops(['rgb(64,0,128)','rgb(30,155,223)'])
+                        .colorStops(Config.color_ramp)
                         .title('Guard Client Connections by Date (' + cc3.toUpperCase() + ')')
                         .click(self._redirect)
                         .updateDate(self._date)

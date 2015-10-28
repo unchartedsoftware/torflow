@@ -28,6 +28,11 @@
     'use strict';
 
     var config = {
+        // main color scale
+        color_ramp: [
+            'rgb(64,0,128)',
+            'rgb(30,155,223)'
+        ],
         // node count config
         node_count: 500,
         node_count_min: 100,
