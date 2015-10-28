@@ -27,7 +27,7 @@
 (function() {
     'use strict';
     var config = {
-        // main color ramp
+        // bandwidth color ramp
         bandwidth_color_ramp: [
             'rgb(64,0,128)',
             'rgb(30,155,223)'
@@ -42,7 +42,7 @@
             'rgb(64,0,128)',
             'rgb(50,100,255)'
         ],
-        // color
+        // particle colors
         particle_hidden_color: [0.28, 1.0, 0.3],
         particle_general_color: [0.1, 0.3, 0.6],
         // node count config
