@@ -58,13 +58,7 @@
             var self = this,
                 shadersDone = $.Deferred(),
                 buffersDone = $.Deferred(),
-                gl;
-            // overwrite alert temporarily
-            var alert = window.alert;
-            window.alert = function() {};
-            gl = this._gl = esper.WebGLContext.get( this._canvas );
-            // restore alert
-            window.alert = alert;
+                gl = this._gl = esper.WebGLContext.get( this._canvas );
             // handle missing context
             if ( !gl ) {
                 return;
