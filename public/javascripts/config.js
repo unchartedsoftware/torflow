@@ -56,11 +56,11 @@
             max : 40
         },
         // country geo json
-        country_count: 100,
+        country_count: 50,
         country_count_min: 5,
         country_count_max : 200,
         // country mobile factor
-        country_mobile_factor: 0.1,
+        country_mobile_factor: 0.2,
         // particle count config
         particle_count : 400000,
         particle_count_min : 100000,

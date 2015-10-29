@@ -281,9 +281,20 @@
         }
         // Set click event handler
         if (this._onClick) {
-            this._svg.selectAll('.bar').on('click', function () {
-                self._onClick(this.__data__);
-            });
+            var dragStart = { x: null, y: null };
+            var DRAG_THRESHOLD = 10;
+            this._svg
+                .selectAll('.bar')
+                .on('mousedown', function () {
+                    dragStart.x = d3.event.pageX;
+                    dragStart.y = d3.event.pageY;
+                })
+                .on('click', function() {
+                    if (Math.abs( dragStart.x - d3.event.pageX ) < DRAG_THRESHOLD &&
+                        Math.abs( dragStart.y - d3.event.pageY ) < DRAG_THRESHOLD ) {
+                        self._onClick(this.__data__);
+                    }
+                });
         }
         // Select active date
         this.updateDate(this._activeDate);
