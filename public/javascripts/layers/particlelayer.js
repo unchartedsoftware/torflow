@@ -104,8 +104,8 @@
                 this._loadingBar.cancel();
             }
             this._loadingBar = new LoadingBar();
-            // flag as not ready to draw
-            this._isReady = false;
+            // clear and flag as not ready to draw
+            this.clear();
             // terminate existing worker
             if ( this._worker ) {
                 this._worker.terminate();
@@ -232,11 +232,6 @@
             return PARTICLE_COUNT_MAX;
         },
 
-        clear: function() {
-            this._clearBackBuffer();
-            this._isReady = false;
-        },
-
         setOpacity: function( opacity ) {
             this._opacity = opacity;
         },
@@ -270,7 +265,7 @@
             if (!this._gl) {
                 return;
             }
-            if ( this._isReady ) {
+            if (this._isReady) {
                 this._viewport.push();
                 this._shader.push();
                 this._shader.setUniform( 'uProjectionMatrix', this._camera.projectionMatrix() );

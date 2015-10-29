@@ -116,13 +116,12 @@
             map.on('move', this._reset, this);
             var self = this;
             if (IS_MOBILE) {
-                // Don't animate on mobile since it ends up rendering a stale
-                // frame which looks horrible
+                // Don't render on mobile during zoom since it results in a
+                // really ugly stale frame
                 map.on('zoomstart', function() {
                     if (self._prevReady === undefined) {
                         self._prevReady = self._isReady;
                         self._isReady = false;
-                        self.draw();
                     }
                 });
                 map.on('zoomend', function() {
@@ -130,12 +129,11 @@
                     self._prevReady = undefined;
                 });
             }
-            // Only aniamte on desktop
+            // Animate layer on zoom
             if (map.options.zoomAnimation && L.Browser.any3d) {
                 map.on('zoomanim', this._animateZoom, this);
             }
             map.on('resize', this._resize, this);
-            this._reset();
         },
 
         onRemove: function (map) {
@@ -193,6 +191,11 @@
             gl.clear( gl.COLOR_BUFFER_BIT );
         },
 
+        clear: function() {
+            this._clearBackBuffer();
+            this._isReady = false;
+        },
+
         _animateZoom: function (e) {
             var scale = this._map.getZoomScale(e.zoom),
                 offset = this._map._getCenterOffset(e.center)._multiplyBy(-scale).subtract(this._map._getMapPanePos());
@@ -217,8 +220,6 @@
                 // Force a discard of the swap buffer on a zoom because it will
                 // be of the incorrect projection. (Thank you James Robinson)
                 this._prevZoom = currentZoom;
-                this._clearBackBuffer();
-                this.draw();
                 this._clearBackBuffer();
                 this.draw();
             }
