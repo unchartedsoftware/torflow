@@ -105,24 +105,12 @@
             // entire series operation, preventing stale additions
             var currentTimestamp = Date.now();
             this._requestTimestamp = currentTimestamp;
-            // Leaflet only let you add markers 1 at a time, or requires you to
-            // recreate the layer and add all markers. This causes a noticible
-            // jitter so here we throttle it in batches.
-            var CHUNK_SIZE = 20;
-            var TIMEOUT = 100;
-            var chunks = _.chunk(markers, CHUNK_SIZE);
-            var additions = _.map(chunks, function(chunk) {
-                return function(done) {
-                    setTimeout(function() {
-                        chunk.forEach(function(marker) {
-                            self._markerLayer.addLayer(marker);
-                        });
-                        done(self._requestTimestamp !== currentTimestamp);
-                    }, TIMEOUT);
-                };
-            });
-            // execute the additions in chunks to prevent browser from locking
-            async.series(additions);
+            // Leaflet only let you add markers in batch when creating a layer
+            // group, so remove the original from map, re-create it, then
+            // add it.
+            this._map.removeLayer(this._markerLayer);
+            this._markerLayer = L.layerGroup(markers);
+            this._markerLayer.addTo(this._map);
         },
 
         clear : function() {
