@@ -26,7 +26,7 @@
 */
 
 .date-histogram-container {
-    top: calc(100% - 120px - 250px); /* use left for draggabilly */
+    top: calc(50% + 5px); /* use left for draggabilly */
     left: calc(100% - 812px - 10px); /* use top for draggabilly */
     height: 250px;
     width: 812px;
