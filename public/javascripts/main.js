@@ -48,6 +48,8 @@
     var MainTemplate = require('./templates/main');
     var AboutTemplate = require('./templates/about');
 
+    var Formatter = require('./util/format');
+
     // Map elements
     var _map = null;
     var _particleLayer = null;
@@ -165,7 +167,10 @@
                 step: (layer.getParticleCountMax() - layer.getParticleCountMin()) / 100,
                 initialValue: layer.getUnscaledParticleCount(),
                 formatter: function( value ) {
-                    return (value/1000) + 'K';
+                    if ( value >= 1000000 ) {
+                        return Formatter.format(value/1000000) + 'M';
+                    }
+                    return Formatter.format(value/1000) + 'K';
                 },
                 slideStop: function( event ) {
                     if ( event.value !== layer.getUnscaledParticleCount() ) {
@@ -247,7 +252,7 @@
                 step: (layer.getNodeCountMax() - layer.getNodeCountMin()) / 100,
                 initialValue: layer.getNodeCount(),
                 formatter: function( value ) {
-                    return Math.round(value);
+                    return Formatter.format(Math.round(value));
                 },
                 slideStop: function( event ) {
                     if ( event.value !== layer.getNodeCount() ) {
@@ -374,8 +379,17 @@
         $aboutButton.click(function() {
             window.open('/about', '_blank');
         });
+        // Create github button
+        var $githubButton = $(
+            '<div class="github-button large-button">' +
+                    '<i class="fa fa-github-alt"></i>' +
+            '</div>');
+        $githubButton.click( function() {
+            window.open('https://github.com/unchartedsoftware/torflow', '_blank');
+        });
         $summaryContainer.append($aboutButton);
-        // Add handlers to summary button
+        $summaryContainer.append($githubButton);
+        // Add handler to summary button
         $summaryButton.click( function() {
             $outlierContainer.hide();
             $histogramContainer.hide();

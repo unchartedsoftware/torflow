@@ -28,13 +28,7 @@
 (function() {
     'use strict';
 
-    var _addCommas = function (x) {
-        return x.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',');
-    };
-
-    var _isInteger = function(n) {
-       return n % 1 === 0;
-    };
+    var Formatter = require('../util/format');
 
     var addLabels = function(spec) {
         spec = spec || {};
@@ -50,7 +44,7 @@
             .on('mousemove', function(d) {
                 if (!$label) {
                     // if label doesn't already exist, create it
-                    var formattedY = _isInteger(d.y) ? _addCommas(d.y) : _addCommas(d.y.toFixed(2));
+                    var formattedY = Formatter.format(d.y);
                     if ( $.isFunction(label) ) {
                         $label = $( label(d.x, formattedY, d) );
                     } else {
