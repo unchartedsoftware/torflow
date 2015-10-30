@@ -1,6 +1,6 @@
 {
   "name": "TorFlow",
-  "version": "0.0.0",
+  "version": "1.1.0",
   "private": true,
   "dependencies": {
     "async": "1.4.2",
@@ -13,12 +13,5 @@
     "moment": "2.10.6",
     "seiyria-bootstrap-slider": "5.2.4",
     "twix": "0.7.2"
-  },
-  "overrides": {
-    "leaflet-canvas-layer": {
-      "main": [
-        "leaflet_canvas_layer.js"
-      ]
-    }
   }
 }
