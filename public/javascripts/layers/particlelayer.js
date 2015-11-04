@@ -50,26 +50,34 @@
         },
 
         initBuffers: function( done ) {
-            // create filler array
-            var filler = _.fill( new Array( Config.particle_count_max ), [ 0,0,0,0 ] );
-            // create vertex buffer, this will be updated periodically
-            this._vertexBuffer = new esper.VertexBuffer(
-                new esper.VertexPackage([
-                    /**
-                     * x: startX
-                     * y: startY
-                     * y: endX
-                     * w: endY
-                     */
-                    filler,
-                    /**
-                     * x: t0
-                     * y: offset0
-                     * y: t1
-                     * w: offset1
-                     */
-                    filler ])
-            );
+            var bufferSize =  Config.particle_count_max * 4 * 2;
+            // create vertex buffer, this will never be updated
+            this._vertexBuffer = new esper.VertexBuffer( bufferSize, {
+                /**
+                 * x: startX
+                 * y: startY
+                 * y: endX
+                 * w: endY
+                 */
+                0: {
+                    size: 4,
+                    type: 'FLOAT',
+                    stride: 32,
+                    offset: 0
+                },
+                /**
+                 * x: t0
+                 * y: offset0
+                 * y: t1
+                 * w: offset1
+                 */
+                1: {
+                    size: 4,
+                    type: 'FLOAT',
+                    stride: 32,
+                    offset: 16
+                }
+            });
             // execute callback
             done();
         },
