@@ -77,15 +77,13 @@
         _updateProjection: function() {
             var bounds = this._map.getPixelBounds(),
                 dim = Math.pow( 2, this._map.getZoom() ) * 256,
-                ortho = esper.Mat44.ortho(
+                ortho = alfador.Mat44.ortho(
                     (bounds.min.x / dim) * Config.particle_precision_factor,
                     (bounds.max.x / dim) * Config.particle_precision_factor,
                     (( dim - bounds.max.y ) / dim) * Config.particle_precision_factor,
                     (( dim - bounds.min.y ) / dim) * Config.particle_precision_factor,
                     -1, 1 );
-            if ( this._camera ) {
-                this._camera.projectionMatrix( ortho );
-            }
+            this._projection = ortho;
         },
 
         updateNodes: function(nodes, bandwidth) {
@@ -146,24 +144,25 @@
         },
 
         _drawHiddenServices: function() {
-            var gl = this._gl,
-                hiddenServicesCount = Math.floor(Config.hiddenServiceProbability * this.getParticleCount());
+            var hiddenServicesCount = Math.floor(Config.hiddenServiceProbability * this.getParticleCount());
             this._shader.setUniform( 'uColor', Config.particle_hidden_color);
-            gl.drawArrays(
-                gl.POINTS, // primitive type
-                0, // offset
-                hiddenServicesCount ); // count
+            this._vertexBuffer.bind();
+            this._vertexBuffer.draw({
+                mode: 'POINTS',
+                offset: 0,
+                count: hiddenServicesCount
+            });
         },
 
         _drawGeneralServices: function() {
-            var gl = this._gl,
-                hiddenServicesCount = Math.floor(Config.hiddenServiceProbability * this.getParticleCount()),
+            var hiddenServicesCount = Math.floor(Config.hiddenServiceProbability * this.getParticleCount()),
                 generalServicesCount = this.getParticleCount() - hiddenServicesCount;
             this._shader.setUniform( 'uColor', Config.particle_general_color);
-            gl.drawArrays(
-                gl.POINTS, // primitive type
-                hiddenServicesCount, // offset
-                generalServicesCount ); // count
+            this._vertexBuffer.draw({
+                mode: 'POINTS',
+                offset: hiddenServicesCount,
+                count: generalServicesCount
+            });
         },
 
         showTraffic: function(state) {
@@ -268,7 +267,7 @@
             if (this._isReady) {
                 this._viewport.push();
                 this._shader.push();
-                this._shader.setUniform( 'uProjectionMatrix', this._camera.projectionMatrix() );
+                this._shader.setUniform( 'uProjectionMatrix', this._projection );
                 this._shader.setUniform( 'uTime', Date.now() - this._timestamp );
                 this._shader.setUniform( 'uSpeedFactor', Config.particle_base_speed_ms / ( this.getSpeed() * Config.particle_precision_factor ) );
                 this._shader.setUniform( 'uOffsetFactor', this.getPathOffset() );

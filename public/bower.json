@@ -3,10 +3,11 @@
   "version": "1.1.0",
   "private": true,
   "dependencies": {
+    "alfador": "0.4.8",
     "async": "1.4.2",
     "d3": "3.5.6",
     "draggabilly": "1.2.4",
-    "esper": "0.4.1",
+    "esper": "0.5.2",
     "jquery": "2.1.4",
     "leaflet": "0.7.7",
     "lodash": "3.10.1",

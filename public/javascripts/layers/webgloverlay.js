@@ -84,7 +84,6 @@
                     width: width,
                     height: height
                 });
-                self._camera = new esper.Camera();
                 self._updateProjection();
                 self._initialized = true;
                 self._draw();
@@ -140,7 +139,7 @@
             this._gl = null;
             this._canvas = null;
             this._viewport = null;
-            this._camera = null;
+            this._projection = null;
             this._initialized = false;
         },
 
@@ -166,15 +165,13 @@
         _updateProjection: function() {
             var bounds = this._map.getPixelBounds(),
                 dim = Math.pow( 2, this._map.getZoom() ) * 256,
-                ortho = esper.Mat44.ortho(
+                ortho = alfador.Mat44.ortho(
                     (bounds.min.x / dim),
                     (bounds.max.x / dim),
                     ( dim - bounds.max.y ) / dim,
                     ( dim - bounds.min.y ) / dim,
                     -1, 1 );
-            if ( this._camera ) {
-                this._camera.projectionMatrix( ortho );
-            }
+            this._projection = ortho;
         },
 
         _clearBackBuffer: function() {

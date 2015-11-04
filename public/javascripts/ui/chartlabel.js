@@ -30,6 +30,9 @@
 
     var Formatter = require('../util/format');
 
+    var BUFFER = 1;
+    var _$label = null;
+
     var addLabels = function(spec) {
         spec = spec || {};
         if ( !spec.svg ) {
@@ -39,43 +42,48 @@
         var svg = spec.svg;
         var label = spec.label || 'missing label';
         var selector = spec.selector || '';
-        var $label = null;
         svg.selectAll(selector)
             .on('mousemove', function(d) {
-                if (!$label) {
+                if (!_$label) {
                     // if label doesn't already exist, create it
                     var formattedY = Formatter.format(d.y);
                     if ( $.isFunction(label) ) {
-                        $label = $( label(d.x, formattedY, d) );
+                        _$label = $( label(d.x, formattedY, d) );
                     } else {
-                        $label = $(label);
+                        _$label = $(label);
                     }
-                    $( document.body ).append( $label );
+                    $( document.body ).append( _$label );
                 }
-                var left = d3.event.pageX - $label.outerWidth()/2;
-                var top = d3.event.pageY - $label.outerHeight()*1.25;
-                if (left + $label.outerWidth() > window.innerWidth) {
-                    left = window.innerWidth - $label.outerWidth();
+                var left = d3.event.pageX - _$label.outerWidth()/2;
+                var top = d3.event.pageY - _$label.outerHeight()*1.25;
+                if (left + _$label.outerWidth() + BUFFER > window.innerWidth) {
+                    left = window.innerWidth - _$label.outerWidth() - BUFFER;
                 }
-                if (left < 0) {
-                    left = 0;
+                if (left < BUFFER) {
+                    left = BUFFER;
                 }
-                if (top + $label.outerHeight() > window.innerWidth) {
-                    left = window.innerWidth - $label.outerHeight();
+                if (top + _$label.outerHeight() + BUFFER> window.innerWidth) {
+                    left = window.innerWidth - _$label.outerHeight() - BUFFER;
                 }
-                if (top < 0) {
-                    top = 0;
+                if (top < BUFFER) {
+                    top = BUFFER;
                 }
                 // position label
-                $label.css({
+                _$label.css({
                     'left': left,
                     'top': top
                 });
             })
             .on('mouseout', function() {
-                if ( $label ) {
-                    $label.remove();
-                    $label = null;
+                if ( _$label ) {
+                    _$label.remove();
+                    _$label = null;
+                }
+            })
+            .on('mouseleave', function() {
+                if ( _$label ) {
+                    _$label.remove();
+                    _$label = null;
                 }
             });
     };

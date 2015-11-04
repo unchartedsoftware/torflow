@@ -23,9 +23,7 @@
 		"define":true,
 		"require":true,
 		"$":true,
-		"jQuery":true,
 		"_":true,
-		"activityLogger":true,
 		"console":true,
 		"path":true,
 		"alert":true,
@@ -36,7 +34,7 @@
 	  	"moment":true,
 	  	"process":true,
 	  	"esper": true,
-		"swal": true,
+		"alfador": true,
 		"async": true,
 		"__dirname":true
 	}
