@@ -43,7 +43,7 @@
             'rgb(50,100,255)'
         ],
         // particle colors
-        particle_hidden_color: [0.28, 1.0, 0.3],
+        particle_hidden_color: [1.0, 0.4, 0.0],
         particle_general_color: [0.1, 0.3, 0.6],
         // node count config
         node_count: 500,
