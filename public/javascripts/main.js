@@ -35,6 +35,7 @@
     var CountryLayer = require('./layers/countrylayer');
     var MarkerLayer = require('./layers/markerlayer');
     var LabelLayer = require('./layers/labellayer');
+    var BaseLayer = require('./layers/baselayer');
 
     var DateSlider = require('./ui/dateslider');
     var DateChart = require('./ui/datechart');
@@ -107,6 +108,26 @@
         if (dateStr !== 'Invalid date') {
             _dateSlider.setDate(dateStr);
         }
+    };
+
+    var _createBaseLayerUI = function(layerName,layer) {
+        var layerMenu = new LayerMenu({
+                layer: layer,
+                label: layerName
+            }),
+            brightnessSlider = new Slider({
+                label: 'Brightness',
+                min: 0.01,
+                max: 3,
+                step: 0.01,
+                initialValue: layer.getBrightness(),
+                change: function( event ) {
+                    layer.setBrightness( event.value.newValue );
+                }
+            });
+        layerMenu.getBody().append( brightnessSlider.getElement() ).append('<div style="clear:both;"></div>');
+        _layerMenus[layerName] = layerMenu;
+        return layerMenu.getElement();
     };
 
     var _createLayerUI = function(layerName,layer) {
@@ -324,6 +345,7 @@
         $mapControls.append(_addMarkerControls( _createLayerUI('Nodes', _markerLayer ), _markerLayer ));
         $mapControls.append(_createLayerUI('Labels', _labelLayer ));
         $mapControls.append(_addCountryControls( _createLayerUI('Top Client Connections', _countryLayer ), _countryLayer ));
+        $mapControls.append(_createBaseLayerUI('Base Map', _baseLayer ));
         // Minimize menus by default
         _.forIn( _layerMenus, function(menu) {
             menu.minimize();
@@ -430,7 +452,7 @@
             mapUrlBase ='https://cartodb-basemaps-{s}.global.ssl.fastly.net/';
         }
         // Initialize the baselayer
-        _baseLayer = L.tileLayer(
+        _baseLayer = new BaseLayer(
             mapUrlBase + 'dark_nolabels/{z}/{x}/{y}.png',
             {
                 attribution: Config.mapAttribution,
