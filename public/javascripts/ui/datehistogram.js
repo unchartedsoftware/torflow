@@ -166,11 +166,10 @@
         var height = this._height;
         var width = this._width;
         var margin = this._margin;
-        var barWidth = width / (this._data.length - 1);
         var colorStops = this._colorStops;
         // Set value ranges
         var x = d3.scale.ordinal()
-            .rangeRoundBands([0, this.width()], 0, 0.01);
+            .rangeBands([0, this.width()]);
         var y = d3.scale.sqrt()
             .range([this.height(), 0]);
         // Set value domains
@@ -222,7 +221,7 @@
         // Create y-axis
         this._svg.append('g')
             .attr('class', 'y axis')
-            .attr('transform', 'translate(0,1)')
+            .attr('transform', 'translate(-1,1)')
             .call(yAxis)
             .append('text')
             .attr('class', 'axis-title')
@@ -241,12 +240,12 @@
             .attr('transform', function(d) {
                 return 'translate(' + x(d.x) + ', 0)';
             })
-            .attr('width', barWidth)
+            .attr('width', x.rangeBand())
             .attr('height', height);
         // Create background bars
         bars.append('rect')
             .attr('class', 'background-bar')
-            .attr('width', barWidth)
+            .attr('width', x.rangeBand())
             .attr('height', height+1);
         // Create foreground bars
         bars.append('rect')
@@ -255,7 +254,7 @@
                 return colorStops((d.y - self._min) / self._range);
             })
             .attr('stroke', '#000')
-            .attr('width', barWidth)
+            .attr('width', x.rangeBand())
             .attr('height', function(d) {
                 return height - y(d.y);
             })

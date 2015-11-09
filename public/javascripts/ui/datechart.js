@@ -158,7 +158,6 @@
         var height = this.height();
         var width = this.width();
         var margin = this._margin;
-        var barWidth = width / (this._data.length - 1);
         var colorStops = this._colorStops;
         // Don't draw chart if width is too small.
         if (width < 500) {
@@ -214,11 +213,11 @@
             .attr('transform', function(d) {
                 return 'translate(' + x(d.x) + ', 0)';
             })
-            .attr('width', barWidth)
+            .attr('width', x.rangeBand())
             .attr('height', height);
         bars.append('rect')
             .attr('class', 'background-bar')
-            .attr('width', barWidth)
+            .attr('width', x.rangeBand())
             .attr('height', height + MIN_HEIGHT);
         // Create foreground bars
         bars.append('rect')
@@ -227,7 +226,7 @@
                 return colorStops((d.y - self._min) / self._range);
             })
             .attr('stroke', '#000')
-            .attr('width', barWidth)
+            .attr('width', x.rangeBand())
             .attr('height', function(d) {
                 return height - y(d.y) + MIN_HEIGHT;
             })
