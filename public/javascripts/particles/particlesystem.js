@@ -69,11 +69,11 @@ var worker = this;
             var t0 = Math.random() / 2;
             var t1 = Math.random() / 2 + 0.5;
             // start position
-            buffer[ i*8 ] = pair.source.x * 1000;
-            buffer[ i*8+1 ] = pair.source.y * 1000;
+            buffer[ i*8 ] = pair.source.x;
+            buffer[ i*8+1 ] = pair.source.y;
             // stop position
-            buffer[ i*8+2 ] = pair.dest.x * 1000;
-            buffer[ i*8+3 ] = pair.dest.y * 1000;
+            buffer[ i*8+2 ] = pair.dest.x;
+            buffer[ i*8+3 ] = pair.dest.y;
             // bezier curve sub point parameters
             buffer[ i*8+4 ] = t0;
             buffer[ i*8+5 ] = sign * Math.random() * offset;

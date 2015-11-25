@@ -28,8 +28,6 @@
 (function() {
     'use strict';
 
-    var IS_MOBILE = require('../util/mobile').IS_MOBILE;
-
     L.WebGLOverlay = L.Class.extend({
 
         initialize: function (options) {
@@ -84,7 +82,6 @@
                     width: width,
                     height: height
                 });
-                self._updateProjection();
                 self._initialized = true;
                 self._draw();
             });
@@ -106,22 +103,13 @@
             }
             map._panes.tilePane.appendChild(this._canvas);
             this._initGL();
-            map.on('move', this._reset, this);
             var self = this;
-            if (IS_MOBILE) {
-                // Don't render on mobile during zoom since it results in a
-                // really ugly stale frame
-                map.on('zoomstart', function() {
-                    if (self._prevReady === undefined) {
-                        self._prevReady = self._isReady;
-                        self._isReady = false;
-                    }
-                });
-                map.on('zoomend', function() {
-                    self._isReady = self._prevReady;
-                    self._prevReady = undefined;
-                });
-            }
+            map.on('zoomstart', function() {
+                self._isZooming = true;
+            });
+            map.on('zoomend', function() {
+                self._isZooming = false;
+            });
             // Animate layer on zoom
             if (map.options.zoomAnimation && L.Browser.any3d) {
                 map.on('zoomanim', this._animateZoom, this);
@@ -131,7 +119,6 @@
 
         onRemove: function (map) {
             map.getPanes().tilePane.removeChild(this._canvas);
-            map.off('move', this._reset, this);
             map.off('resize', this._resize, this);
             if (map.options.zoomAnimation) {
                 map.off('zoomanim', this._animateZoom, this);
@@ -139,7 +126,6 @@
             this._gl = null;
             this._canvas = null;
             this._viewport = null;
-            this._projection = null;
             this._initialized = false;
         },
 
@@ -162,16 +148,15 @@
             return this;
         },
 
-        _updateProjection: function() {
+        _getProjection: function() {
             var bounds = this._map.getPixelBounds(),
-                dim = Math.pow( 2, this._map.getZoom() ) * 256,
-                ortho = alfador.Mat44.ortho(
-                    (bounds.min.x / dim),
-                    (bounds.max.x / dim),
-                    ( dim - bounds.max.y ) / dim,
-                    ( dim - bounds.min.y ) / dim,
-                    -1, 1 );
-            this._projection = ortho;
+                dim = Math.pow( 2, this._map.getZoom() ) * 256;
+            return alfador.Mat44.ortho(
+                (bounds.min.x / dim),
+                (bounds.max.x / dim),
+                ( dim - bounds.max.y ) / dim,
+                ( dim - bounds.min.y ) / dim,
+                -1, 1 );
         },
 
         _clearBackBuffer: function() {
@@ -198,24 +183,9 @@
                 height = resizeEvent.newSize.y;
             if ( this._initialized ) {
                 this._viewport.resize( width, height );
-                this._updateProjection();
             }
         },
-
-        _reset: function() {
-            var topLeft = this._map.containerPointToLayerPoint([0, 0]);
-            L.DomUtil.setPosition(this._canvas, topLeft);
-            this._updateProjection();
-            var currentZoom = this._map.getZoom();
-            if ( this._prevZoom !== currentZoom ) {
-                // Force a discard of the swap buffer on a zoom because it will
-                // be of the incorrect projection. (Thank you James Robinson)
-                this._prevZoom = currentZoom;
-                this._clearBackBuffer();
-                this.draw();
-            }
-        },
-
+        
         _draw: function () {
             if ( this._initialized ) {
                 if ( !this._hidden ) {

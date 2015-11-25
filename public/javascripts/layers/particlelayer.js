@@ -82,18 +82,6 @@
             done();
         },
 
-        _updateProjection: function() {
-            var bounds = this._map.getPixelBounds(),
-                dim = Math.pow( 2, this._map.getZoom() ) * 256,
-                ortho = alfador.Mat44.ortho(
-                    (bounds.min.x / dim) * Config.particle_precision_factor,
-                    (bounds.max.x / dim) * Config.particle_precision_factor,
-                    (( dim - bounds.max.y ) / dim) * Config.particle_precision_factor,
-                    (( dim - bounds.min.y ) / dim) * Config.particle_precision_factor,
-                    -1, 1 );
-            this._projection = ortho;
-        },
-
         updateNodes: function(nodes, bandwidth) {
             if (!this._gl) {
                 return;
@@ -144,8 +132,7 @@
                 type: 'start',
                 spec: {
                     offset: Config.particle_offset,
-                    count: this.getUnscaledParticleCount(),
-                    precision_factor: Config.particle_precision_factor
+                    count: this.getUnscaledParticleCount()
                 },
                 nodes: this._nodes
             });
@@ -154,7 +141,6 @@
         _drawHiddenServices: function() {
             var hiddenServicesCount = Math.floor(Config.hiddenServiceProbability * this.getParticleCount());
             this._shader.setUniform( 'uColor', Config.particle_hidden_color);
-            this._vertexBuffer.bind();
             this._vertexBuffer.draw({
                 mode: 'POINTS',
                 offset: 0,
@@ -273,14 +259,21 @@
                 return;
             }
             if (this._isReady) {
+                // re-position canvas
+                if ( !this._isZooming ) {
+                    var topLeft = this._map.containerPointToLayerPoint([0, 0]);
+                    L.DomUtil.setPosition(this._canvas, topLeft);
+                }
+                // set uniforms
                 this._viewport.push();
                 this._shader.push();
-                this._shader.setUniform( 'uProjectionMatrix', this._projection );
+                this._shader.setUniform( 'uProjectionMatrix', this._getProjection() );
                 this._shader.setUniform( 'uTime', Date.now() - this._timestamp );
-                this._shader.setUniform( 'uSpeedFactor', Config.particle_base_speed_ms / ( this.getSpeed() * Config.particle_precision_factor ) );
+                this._shader.setUniform( 'uSpeedFactor', Config.particle_base_speed_ms / this.getSpeed() );
                 this._shader.setUniform( 'uOffsetFactor', this.getPathOffset() );
                 this._shader.setUniform( 'uPointSize', this.getParticleSize() );
                 this._shader.setUniform( 'uOpacity', this.getOpacity() );
+                // bind draw buffer
                 this._vertexBuffer.bind();
                 if (this._showTraffic === 'hidden') {
                     // draw hidden traffic
