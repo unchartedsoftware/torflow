@@ -95,7 +95,7 @@
         var limitStr = count ? 'LIMIT ' + count : '';
         connectionPool.query(
             'SELECT x,y,lat,lng,bandwidth,normalized_bandwidth,label FROM ' + config.db.database +
-                '.relay_aggregates WHERE date=? ORDER BY bandwidth DESC ' + limitStr,
+                '.relay_aggregates WHERE date=? AND lat<>0 AND lng<>0 ORDER BY bandwidth DESC ' + limitStr,
             [date],
             function(err,rows) {
                 if (err) {
