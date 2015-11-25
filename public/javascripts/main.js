@@ -338,6 +338,7 @@
         var $mapControls = $('.map-controls');
         var $dateControls = $('.date-controls');
         var $summaryButton = $('.summary-button');
+        var $githubButton = $('.github-button');
         // Create map controls
         if (_particleLayer.getContext()) {
             $mapControls.append(_addFlowControls( _createLayerUI('Particles', _particleLayer ), _particleLayer ));
@@ -401,21 +402,16 @@
         $aboutButton.click(function() {
             window.open('/about', '_blank');
         });
-        // Create github button
-        var $githubButton = $(
-            '<div class="github-button large-button">' +
-                    '<i class="fa fa-github-alt"></i>' +
-            '</div>');
-        $githubButton.click( function() {
-            window.open('https://github.com/unchartedsoftware/torflow', '_blank');
-        });
         $summaryContainer.append($aboutButton);
-        $summaryContainer.append($githubButton);
         // Add handler to summary button
         $summaryButton.click( function() {
             $outlierContainer.hide();
             $histogramContainer.hide();
             $summaryContainer.show();
+        });
+        // add handler to github button
+        $githubButton.click( function() {
+            window.open('https://github.com/unchartedsoftware/torflow', '_blank');
         });
         // Store containers
         _containers['outliers'] = $outlierContainer;

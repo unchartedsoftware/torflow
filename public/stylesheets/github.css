@@ -27,11 +27,6 @@
 
 .github-button {
     position: absolute;
-    bottom: 10px;
-    right: 44px;
-}
-
-.mobile .github-button {
-    bottom: 6px;
-    right: 40px;
+    top: 10px;
+    right: 78px;
 }
