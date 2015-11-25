@@ -30,7 +30,6 @@
 
     var _ = require('lodash');
     var relayDB = require('../db/relay');
-    var DBUtil = require('../db/db_utils');
 
     var PI = Math.PI;
     var PI_D_180 = PI / 180;

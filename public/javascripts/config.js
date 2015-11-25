@@ -74,7 +74,7 @@
         particle_min_size : 1,
         particle_max_size : 10,
         particle_zoom_scale: function( zoom, config_particle_size ) {
-            return config_particle_size * Math.max( 1, zoom - 3 );
+            return config_particle_size * Math.max( 1, Math.pow(2, zoom - 4 ) );
         },
         // particle speed config
         particle_base_speed_ms : 60000, // ms for particle to circle the earth
@@ -82,8 +82,6 @@
         particle_speed_max_factor : 4.0,
         // particle mobile factor
         particle_mobile_factor: 0.3,
-        // particle precision factor (used to scale the range for mobile devices)
-        particle_precision_factor: 1000,
         // hidden services
         hiddenServiceProbability : 0.04,
         // html config
@@ -94,7 +92,7 @@
             ' security on the Internet. Tor\'s users employ this network by connecting through a series of virtual tunnels' +
             ' rather than making a direct connection, thus allowing both organizations and individuals to share information ' +
             'over public networks without compromising their privacy.<a href="https://www.torproject.org/about/overview.html.en"><sup>[1]</sup></a></p>' +
-            '<p>The following visualization shows information flow between the ~6500 relay servers.</p>' +
+            '<p>The following visualization shows information flow between relay servers for a selected day.</p>' +
             '<p>Each circle represents the aggregated bandwidth of relay servers grouped by proximity. Hover over a circle to see information about that group.</p>' +
             '<p>Each colored country represents a country that is responsible for the top N client connections. Click on the country to display the distribution by time and the outlier counts.</p>' +
             '<p>Use the date slider to select the simulation date.</p>',
@@ -104,7 +102,7 @@
             ' security on the Internet. Tor\'s users employ this network by connecting through a series of virtual tunnels' +
             ' rather than making a direct connection, thus allowing both organizations and individuals to share information ' +
             'over public networks without compromising their privacy.<a href="https://www.torproject.org/about/overview.html.en"><sup>[1]</sup></a></p>' +
-            '<p>The following visualization shows information flow between the ~6500 relay servers.</p>',
+            '<p>The following visualization shows information flow between relay servers for a selected day.</p>',
         // base layer config
         localMapServer: false,
         // map starting position
@@ -121,7 +119,7 @@
                 'Map tiles by ' +
                 '<a href="http://cartodb.com/attributions">CartoDB</a>' +
                 '<div class="uncharted-logo">' +
-                    '<a href="http://uncharted.software" target="_blank">' +
+                    '<a href="https://uncharted.software" target="_blank">' +
                         '<img src="/img/uncharted-logo-white.png">' +
                     '</a>' +
                 '</div>' +
