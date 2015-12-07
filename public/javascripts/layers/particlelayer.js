@@ -62,7 +62,6 @@
                 0: {
                     size: 4,
                     type: 'FLOAT',
-                    stride: 32,
                     offset: 0
                 },
                 /**
@@ -74,7 +73,6 @@
                 1: {
                     size: 4,
                     type: 'FLOAT',
-                    stride: 32,
                     offset: 16
                 }
             });
