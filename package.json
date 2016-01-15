@@ -32,7 +32,7 @@
     "jade": "1.11.0",
     "lodash": "3.10.1",
     "main-bower-files": "2.7.0",
-    "merge-stream": "^1.0.0",
+    "merge-stream": "1.0.0",
     "moment": "2.10.6",
     "morgan": "1.6.1",
     "mysql": "2.9.0",
