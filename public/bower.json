@@ -7,7 +7,7 @@
     "async": "1.4.2",
     "d3": "3.5.6",
     "draggabilly": "1.2.4",
-    "esper": "0.6.5",
+    "esper": "0.6.0",
     "jquery": "2.1.4",
     "leaflet": "0.7.7",
     "lodash": "3.10.1",
