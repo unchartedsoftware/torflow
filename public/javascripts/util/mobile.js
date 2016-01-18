@@ -43,6 +43,5 @@
     };
 
     module.exports.IS_MOBILE = isMobile();
-    module.exports.IS_EMBEDED = isEmebedded();
 
 }());

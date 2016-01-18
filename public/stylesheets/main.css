@@ -149,7 +149,7 @@ a {
     position: absolute;
     bottom: 0;
     left: 10px;
-    width: calc(100% - 20px);
+    width: 50%;
 }
 
 .mobile .date-controls > svg {
