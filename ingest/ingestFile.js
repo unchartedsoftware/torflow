@@ -125,66 +125,78 @@
 	 * @param callback - callback
 	 */
 	var ingestFile = function(resolvedFilePath,callback) {
-		async.waterfall([
-			// extract relay data from csv
-			function(done) {
-				_extractFromCSV(resolvedFilePath,done);
-			},
-			// insert relay data into table
-			function(relaySpecs,numSkipped,guardClients,date,done) {
-				relayDB.updateRelays(
-					relaySpecs,
-					function(err) {
-						if (err) {
-							done(err);
-						} else {
-							done(null,relaySpecs,numSkipped,guardClients,date);
+
+		var dateString = _getSQLDateFromFilename(resolvedFilePath);
+		datesDB.dateExists(dateString, function(err,exists) {
+
+			// If we've already ingested the date, skip this file
+			if (err || exists) {
+				console.log('Ignoring.  Date already exists.');
+				callback(err);
+				return;
+			}
+
+			async.waterfall([
+					// extract relay data from csv
+					function(done) {
+						_extractFromCSV(resolvedFilePath,done);
+					},
+					// insert relay data into table
+					function(relaySpecs,numSkipped,guardClients,date,done) {
+						relayDB.updateRelays(
+							relaySpecs,
+							function(err) {
+								if (err) {
+									done(err);
+								} else {
+									done(null,relaySpecs,numSkipped,guardClients,date);
+								}
+							});
+					},
+					// get guard client histogram and write to countries table
+					function(relaySpecs,numSkipped,guardClients,date,done) {
+						var histogram = _getGuardClientsHistogram(guardClients,date);
+						countryDB.updateCountries(date, histogram, function(err) {
+							if (err) {
+								done(err);
+							} else {
+								done(null,date,relaySpecs.length,numSkipped);
+							}
+						});
+					},
+					// update relay_aggregates table
+					function(date,numImported,numSkipped,done) {
+						relayDB.updateAggregates(date,function(err) {
+							if (err) {
+								done(err);
+							} else {
+								done(null,date,numImported,numSkipped);
+							}
+						});
+					},
+					// update dates table
+					function(date,numImported,numSkipped,done) {
+						datesDB.updateDates(date, function(err) {
+							if (err) {
+								done(err);
+							} else {
+								done(null,numImported,numSkipped);
+							}
+						});
+					}],
+				function(err, numImported, numSkipped ) {
+					if (err) {
+						callback(err);
+					} else {
+						var logStr = 'Imported ' + numImported + ' relays from ' + resolvedFilePath;
+						if (numSkipped > 0) {
+							logStr += ' (' + numSkipped + ' of ' + numImported+numSkipped + ' skipped due to malformed data)';
 						}
-					});
-			},
-			// get guard client histogram and write to countries table
-			function(relaySpecs,numSkipped,guardClients,date,done) {
-				var histogram = _getGuardClientsHistogram(guardClients,date);
-				countryDB.updateCountries(date, histogram, function(err) {
-					if (err) {
-						done(err);
-					} else {
-						done(null,date,relaySpecs.length,numSkipped);
+						console.log(logStr);
+						callback();
 					}
 				});
-			},
-			// update relay_aggregates table
-			function(date,numImported,numSkipped,done) {
-				relayDB.updateAggregates(date,function(err) {
-					if (err) {
-						done(err);
-					} else {
-						done(null,date,numImported,numSkipped);
-					}
-				});
-			},
-			// update dates table
-			function(date,numImported,numSkipped,done) {
-				datesDB.updateDates(date, function(err) {
-					if (err) {
-						done(err);
-					} else {
-						done(null,numImported,numSkipped);
-					}
-				});
-			}],
-	        function(err, numImported, numSkipped ) {
-				if (err) {
-					callback(err);
-				} else {
-					var logStr = 'Imported ' + numImported + ' relays from ' + resolvedFilePath;
-					if (numSkipped > 0) {
-						logStr += ' (' + numSkipped + ' of ' + numImported+numSkipped + ' skipped due to malformed data)';
-					}
-					console.log(logStr);
-					callback();
-				}
-			});
+		});
 	};
 
 	module.exports = ingestFile;

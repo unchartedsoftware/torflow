@@ -91,9 +91,23 @@
             });
     };
 
+    var dateExists = function(dateString,callback) {
+        connectionPool.query(
+            'SELECT * FROM ' + config.db.database + '.dates WHERE date=?',[dateString],
+            function(err,rows) {
+                if (err) {
+                    callback(err);
+                } else {
+                    callback(null,rows.length > 0);
+                }
+            }
+        )
+    };
+
     module.exports.updateDates = updateDates;
     module.exports.getDates = getDates;
     module.exports.getMinBandwidth = getMinBandwidth;
     module.exports.getMaxBandwidth = getMaxBandwidth;
+    module.exports.dateExists = dateExists;
 
 }());
