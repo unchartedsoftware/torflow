@@ -40,6 +40,23 @@ void main() {
     // get start and end positions
     vec2 startPos = aPositions.xy;
     vec2 endPos = aPositions.zw;
+    // get signed horizontal distance between start and end positions
+    float a = endPos.x - startPos.x;
+    // determine if the path the particle takes should wrap around the
+    // pacific ocean
+    if (startPos.x < 0.5 && endPos.x > 0.5) {
+        float b = (1.0 - endPos.x) + startPos.x;
+        if (a > b) {
+            // wrap endpoint west around the pacific
+            endPos.x -= 1.0;
+        }
+    } else if (startPos.x > 0.5 && endPos.x < 0.5) {
+        float b = startPos.x - (1.0 + endPos.x);
+        if (a < b) {
+            // wrap endpoint east around the pacific
+            endPos.x += 1.0;
+        }
+    }
     // get difference vector and distance
     vec2 diff = endPos - startPos;
     float dist = length( diff );
@@ -62,6 +79,9 @@ void main() {
     float t = mod( uTime + tOffset, nSpeed ) / nSpeed;
     // set point size
     gl_PointSize = uPointSize;
-    // set position
-    gl_Position = uProjectionMatrix * vec4( getBezier(t, startPos, p1, p2, endPos), 0.0, 1.0 );
+    // get position along the curve
+    vec2 pos = getBezier(t, startPos, p1, p2, endPos);
+    // set position, be sure to modulos it so that it does not extent beyond
+    // the bounds of the map.
+    gl_Position = uProjectionMatrix * vec4( mod(pos.x, 1.0), pos.y, 0.0, 1.0 );
 }
