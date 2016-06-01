@@ -28,6 +28,13 @@
         "Added Google Analytics",
         "Improved controls for tweaking visuals (opacity, zoom, etc)"
       ]
+    },
+    {
+      "version": "1.1.1",
+      "releaseDate": "June 1st, 2016",
+      "notes" : [
+        "Update license"
+      ]
     }
   ]
 }
