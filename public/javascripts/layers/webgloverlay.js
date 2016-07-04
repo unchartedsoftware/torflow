@@ -67,10 +67,8 @@
             $.when( shadersDone, buffersDone ).then( function() {
                 var width = self._canvas.width,
                     height = self._canvas.height;
-                self._viewport = new esper.Viewport({
-                    width: width,
-                    height: height
-                });
+                self._viewport = new esper.Viewport();
+                self._viewport.resize(width, height);
                 self._initialized = true;
                 self._draw();
             });
@@ -79,8 +77,11 @@
         _initCanvas: function () {
             this._canvas = L.DomUtil.create('canvas', 'leaflet-webgl-layer leaflet-layer');
             var size = this._map.getSize();
-            this._canvas.width = size.x;
-            this._canvas.height = size.y;
+            var pixelRatio = window.devicePixelRatio;
+            this._canvas.width = size.x * pixelRatio;
+            this._canvas.height = size.y * pixelRatio;
+            this._canvas.style.width = size.x + 'px';
+            this._canvas.style.height = size.y + 'px';
             var animated = this._map.options.zoomAnimation && L.Browser.any3d;
             L.DomUtil.addClass(this._canvas, 'leaflet-zoom-' + (animated ? 'animated' : 'hide'));
         },
@@ -168,13 +169,18 @@
         },
 
         _resize: function (resizeEvent) {
-            var width = resizeEvent.newSize.x,
+            var pixelRatio = window.devicePixelRatio,
+                width = resizeEvent.newSize.x,
                 height = resizeEvent.newSize.y;
             if ( this._initialized ) {
-                this._viewport.resize( width, height );
+                this._viewport.resize( width * pixelRatio, height * pixelRatio );
+                this._canvas.width = width * pixelRatio;
+                this._canvas.height = height * pixelRatio;
+                this._canvas.style.width = width + 'px';
+                this._canvas.style.height = height + 'px';
             }
         },
-        
+
         _draw: function () {
             if ( this._initialized ) {
                 if ( !this._hidden ) {
