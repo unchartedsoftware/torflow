@@ -425,6 +425,59 @@
         }
     };
 
+    var _buildMapLocQueryParam = function() {
+        var center = _map.getCenter();
+        return center.lng + ',' + center.lat + ',' + _map.getZoom();
+    };
+
+    var _updateMapLocUrl = function() {
+        var hash = window.location.hash;
+        var mapLocIndex = hash.indexOf('ML=');
+        var endIndex;
+
+        if(hash.indexOf('?') < 0) {
+            hash = hash + '?ML=' + _buildMapLocQueryParam();
+        } else if(mapLocIndex < 0) {
+            hash = hash + '&ML=' + _buildMapLocQueryParam();
+        } else {
+            endIndex = hash.indexOf('&', mapLocIndex);
+            if(endIndex < 0) {
+                endIndex = hash.length;
+            }
+
+            hash = hash.replace(hash.substring(mapLocIndex, endIndex), 'ML=' + _buildMapLocQueryParam())
+        }
+
+
+        window.location.hash = hash;
+    };
+
+    var getMapLocFromUrl = function () {
+        var zoom;
+        var center = [0,0];
+        var hash = window.location.hash;
+        var mapLocIndex = hash.indexOf('ML=');
+        var endIndex, mapLocStr;
+        if (mapLocIndex > 0) {
+            endIndex = hash.indexOf('&', mapLocIndex);
+            if (endIndex < 0) {
+                endIndex = hash.length;
+            }
+            mapLocStr = hash.substring(mapLocIndex + 3, endIndex);
+            var items = mapLocStr.split(',');
+            if (items.length === 3) {
+                zoom = parseInt(items[2], 10);
+                center[0] = parseFloat(items[1]);
+                center[1] = parseFloat(items[0]);
+            }
+
+            if(isNaN(zoom) || isNaN(center[0]) || isNaN(center[1])) {
+                return;
+            }
+
+            return {zoom:zoom, center:center};
+        }
+    };
     var _initMap = function() {
         // Initialize the map object
         _map = L.map('map', {
@@ -433,10 +486,24 @@
             minZoom: IS_MOBILE ? Config.mobile_zoom.min : Config.desktop_zoom.min,
             maxZoom: Config.maxZoom || 18
         });
-        _map.setView([40, -42], IS_MOBILE ? Config.mobile_zoom.start : Config.desktop_zoom.start);
+
+        var center = [40, -42];
+        var zoom = IS_MOBILE ? Config.mobile_zoom.start : Config.desktop_zoom.start;
+
+        var mapLoc = getMapLocFromUrl();
+
+        if(mapLoc) {
+            center = mapLoc.center;
+            zoom = mapLoc.zoom;
+        }
+
+        _map.setView(center, zoom);
         // Initialize zoom controls
         var zoomControls = new L.Control.Zoom({ position: 'topright' });
         zoomControls.addTo(_map);
+
+        _map.on('moveend', _updateMapLocUrl);
+        _map.on('zoomend', _updateMapLocUrl);
     };
 
     var _initLayers = function() {

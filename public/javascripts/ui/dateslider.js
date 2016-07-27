@@ -60,6 +60,10 @@
         var index;
         try {
             var hash = window.location.hash.replace('#/', '');
+            var queryIndex = hash.indexOf('?');
+            if(queryIndex >= 0) {
+                hash = hash.substring(0, queryIndex);
+            }
             if (hash !== '') {
                 var datePieces = hash.split('-');
                 var year = datePieces[0];
@@ -77,7 +81,13 @@
         var hashIndex = _getDateIndexFromHash(dates);
         if ( hashIndex !== dateIndex ) {
             var m = _getMoment(dates, dateIndex);
-            window.location.hash = '#/' + m.year() + '-' + (m.month()+1) + '-' + m.date();
+            var hash = window.location.hash;
+            var queryIndex = hash.indexOf('?');
+            var query = '';
+            if(queryIndex >= 0) {
+                query = hash.substring(queryIndex);
+            }
+            window.location.hash = '#/' + m.year() + '-' + (m.month()+1) + '-' + m.date() + query;
         }
     };
 
@@ -96,7 +106,7 @@
         spec = spec || {};
         this._dates = spec.dates;
         var hashIndex = _getDateIndexFromHash(this._dates);
-        this._dateIndex = hashIndex !== undefined ? hashIndex : this._dates.length-1;
+        this._dateIndex = hashIndex !== undefined && hashIndex >= 0 ? hashIndex : this._dates.length-1;
         spec.maxIndex = spec.dates.length-1;
         spec.initialIndex = this._dateIndex;
         spec.initialDateString = this.getDateString();
@@ -137,6 +147,11 @@
 
         $(window).on('hashchange', function() {
             var hashIndex = _getDateIndexFromHash(self._dates);
+
+            if(hashIndex === -1) {
+                return;
+            }
+
             var dateIndex = hashIndex !== undefined ? hashIndex : self._dates.length-1;
             _setDateIndex(self,dateIndex);
         });
