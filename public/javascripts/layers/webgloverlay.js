@@ -1,29 +1,18 @@
 /**
-* Copyright © 2015 Uncharted Software Inc.
-*
-* Property of Uncharted™, formerly Oculus Info Inc.
-* http://uncharted.software/
-*
-* Released under the MIT License.
-*
-* Permission is hereby granted, free of charge, to any person obtaining a copy of
-* this software and associated documentation files (the "Software"), to deal in
-* the Software without restriction, including without limitation the rights to
-* use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies
-* of the Software, and to permit persons to whom the Software is furnished to do
-* so, subject to the following conditions:
-*
-* The above copyright notice and this permission notice shall be included in all
-* copies or substantial portions of the Software.
-*
-* THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-* IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-* FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-* AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-* LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-* OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-* SOFTWARE.
-*/
+ Copyright 2016 Uncharted Software Inc.
+
+ Licensed under the Apache License, Version 2.0 (the "License");
+ you may not use this file except in compliance with the License.
+ You may obtain a copy of the License at
+
+ http://www.apache.org/licenses/LICENSE-2.0
+
+ Unless required by applicable law or agreed to in writing, software
+ distributed under the License is distributed on an "AS IS" BASIS,
+ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ See the License for the specific language governing permissions and
+ limitations under the License.
+ */
 
 (function() {
     'use strict';
@@ -78,10 +67,8 @@
             $.when( shadersDone, buffersDone ).then( function() {
                 var width = self._canvas.width,
                     height = self._canvas.height;
-                self._viewport = new esper.Viewport({
-                    width: width,
-                    height: height
-                });
+                self._viewport = new esper.Viewport();
+                self._viewport.resize(width, height);
                 self._initialized = true;
                 self._draw();
             });
@@ -90,8 +77,11 @@
         _initCanvas: function () {
             this._canvas = L.DomUtil.create('canvas', 'leaflet-webgl-layer leaflet-layer');
             var size = this._map.getSize();
-            this._canvas.width = size.x;
-            this._canvas.height = size.y;
+            var pixelRatio = window.devicePixelRatio;
+            this._canvas.width = size.x * pixelRatio;
+            this._canvas.height = size.y * pixelRatio;
+            this._canvas.style.width = size.x + 'px';
+            this._canvas.style.height = size.y + 'px';
             var animated = this._map.options.zoomAnimation && L.Browser.any3d;
             L.DomUtil.addClass(this._canvas, 'leaflet-zoom-' + (animated ? 'animated' : 'hide'));
         },
@@ -179,13 +169,18 @@
         },
 
         _resize: function (resizeEvent) {
-            var width = resizeEvent.newSize.x,
+            var pixelRatio = window.devicePixelRatio,
+                width = resizeEvent.newSize.x,
                 height = resizeEvent.newSize.y;
             if ( this._initialized ) {
-                this._viewport.resize( width, height );
+                this._viewport.resize( width * pixelRatio, height * pixelRatio );
+                this._canvas.width = width * pixelRatio;
+                this._canvas.height = height * pixelRatio;
+                this._canvas.style.width = width + 'px';
+                this._canvas.style.height = height + 'px';
             }
         },
-        
+
         _draw: function () {
             if ( this._initialized ) {
                 if ( !this._hidden ) {
