@@ -22,6 +22,14 @@ bower install
 gulp install
 ```
 
+Create a config file:
+
+```bash
+cp config.template.js config.js
+```
+
+Edit config.js to point to your MySQL database.
+
 ## Ingesting Data
 
 Ingest data into MySQL via the bin/ingest node script. There is a set of sample data in the ./data/sample folder. To import this into your database:
@@ -31,14 +39,6 @@ node bin/ingest data/sample
 ```
 
 ## Running
-
-Create a config file:
-
-```bash
-cp config.template.js config.js
-```
-
-Edit config.js to point to your MySQL database.
 
 Start the server:
 
