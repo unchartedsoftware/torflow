@@ -339,6 +339,7 @@
         var $dateControls = $('.date-controls');
         var $summaryButton = $('.summary-button');
         var $githubButton = $('.github-button');
+        var $shareButton = $('.share-button');
         // Create map controls
         if (_particleLayer.getContext()) {
             $mapControls.append(_addFlowControls( _createLayerUI('Particles', _particleLayer ), _particleLayer ));
@@ -394,6 +395,7 @@
         // Add summary content
         $summaryContainer.find('.chart-content')
             .append(IS_MOBILE ? Config.summary_mobile : Config.summary);
+
         // Create about button
         var $aboutButton = $(
             '<div class="about-button large-button">' +
@@ -413,6 +415,25 @@
         $githubButton.click( function() {
             window.open('https://github.com/unchartedsoftware/torflow', '_blank');
         });
+        //add handler to share button
+        var $shareContainer = $( ChartTemplate() )
+            .addClass('share-container');
+        $shareContainer.appendTo('.main');
+        $shareContainer.find('.chart-close-button').click(function() {
+            $shareContainer.hide();
+        });
+        // Add summary content
+        $shareContainer.find('.chart-content').jsSocials({
+            shareIn: "popup",
+            shares: ["twitter", "facebook", "googleplus", "linkedin", "pinterest"]
+        });
+
+
+
+        $shareButton.click(function() {
+           $shareContainer.show();
+        });
+
         // Store containers
         _containers['outliers'] = $outlierContainer;
         _containers['histogram'] = $histogramContainer;
