@@ -411,7 +411,7 @@
         $shareContainer.find('.chart-close-button').click(function() {
             $shareContainer.hide();
         });
-        // Add summary content
+        // Add share content
         $shareContainer.find('.chart-content').jsSocials({
             shareIn: "popup",
             shares: ["twitter", "facebook", "googleplus", "linkedin", "pinterest"]
