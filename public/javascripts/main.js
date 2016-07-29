@@ -414,7 +414,12 @@
         // Add share content
         $shareContainer.find('.chart-content').jsSocials({
             shareIn: "popup",
-            shares: ["twitter", "facebook", "googleplus", "linkedin", "pinterest"]
+            shares: ["twitter", "facebook", "googleplus", "linkedin", "pinterest"],
+            on: {
+                click: function() {
+                    $shareContainer.hide();
+                }
+            }
         });
 
 
