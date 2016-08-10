@@ -48,6 +48,12 @@
             this._geoJSONLayer.addTo(map);
             this._$pane = $('#map').find('.leaflet-overlay-pane');
             this.setOpacity(this.getOpacity());
+
+            var country = this._getCountryFromUrl();
+            if(country) {
+                this._openCharts(country.cc2, country.cc3, this);
+            }
+
             return this;
         },
 
@@ -184,6 +190,57 @@
             }
         },
 
+        _openCharts: function (cc2, cc3, self) {
+
+
+            self._createOutlierChart(cc2, cc3);
+            self._createDateHistogram(cc2, cc3);
+        },
+
+        _updateCountryUrl: function(cc2, cc3) {
+            var hash = window.location.hash;
+            var countryIndex = hash.indexOf('C=');
+            var endIndex;
+
+            if(hash.indexOf('?') < 0) {
+                hash = hash + '?C=' + cc2 + ',' + cc3;
+            } else if(countryIndex < 0) {
+                hash = hash + '&C=' + cc2 + ',' + cc3;
+            } else {
+                endIndex = hash.indexOf('&', countryIndex);
+                if(endIndex < 0) {
+                    endIndex = hash.length;
+                }
+
+                hash = hash.replace(hash.substring(countryIndex, endIndex), 'C=' + cc2 + ',' + cc3)
+            }
+
+            window.location.hash = hash;
+        },
+
+        _getCountryFromUrl: function () {
+            var cc2, cc3;
+            var hash = window.location.hash;
+            var countryIndex = hash.indexOf('C=');
+            var endIndex, str;
+            if (countryIndex > 0) {
+                endIndex = hash.indexOf('&', countryIndex);
+                if (endIndex < 0) {
+                    endIndex = hash.length;
+                }
+                str = hash.substring(countryIndex + 2, endIndex);
+                var items = str.split(',');
+                if(items.length === 2) {
+                    cc2 = items[0];
+                    cc3 = items[1];
+
+                    return {cc2:cc2, cc3:cc3};
+                }
+
+
+            }
+        },
+
         _bindClickEvent : function(feature, layer) {
             var self = this;
             if (!IS_MOBILE) {
@@ -195,8 +252,8 @@
                         var feature = event.target.feature;
                         var cc3 = feature.id || feature.properties.ISO_A3;
                         var cc2 = self._threeLetterToTwoLetter(cc3);
-                        self._createOutlierChart(cc2, cc3);
-                        self._createDateHistogram(cc2, cc3);
+                        self._openCharts(cc2, cc3, self);
+                        self._updateCountryUrl(cc2, cc3);
                     },
                     mouseover: function() {
                         layer.setStyle(self._getFeatureHoverStyle());

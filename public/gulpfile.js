@@ -103,7 +103,7 @@ gulp.task('build-extern-js', function() {
 
 gulp.task('build-extern-css', function() {
     return gulp.src( bower() )
-        .pipe( filter('**/*.css') ) // filter css files
+        .pipe( filter(['**/*.css', '!jssocials/**/jssocials-theme*.css']) ) // filter css files
         .pipe( minifyCss({ keepSpecialComments: 0 }) )
         .pipe( concat('extern.css') )
         .pipe( gulp.dest( './stylesheets/' ) );
