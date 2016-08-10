@@ -24,41 +24,10 @@
 * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 * SOFTWARE.
 */
-
-.share-button {
-    position: absolute;
-    top: 10px;
-    right: 112px;
-}
-
-.mobile .share-button {
-    display: none;
-}
-
-.share-content {
-    position: relative;
-    height: 100%;
-    width: 100%;
-    z-index: 1;
-}
-
-.share-container {
-    position: absolute;
-    text-align: left;
-    top: 10px;
-    right: 146px;
-    width: 400px;
-    height: 44px;
-    background-color: rgba(0,0,0,0.5);
+.jssocials-share-link {
     border-radius: 4px;
-    border: 1px solid rgb(20, 155, 223);
-    z-index: 2;
-    padding: 4px 10px;
-    display: none;
 }
 
-.share-close-button {
-    position: absolute;
-    top: 8px;
-    right: 8px;
+.jssocials-shares {
+    margin: 0;
 }

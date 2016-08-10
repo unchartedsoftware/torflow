@@ -35,6 +35,7 @@
     var Config = require('./config');
 
     var ChartTemplate = require('./templates/chart');
+    var ShareTemplate = require('./templates/share');
     var MainTemplate = require('./templates/main');
     var AboutTemplate = require('./templates/about');
 
@@ -404,29 +405,28 @@
         $githubButton.click( function() {
             window.open('https://github.com/unchartedsoftware/torflow', '_blank');
         });
-        //add handler to share button
-        var $shareContainer = $( ChartTemplate() )
-            .addClass('share-container');
-        $shareContainer.appendTo('.main');
-        $shareContainer.find('.chart-close-button').click(function() {
-            $shareContainer.hide();
-        });
-        // Add share content
-        $shareContainer.find('.chart-content').jsSocials({
-            shareIn: "popup",
-            shares: ["twitter", "facebook", "googleplus", "linkedin", "pinterest"],
-            on: {
-                click: function() {
-                    $shareContainer.hide();
+
+        if (!IS_MOBILE) {
+            // add handler to share button
+            var $shareContainer = $(ShareTemplate());
+            $shareContainer.appendTo('.main');
+            $shareContainer.find('.share-close-button').click(function() {
+                $shareContainer.hide();
+            });
+            // Add share content
+            $shareContainer.find('.share-content').jsSocials({
+                showCount: false,
+                shares: ['twitter', 'facebook', 'googleplus', 'linkedin', 'pinterest'],
+                on: {
+                    click: function() {
+                        $shareContainer.hide();
+                    }
                 }
-            }
-        });
-
-
-
-        $shareButton.click(function() {
-           $shareContainer.show();
-        });
+            });
+            $shareButton.click(function() {
+               $shareContainer.show();
+            });
+        }
 
         // Store containers
         _containers['outliers'] = $outlierContainer;
@@ -459,10 +459,8 @@
             if(endIndex < 0) {
                 endIndex = hash.length;
             }
-
-            hash = hash.replace(hash.substring(mapLocIndex, endIndex), 'ML=' + _buildMapLocQueryParam())
+            hash = hash.replace(hash.substring(mapLocIndex, endIndex), 'ML=' + _buildMapLocQueryParam());
         }
-
 
         window.location.hash = hash;
     };

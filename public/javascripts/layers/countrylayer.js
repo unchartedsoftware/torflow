@@ -48,12 +48,12 @@
             this._geoJSONLayer.addTo(map);
             this._$pane = $('#map').find('.leaflet-overlay-pane');
             this.setOpacity(this.getOpacity());
-
-            var country = this._getCountryFromUrl();
-            if(country) {
-                this._openCharts(country.cc2, country.cc3, this);
+            if (!IS_MOBILE) {
+                var country = this._getCountryFromUrl();
+                if (country) {
+                    this._openCharts(country.cc2, country.cc3, this);
+                }
             }
-
             return this;
         },
 
@@ -73,7 +73,7 @@
             this._countryCount = Math.round(count);
         },
 
-        set : function(histogram) {
+        set: function(histogram) {
             var self = this;
             // store country / count histogram
             this._histogram = histogram;
@@ -191,8 +191,6 @@
         },
 
         _openCharts: function (cc2, cc3, self) {
-
-
             self._createOutlierChart(cc2, cc3);
             self._createDateHistogram(cc2, cc3);
         },
@@ -201,7 +199,6 @@
             var hash = window.location.hash;
             var countryIndex = hash.indexOf('C=');
             var endIndex;
-
             if(hash.indexOf('?') < 0) {
                 hash = hash + '?C=' + cc2 + ',' + cc3;
             } else if(countryIndex < 0) {
@@ -211,10 +208,8 @@
                 if(endIndex < 0) {
                     endIndex = hash.length;
                 }
-
-                hash = hash.replace(hash.substring(countryIndex, endIndex), 'C=' + cc2 + ',' + cc3)
+                hash = hash.replace(hash.substring(countryIndex, endIndex), 'C=' + cc2 + ',' + cc3);
             }
-
             window.location.hash = hash;
         },
 
@@ -233,11 +228,8 @@
                 if(items.length === 2) {
                     cc2 = items[0];
                     cc3 = items[1];
-
                     return {cc2:cc2, cc3:cc3};
                 }
-
-
             }
         },
 
