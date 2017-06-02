@@ -533,7 +533,7 @@
             {
                 attribution: Config.mapAttribution,
                 maxZoom: Config.maxZoom || 18,
-                noWrap: true
+                noWrap: false
             });
         _baseLayer.addTo(_map);
         // Initialize the country layer
@@ -559,7 +559,7 @@
             mapUrlBase + 'dark_only_labels/{z}/{x}/{y}.png',
             {
                 maxZoom: Config.maxZoom || 18,
-                noWrap: true,
+                noWrap: false,
                 zIndex: 10,
                 opacity: 0.65
             });

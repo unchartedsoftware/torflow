@@ -9,6 +9,9 @@ uniform float uPointSize;
 uniform float uSpeedFactor;
 uniform float uOffsetFactor;
 
+uniform float uMinX;
+uniform float uMaxX;
+
 float B1(float t) {
     return t*t*t;
 }
@@ -81,7 +84,15 @@ void main() {
     gl_PointSize = uPointSize;
     // get position along the curve
     vec2 pos = getBezier(t, startPos, p1, p2, endPos);
-    // set position, be sure to modulos it so that it does not extent beyond
-    // the bounds of the map.
-    gl_Position = uProjectionMatrix * vec4( mod(pos.x, 1.0), pos.y, 0.0, 1.0 );
+
+    // The map coordinates are [0,1] and repeat in every integer interval.
+    // Start with pos.x in [0,1]
+    pos.x = mod(pos.x, 1.0);
+
+    // Move pos.x to an integer tile so that it lies between [uMinX,uMaxX]
+    float leftTile = floor(uMinX);
+    pos.x += leftTile;
+    if (pos.x<uMinX) pos.x += 1.0;
+
+    gl_Position = uProjectionMatrix * vec4( pos.x, pos.y, 0.0, 1.0 );
 }

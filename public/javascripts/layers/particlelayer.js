@@ -251,6 +251,11 @@
                     var topLeft = this._map.containerPointToLayerPoint([0, 0]);
                     L.DomUtil.setPosition(this._canvas, topLeft);
                 }
+                var bounds = this._map.getPixelBounds(),
+                    dim = Math.pow( 2, this._map.getZoom() ) * 256;
+                var minX = bounds.min.x/dim, 
+                    maxX = bounds.max.x/dim;
+                
                 // set uniforms
                 this._viewport.push();
                 this._shader.push();
@@ -260,6 +265,9 @@
                 this._shader.setUniform( 'uOffsetFactor', this.getPathOffset() );
                 this._shader.setUniform( 'uPointSize', this.getParticleSize() );
                 this._shader.setUniform( 'uOpacity', this.getOpacity() );
+                this._shader.setUniform( 'uMinX', minX);
+                this._shader.setUniform( 'uMaxX', maxX);
+
                 // bind draw buffer
                 this._vertexBuffer.bind();
                 if (this._showTraffic === 'hidden') {
