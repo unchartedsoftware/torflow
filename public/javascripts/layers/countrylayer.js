@@ -45,6 +45,7 @@
 
         addTo: function(map) {
             this._map = map;
+            this._setMapMinX();
             this._geoJSONLayer.addTo(map);
             this._$pane = $('#map').find('.leaflet-overlay-pane');
             this.setOpacity(this.getOpacity());
@@ -122,8 +123,56 @@
             async.series(requests);
         },
 
-        _render : function(countryCode) {
+        _setMapMinX : function() {
+            var bounds = this._map.getPixelBounds(),
+                dim = Math.pow( 2, this._map.getZoom() ) * 256;
+            this._minX = bounds.min.x/dim;
+        },
+
+        updateBounds : function() {
+            this.clear();
+            this._setMapMinX();
+            this.set(this._histogram);
+        },
+
+        _translatePoly : function(polys, leftPageMinLng, minLng) {
+                _.forIn(polys, function(poly) {
+                    var minPolyX = null;
+                    var maxPolyX = null;
+                    _.forIn(poly, function(coord) {
+                        if (minPolyX==null || minPolyX>coord[0]) { minPolyX = coord[0]; }
+                        if (maxPolyX==null || maxPolyX<coord[0]) { maxPolyX = coord[0]; }
+                    });
+                    var offsetX = leftPageMinLng+180.0;
+                    if (maxPolyX+offsetX<minLng) { offsetX += 360.0; }
+                    _.forIn(poly, function(coord) {
+                        coord[0] += offsetX;
+                    });
+                });
+        },
+
+        _translateGeo : function(geoJSON) {
+            if ((!geoJSON.features) || (!geoJSON.features.length)) { return geoJSON; }
+            var cloneGeo = $.extend(true, {}, geoJSON);
+            var geometry = cloneGeo.features[0].geometry;
+            var minLng = this._minX*360.0-180.0;
+            var leftPageMinLng = Math.floor(this._minX)*360.0-180.0;
+            var self = this;
+            if (geometry.type==='MultiPolygon') {
+                _.forIn(geometry.coordinates, function(group) {
+                    self._translatePoly(group, leftPageMinLng, minLng);
+                });
+            } else if (geometry.type==='Polygon') {
+                self._translatePoly(geometry.coordinates, leftPageMinLng, minLng);
+            } else {
+                console.log( geoJSON.cc_3 + ':' + geometry.type);
+            }
+            return cloneGeo;
+        },
+
+         _render : function(countryCode) {
             var geoJSON = this._geoJSONMap[countryCode];
+            geoJSON = this._translateGeo(geoJSON);
             if (geoJSON) {
                 this._geoJSONLayer.addData(geoJSON);
             }

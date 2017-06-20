@@ -516,6 +516,8 @@
         zoomControls.addTo(_map);
 
         _map.on('moveend', _updateMapLocUrl);
+        _map.on('moveend', function() { _countryLayer.updateBounds();});
+        _map.on('moveend', function() { _markerLayer.updateBounds();});
         _map.on('zoomend', _updateMapLocUrl);
     };
 
