@@ -6,7 +6,7 @@
 
 ## Building
 
-Requires [node](http://nodejs.org/), [bower](http://bower.io/), and [gulp](http://http://gulpjs.com/).
+Requires [Docker](https://docker.io), [node](http://nodejs.org/), [bower](http://bower.io/), and [gulp](http://http://gulpjs.com/).
 
 Install server-side modules:
 
@@ -22,13 +22,14 @@ bower install
 gulp install
 ```
 
-Create a config file:
+Up the database container:
 
 ```bash
-cp config.template.js config.js
+cd containers/
+docker-compose up -d
 ```
 
-Edit config.js to point to your MySQL database.
+Edit config.js to point to your MySQL database if you're running without the local containerized database.
 
 ## Ingesting Data
 
