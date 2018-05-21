@@ -35,6 +35,13 @@
       "notes" : [
         "Update license"
       ]
+    },
+    {
+      "version": "1.1.2",
+      "releaseDate": "May 21st, 2018",
+      "notes": [
+        "Update analytics for GPDR"
+      ]
     }
   ]
 }
