@@ -74,6 +74,12 @@ Run the app container:
 docker run -ti --rm --name torflow -v /logs/:/var/log/supervisor/ -p 3000:3000 docker.uncharted.software/torflow
 ```
 
+Or up it in the test docker-compose stack:
+```bash
+cd containers/
+docker-compose -f docker-compose-test.yaml up
+```
+
 If your container config.js points at a MySQL server that can't be resolved, you can add a hosts entry at run-time using the Docker parameter `--add-host`.
 
 ### Ingest Container
