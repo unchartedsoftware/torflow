@@ -1,0 +1,24 @@
+version: '2'
+services:
+  mysql:
+    image: mysql:5.7
+    ports:
+      - "3306:3306"
+    environment:
+      MYSQL_ROOT_PASSWORD: torflow
+      MYSQL_USER: torflow
+      MYSQL_PASSWORD: torflow
+      MYSQL_DATABASE: torflow
+    volumes:
+      - ./mysql:/var/lib/mysql
+
+  application:
+    image: docker.uncharted.software/torflow
+    ports:
+      - "3000:3000"
+    links:
+      - mysql
+    depends_on:
+      - mysql
+    environment:
+      DB_HOST: mysql

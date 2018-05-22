@@ -50,7 +50,6 @@ public/extern/**/*
 ## App Specific
 # ----------------------------------------
 
-config.js
 !public/javascripts/config.js
 **/torflow.js
 **/torflow.css
@@ -62,6 +61,7 @@ config.js
 .vagrant/
 map/
 data/relays/*
+containers/mysql/
 
 # ----------------------------------------
 ## Deploy

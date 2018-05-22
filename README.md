@@ -6,7 +6,7 @@
 
 ## Building
 
-Requires [node](http://nodejs.org/), [bower](http://bower.io/), and [gulp](http://http://gulpjs.com/).
+Requires [Docker](https://docker.io), [node](http://nodejs.org/), [bower](http://bower.io/), and [gulp](http://http://gulpjs.com/).
 
 Install server-side modules:
 
@@ -22,13 +22,14 @@ bower install
 gulp install
 ```
 
-Create a config file:
+Up the database container:
 
 ```bash
-cp config.template.js config.js
+cd containers/
+docker-compose up -d
 ```
 
-Edit config.js to point to your MySQL database.
+Edit config.js to point to your MySQL database if you're running without the local containerized database.
 
 ## Ingesting Data
 
@@ -71,6 +72,12 @@ Run the app container:
 
 ```bash
 docker run -ti --rm --name torflow -v /logs/:/var/log/supervisor/ -p 3000:3000 docker.uncharted.software/torflow
+```
+
+Or up it in the test docker-compose stack:
+```bash
+cd containers/
+docker-compose -f docker-compose-test.yaml up
 ```
 
 If your container config.js points at a MySQL server that can't be resolved, you can add a hosts entry at run-time using the Docker parameter `--add-host`.
