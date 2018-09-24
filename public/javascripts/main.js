@@ -516,6 +516,8 @@
         zoomControls.addTo(_map);
 
         _map.on('moveend', _updateMapLocUrl);
+        _map.on('moveend', function() { _countryLayer.updateBounds();});
+        _map.on('moveend', function() { _markerLayer.updateBounds();});
         _map.on('zoomend', _updateMapLocUrl);
     };
 
@@ -533,7 +535,7 @@
             {
                 attribution: Config.mapAttribution,
                 maxZoom: Config.maxZoom || 18,
-                noWrap: true
+                noWrap: false
             });
         _baseLayer.addTo(_map);
         // Initialize the country layer
@@ -559,7 +561,7 @@
             mapUrlBase + 'dark_only_labels/{z}/{x}/{y}.png',
             {
                 maxZoom: Config.maxZoom || 18,
-                noWrap: true,
+                noWrap: false,
                 zIndex: 10,
                 opacity: 0.65
             });

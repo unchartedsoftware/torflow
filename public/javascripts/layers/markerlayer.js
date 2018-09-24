@@ -37,6 +37,7 @@
 
         addTo: function(map) {
             this._map = map;
+            this._setMapMinX();
             this._markerLayer.addTo(map);
             this._$pane = $('#map').find('.leaflet-marker-pane');
             this.setOpacity(this.getOpacity());
@@ -63,6 +64,8 @@
             var self = this;
             this._nodes = nodeData.nodes;
             this._minMax = nodeData.minMax;
+            var minLng = this._minX*360.0-180.0;
+            var leftPageMinLng = Math.floor(this._minX)*360.0-180.0;
             var markers = this._nodes.map(function(node) {
                 var title = node.label;
                 var pointRadius;
@@ -75,9 +78,11 @@
                 } else {
                     pointRadius = Config.node_radius.min;
                 }
+                var lng = node.lng+leftPageMinLng+180.0;
+                if (lng<minLng) { lng += 360.0; }
                 var marker = L.marker({
                         lat: node.lat,
-                        lng: node.lng
+                        lng: lng
                     }, {
                     icon: L.divIcon({
                         className: 'leaflet-marker-cluster',
@@ -100,6 +105,19 @@
             this._map.removeLayer(this._markerLayer);
             this._markerLayer = L.layerGroup(markers);
             this._markerLayer.addTo(this._map);
+        },
+
+
+        _setMapMinX : function() {
+            var bounds = this._map.getPixelBounds(),
+                dim = Math.pow( 2, this._map.getZoom() ) * 256;
+            this._minX = bounds.min.x/dim;
+        },
+
+        updateBounds : function() {
+            this.clear();
+            this._setMapMinX();
+            this.set({nodes:this._nodes,minMax:this._minMax});
         },
 
         clear : function() {
